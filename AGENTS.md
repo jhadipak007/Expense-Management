@@ -17,13 +17,12 @@ When instructed to build a feature:
 2. Read @planning/architecture_plan.md before designing or writing any code. For deployment or infrastructure tasks, also read `planning/deployment_architecture.md`
 3. Develop the feature - do not skip any step from the feature-dev 7 step process which is provided to you as a plugin.
 4. Run tests that cover the changed behavior, including relevant unit and integration tests where they exist. Add or update tests for new behavior and fix failures. Do not require unrelated test suites for a change.
-5. Update the Implementation Status summary in the same PR
-6. Submit a PR using your github tools
+5. Submit a PR using your github tools
 
 Jira project key: EM
 
 ## Git workflow
-Applies to every change, including docs and small fixes:
+Applies to every change related to feature implementation or bug fixes:
 - Never edit files on `main`. Before the first edit, update `main` and create a branch: `git checkout -b <type>/<short-name>` (e.g. `feature/EM-12-add-expense`, `docs/api-design`, `fix/login-timeout`).
 - Commit on that branch, push it, and open a PR to `main`.
 - Merge a PR only when explicitly asked.
@@ -77,18 +76,6 @@ Detailed deployment architecture: see `planning/deployment_architecture.md`.
 - Pick the issue from JIRA project key (EM) as instructed.
 - Move it to "In Progress" when starting
 - After the PR is merged, move the Jira issue to "Done" and add the PR link as a comment.
-
-## Implementation Status
-What the application can do today, from the user's point of view. Describes only what is on `main`.
-
-In every feature PR, update this summary to include that feature:
-- One bullet per functional area (e.g. Auth, Expenses, Reports).
-- Say what works, not how it was built. No file or class names.
-- Edit the matching bullet, or add one for a new area.
-
-Current summary:
-- Nothing implemented yet.
-
 
 ## Personal progress tracking
 
