@@ -7,7 +7,10 @@ from app.config import get_settings
 from app.main import app
 from app.models.base import utcnow
 
-PUBLIC_PATHS = {"/api/health", "/api/auth/login", "/api/auth/refresh", "/api/auth/logout"}
+PUBLIC_PATHS = {
+    "/api/health", "/api/auth/register", "/api/auth/register/verify",
+    "/api/auth/login", "/api/auth/refresh", "/api/auth/logout",
+}
 
 
 def protected_routes():
