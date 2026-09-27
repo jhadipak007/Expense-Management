@@ -22,6 +22,12 @@ When instructed to build a feature:
 
 Jira project key: EM
 
+## Git workflow
+Applies to every change, including docs and small fixes:
+- Never edit files on `main`. Before the first edit, update `main` and create a branch: `git checkout -b <type>/<short-name>` (e.g. `feature/EM-12-add-expense`, `docs/api-design`, `fix/login-timeout`).
+- Commit on that branch, push it, and open a PR to `main`.
+- Merge a PR only when explicitly asked.
+
 ## Intended Technical design
 
 These are the intended architecture and implementation constraints for the project.
