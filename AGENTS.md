@@ -2,7 +2,7 @@
 
 ## Overview
 
-Expense Sarathi is an application for recording and reviewing personal expenses.
+Expense Sarathi is an application for recording and reviewing personal and family expenses.
 
 It tracks spending in three categories (as of now):
 
@@ -10,42 +10,55 @@ It tracks spending in three categories (as of now):
 - **Eating Out**: restaurants, cafes, and food delivery
 - **Trips**: travel, stays, and other trip-related costs
 
-## Development process
+## Intended Development process
 
 When instructed to build a feature:
 1. Use your Atlassian tools to read the feature instructions from Jira
-2. Read planning/architecture_plan.md before designing or writing any code. For deployment or infrastructure tasks, also read planning/deployment_architecture.md
-3. Develop the feature - do not skip any step from the feature-dev 7 step process
-4. Thoroughly test the feature with unit tests and integration tests and fix any issues
-5. Submit a PR using your github tools
-6. Update the Implementation Status section of this file: update the summary and add or update your feature's status line
+2. Read @planning/architecture_plan.md before designing or writing any code. For deployment or infrastructure tasks, also read `planning/deployment_architecture.md`
+3. Develop the feature - do not skip any step from the feature-dev 7 step process which is provided to you as a plugin.
+4. Run tests that cover the changed behavior, including relevant unit and integration tests where they exist. Add or update tests for new behavior and fix failures. Do not require unrelated test suites for a change.
+5. Update the Implementation Status summary in the same PR
+6. Submit a PR using your github tools
 
 Jira project key: EM
 
-## Technical design
+## Intended Technical design
 
-The backend should be in backend/ and be a uv project, using FastAPI. 
-The frontend should be in frontend/  
-- The backend runs as a single container image, used both locally and on AWS Lambda.
-  The image starts FastAPI with uvicorn; in production, AWS Lambda Web Adapter translates Lambda events into HTTP requests. Do not use Mangum.
-- The database is selected by `USE_POSTGRESQL_DB`:
-  - unset or `false`: SQLite (local development and automated tests)
-  - `true`: PostgreSQL (AWS RDS in production)
-- Keep database code dialect-neutral: use SQLAlchemy only, with no PostgreSQL- or SQLite-specific SQL.
-- Before a release, run the tests once against a local PostgreSQL container with `USE_POSTGRESQL_DB=true`.
-- Local run: `docker compose up` starts the backend container with the SQLite file on a volume mounted from `db/` in the project root (git-ignored); FastAPI also serves the built frontend.
-The frontend is statically exported. In local dev FastAPI serves it; in production S3 + CloudFront serve it. Either way the API and the app share one origin. 
-The frontend is a React + Vite project.
-use `uv` as Python package manager. Always `uv run xxx` never `python3 xxx`. Always `uv add xxx` never `pip install xxx`
-- Data layer: SQLAlchemy 2.0 + Alembic migrations.
+These are the intended architecture and implementation constraints for the project.
+
+### Backend
+- The backend lives in `backend/`, uses FastAPI, and is managed as a `uv` project.
+- Use `uv run` to run Python commands and `uv add` to add dependencies; do not use `python3` or `pip install` directly.
+- Use `pydantic-settings` to read configuration (including database URLs and secrets) from environment variables and the local git-ignored `.env` file. Define one `Settings` class and do not read `os.environ` directly.
 - API routes live under `/api`.
-- Multi-user with login; each user sees only their own expenses.
-- Multi-currency: each expense stores a currency code; totals are grouped by currency (no conversion).
+- The backend runs as one container image locally and on AWS Lambda. The image starts FastAPI with uvicorn. In production, AWS Lambda Web Adapter translates Lambda events into HTTP requests. Do not use Mangum.
+- Use SQLAlchemy 2.0 and Alembic migrations. Keep database code dialect-neutral and avoid PostgreSQL- or SQLite-specific SQL.
+- Select the database with `USE_POSTGRESQL_DB`:
+  - Unset or `false`: SQLite for local development and automated tests.
+  - `true`: PostgreSQL for AWS RDS in production.
+- Support multiple users with login. Users can create families and invite others; a user can belong to multiple families.
+- Each expense is either personal (visible only to its recorder) or shared with one family (visible to all its members, including in reports).
+- Store a currency code on each expense and group totals by currency without conversion.
 
-Detailed application architecture: see `planning/architecture_plan.md`.
+### Frontend
+- The frontend lives in `frontend/` and uses React + Vite.
+- Build the frontend as static assets. Locally, FastAPI serves the built assets; in production, S3 and CloudFront serve them. The API and app share one origin.
+
+### Local development
+- The SQLite database file is stored in the git-ignored `db/` directory in the project root and mounted into the backend container.
+- FastAPI serves the built frontend during local runs.
+- Start and stop scripts live in `scripts/` and wrap `docker compose`:
+  - Mac: `start_mac.sh` and `stop_mac.sh` (bash)
+  - Windows: `start_windows.ps1` and `stop_windows.ps1` (PowerShell)
+  - Start builds and runs the app in the background and prints the local URL; stop shuts it down.
+
+### Release checks
+- Before a release, run the test suite against a local PostgreSQL container with `USE_POSTGRESQL_DB=true`.
+
+Detailed application architecture: see @planning/architecture_plan.md.
 
 
-## Color Scheme
+## Intended Color Scheme
 Base:
 - Primary Blue: `#3a78b5` (all buttons and links)
 - Accent Amber: `#e6b340` (small highlights and badges only)
@@ -64,7 +77,7 @@ Status:
 - Error / over budget: Warm Red `#d0584c`
 - Success: Sea Green `#3a9e84`
 
-## Deployment Architecture
+## Intended Deployment Architecture
 - AWS CloudFront is the CDN and single origin: `/api/*` routes to API Gateway -> Lambda; everything else to S3 (static Vite build).
 - Backend: the same container image as local, pushed to Amazon ECR and deployed to AWS Lambda with AWS Lambda Web Adapter.
 - Database: AWS RDS for PostgreSQL (`USE_POSTGRESQL_DB=true` in production).
@@ -74,37 +87,28 @@ Status:
 Detailed deployment architecture: see `planning/deployment_architecture.md`.
 
 ## Kanban workflow:
-- Pick the top issue from "To Do" unless told a specific key
+- Pick the issue from JIRA project key (EM) as instructed.
 - Move it to "In Progress" when starting
-- Move it to "Done" when the PR is merged; add the PR link as a comment
-
+- After the PR is merged, move the Jira issue to "Done" and add the PR link as a comment.
 
 ## Implementation Status
-Update this section in the same PR as the feature.
+What the application can do today, from the user's point of view. Describes only what is on `main`.
 
-### Summary of completed work
-Describes what the application can do today, from the user's point of view.
-
-Rules:
-- Include only features merged into main.
-- Write at most 5 bullet points, one per functional area (e.g. Auth, Expenses, Reports).
-- Each bullet says what works, not how it was built. No file names, no class names.
-
-How to update when your feature is done:
-1. If your feature belongs to an existing area, edit that area's bullet to include it.
-2. If it is a new area, add a new bullet.
-3. If there are now more than 5 bullets, merge the most closely related ones.
-
-Example:
-- Auth: users can register, log in, and log out; each user sees only their own data.
-- Expenses: users can add, edit, and delete expenses with date, amount, currency, category, and note.
+In every feature PR, update this summary to include that feature:
+- One bullet per functional area (e.g. Auth, Expenses, Reports).
+- Say what works, not how it was built. No file or class names.
+- Edit the matching bullet, or add one for a new area.
 
 Current summary:
 - Nothing implemented yet.
 
-### Latest status
-One line per Jira issue, newest first:
-`<JIRA-KEY> — <done / in progress / blocked> — <YYYY-MM-DD HH:MM> — <one-line summary> — PR #<n>`
-Only add or edit the line for your own feature.
 
-- None yet.
+## Personal progress tracking
+
+All personal feature progress shuld be tracked in a file planning/progress.local.md. If such file doesn't exist create it in the planning/ directory. 
+
+@planning/progress.local.md
+
+Update planning/progress.local.md when you finish a feature, or when I ask.
+Format: one line per Jira issue, newest first. If the issue already has a line, update it instead of adding a new one.
+`<JIRA-KEY> — <done / in progress / blocked> — <YYYY-MM-DD HH:MM> — <one-line summary> — PR #<n>`
