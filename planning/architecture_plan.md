@@ -78,25 +78,7 @@ JWT access tokens (10 minutes) with rotating refresh tokens stored in the databa
 REST API under `/api`, authenticated by default, with Pydantic validation on every input. Read [planning/references/api_design.md](references/api_design.md) before any task that adds or changes an API endpoint.
 
 ## Frontend
-React + Vite (JavaScript), React Router, plain CSS with CSS Modules. Read [planning/references/frontend.md](references/frontend.md) before any frontend task.
-
-### Responsive UI rules (apply to all frontend work)
-Every page and component adapts to screen size.
-
-- Build mobile-first: base styles for phones, then enhance with breakpoints
-  md 768 and lg 1024. Content width is capped at 1280px on large screens.
-- One codebase that adapts via CSS — never separate mobile/desktop versions.
-- Layout adapts per size:
-  - Phone (<768px): single column, stacked content, hamburger/drawer nav,
-    tables become card lists, full-width buttons, sticky bottom actions.
-  - Tablet (768–1023px): 2 columns, hamburger/drawer nav, collapsible side panels.
-  - Desktop (≥1024px): sidebar nav, multi-column grid, full tables.
-- Charts are full width and stacked on phones, with the legend below the chart.
-- Use flex/grid, %, rem and clamp() — no fixed pixel widths on containers.
-- Touch targets ≥ 44px; every hover action has a tap equivalent.
-- No horizontal scroll at 360px width.
-- Before finishing any UI task, take Playwright screenshots at 360px, 768px and 1440px
-  and confirm the layout and that there is no horizontal scroll.
+React + Vite (JavaScript), React Router, plain CSS with CSS Modules. Read [planning/references/frontend.md](references/frontend.md), including its responsive UI rules, before any frontend task.
 
 ## Database and Migrations
 SQLAlchemy 2.0 ORM with typed models, relationships and derived fields; Alembic for all schema changes. Read [planning/references/database.md](references/database.md) before any task that touches models, queries or migrations.
