@@ -13,17 +13,24 @@ def build_engine(url) -> Engine:
     engine = create_engine(url)
     if engine.dialect.name == "sqlite":
         event.listen(engine, "connect", _configure_sqlite_connection)
+        event.listen(engine, "begin", _begin_immediate)
     return engine
 
 
 def _configure_sqlite_connection(dbapi_connection, _record) -> None:
-    """Turn on foreign keys, then switch sqlite3 to standard transaction control.
-
-    The pragma is a no-op inside a transaction, so it must run before
-    `autocommit = False` (Python 3.12+), which opens one immediately.
-    """
+    """Turn on foreign keys and let SQLAlchemy, not sqlite3, emit BEGIN."""
+    dbapi_connection.isolation_level = None
     dbapi_connection.execute("PRAGMA foreign_keys=ON")
-    dbapi_connection.autocommit = False
+
+
+def _begin_immediate(connection) -> None:
+    """Take the write lock when a transaction starts.
+
+    A deferred transaction that reads and then writes deadlocks with another
+    one doing the same, and SQLite fails it at once. IMMEDIATE makes the
+    second transaction wait for the first instead.
+    """
+    connection.exec_driver_sql("BEGIN IMMEDIATE")
 
 
 engine = build_engine(get_settings().database_url)

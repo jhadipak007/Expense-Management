@@ -1,0 +1,17 @@
+import { expect } from '@playwright/test';
+
+/** Seeded local test user (backend/app/seed.py). */
+export const TEST_USER = { email: 'test@gmail.com', password: 'P@ssw0rd', name: 'Test User' };
+
+export async function logIn(page, { email = TEST_USER.email, password = TEST_USER.password } = {}) {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password').fill(password);
+  await page.getByRole('button', { name: 'Log in' }).click();
+}
+
+export async function expectDashboard(page) {
+  await expect(page.getByRole('heading', { name: `Welcome, ${TEST_USER.name}` })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+  await expect(page).toHaveURL('/');
+}

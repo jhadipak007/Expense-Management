@@ -18,6 +18,7 @@ class InvalidRefreshToken(Exception):
 def authenticate_user(db: Session, email: str, password: str) -> User | None:
     """Return the active user matching these credentials, or None."""
     user = db.scalar(select(User).where(User.email == email.lower()))
+    db.commit()  # end the read transaction; don't hold database locks during the slow bcrypt check
     if user is None or not user.is_active or not verify_password(password, user.password_hash):
         return None
     return user
