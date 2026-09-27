@@ -3,3 +3,6 @@ db/
 
 # Secrets
 .env
+
+*.local.md
+
