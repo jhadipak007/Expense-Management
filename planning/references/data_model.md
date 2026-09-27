@@ -67,7 +67,7 @@ ORM mapping, relationships and migrations: see [database.md](database.md).
 |---|---|---|
 | id | integer PK | |
 | name | string, unique | |
-| color | string | hex color from the color scheme |
+| color | string | hex color from the [color scheme](frontend.md#color-scheme) |
 
 **expenses**
 
