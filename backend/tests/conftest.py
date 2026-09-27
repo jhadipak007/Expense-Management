@@ -6,6 +6,8 @@ from pathlib import Path
 
 TEST_DB_DIR = Path(tempfile.mkdtemp(prefix="expense_sarathi_test_"))
 
+# SQLite unless the release check sets USE_POSTGRESQL_DB=true explicitly (a value in .env is ignored).
+os.environ.setdefault("USE_POSTGRESQL_DB", "false")
 os.environ.update(
     ENVIRONMENT="test",
     JWT_SECRET="test-secret-that-is-long-enough-for-hs256",

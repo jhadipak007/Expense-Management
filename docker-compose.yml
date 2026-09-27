@@ -22,4 +22,4 @@ services:
       POSTGRES_PASSWORD: expense
       POSTGRES_DB: expense_sarathi
     ports:
-      - "5432:5432"
+      - "5433:5432"             # 5433 on the host, so a locally installed PostgreSQL can keep 5432
