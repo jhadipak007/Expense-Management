@@ -12,7 +12,7 @@ export function RequireAuth() {
   return <Outlet />;
 }
 
-/** Pages for logged-out visitors (login). Logged-in users go to the dashboard. */
+/** Pages for logged-out visitors (login, sign-up). Logged-in users go to the dashboard. */
 export function GuestOnly() {
   const { status } = useAuth();
   if (status === 'loading') return null;

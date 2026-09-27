@@ -1,4 +1,4 @@
-"""Public auth routes: login, refresh and logout. No access token required."""
+"""Public auth routes: register, login, refresh and logout. No access token required."""
 
 from typing import Annotated
 
@@ -7,9 +7,9 @@ from fastapi.responses import JSONResponse
 
 from app.config import get_settings
 from app.deps import DbSession
-from app.schemas.auth import LoginIn, TokenOut
+from app.schemas.auth import LoginIn, RegisterIn, RegistrationOut, TokenOut, VerifyRegistrationIn
 from app.security import create_access_token
-from app.services import auth_service
+from app.services import auth_service, registration_service
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -37,6 +37,32 @@ def clear_refresh_cookie(response: Response) -> None:
         REFRESH_COOKIE, path=COOKIE_PATH, secure=settings.cookie_secure,
         httponly=True, samesite="strict",
     )
+
+
+@router.post("/register", status_code=status.HTTP_201_CREATED)
+def register(body: RegisterIn, db: DbSession) -> RegistrationOut:
+    """Start a sign-up; the account is created only by `/register/verify`."""
+    try:
+        registration_id = registration_service.start_registration(
+            db, body.display_name, body.email, body.password)
+    except registration_service.EmailAlreadyRegistered:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered")
+    return RegistrationOut(registration_id=registration_id)
+
+
+@router.post("/register/verify")
+def verify_registration(body: VerifyRegistrationIn, db: DbSession, response: Response) -> TokenOut:
+    """Check the OTP, create the user and log them in."""
+    try:
+        user = registration_service.verify_registration(db, body.registration_id, body.code)
+    except registration_service.IncorrectCode:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Incorrect code, please try again")
+    except registration_service.RegistrationNotFound:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Sign-up expired, please start again")
+    except registration_service.EmailAlreadyRegistered:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered")
+    set_refresh_cookie(response, auth_service.issue_refresh_token(db, user.id))
+    return TokenOut(access_token=create_access_token(user.id))
 
 
 @router.post("/login")

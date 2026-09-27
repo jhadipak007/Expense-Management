@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { expectDashboard, logIn } from './helpers.js';
+import { fillSignUp } from './register-helpers.js';
 
 const WIDTHS = [360, 768, 1440];
 
@@ -25,6 +26,18 @@ for (const width of WIDTHS) {
       await expectTouchTarget(page.getByRole('button', { name: 'Log in' }));
       await expectTouchTarget(page.getByLabel('Email'));
       await page.screenshot({ path: `test-results/screens/login-${width}.png`, fullPage: true });
+    });
+
+    test('sign-up and OTP screens fit and have large touch targets', async ({ page }) => {
+      await fillSignUp(page);
+      await expectNoHorizontalScroll(page);
+      await expectTouchTarget(page.getByLabel('Code'));
+      await expectTouchTarget(page.getByRole('button', { name: 'Back' }));
+      await page.screenshot({ path: `test-results/screens/otp-${width}.png`, fullPage: true });
+      await page.getByRole('button', { name: 'Back' }).click();
+      await expectNoHorizontalScroll(page);
+      await expectTouchTarget(page.getByRole('button', { name: 'Sign up' }));
+      await page.screenshot({ path: `test-results/screens/register-${width}.png`, fullPage: true });
     });
 
     test('dashboard fits and shows Logout', async ({ page }) => {

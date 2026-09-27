@@ -28,6 +28,19 @@ ORM mapping, relationships and migrations: see [database.md](database.md).
 | revoked_at | datetime, nullable | set on refresh (rotation) or logout |
 | created_at | datetime | UTC |
 
+**pending_registrations**: a sign-up waiting for its OTP. The `users` row is created only when the OTP is verified; the pending row is then deleted. See [authentication.md](authentication.md).
+
+| Column | Type | Notes |
+|---|---|---|
+| id | integer PK | |
+| token_hash | string, unique | SHA-256 of the registration id returned to the client |
+| email | string | lowercase; not unique, so an abandoned sign-up does not block the email |
+| display_name | string | |
+| password_hash | string | bcrypt, copied to `users` on success |
+| attempts | integer | wrong codes so far; the row is deleted at the limit (5) |
+| expires_at | datetime | 10 minutes after sign-up starts |
+| created_at | datetime | UTC |
+
 **families**: a group that shares expenses.
 
 | Column | Type | Notes |

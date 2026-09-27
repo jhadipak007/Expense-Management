@@ -37,12 +37,20 @@ export function AuthProvider() {
     setSession({ status: 'authenticated', user: await authApi.fetchCurrentUser() });
   }, []);
 
+  const completeRegistration = useCallback(async (registrationId, code) => {
+    await authApi.verifyRegistration(registrationId, code);
+    setSession({ status: 'authenticated', user: await authApi.fetchCurrentUser() });
+  }, []);
+
   const logout = useCallback(async () => {
     setSession(LOGGED_OUT);
     await authApi.logout();
   }, []);
 
-  const value = useMemo(() => ({ ...session, login, logout }), [session, login, logout]);
+  const value = useMemo(
+    () => ({ ...session, login, completeRegistration, logout }),
+    [session, login, completeRegistration, logout],
+  );
 
   return (
     <AuthContext value={value}>

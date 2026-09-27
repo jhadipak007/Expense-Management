@@ -53,7 +53,8 @@ def decode_access_token(token: str) -> int | None:
     return int(claims["sub"])
 
 
-def new_refresh_token() -> str:
+def new_token() -> str:
+    """A random opaque token, used for refresh tokens and registration ids."""
     return secrets.token_urlsafe(32)
 
 

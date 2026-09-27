@@ -19,6 +19,9 @@
 | `JWT_SECRET` | `SecretStr` | Signs access tokens | dev value in `.env` | Secrets Manager (`jwt_secret`) |
 | `ACCESS_TOKEN_MINUTES` | `int` | Access token lifetime | `10` | `10` |
 | `REFRESH_TOKEN_IDLE_MINUTES` | `int` | Session idle timeout: refresh token and cookie lifetime, renewed on every refresh | `30` | `30` |
+| `REGISTRATION_OTP` | `str` | Fixed sign-up code until codes are emailed | `2211` | `2211` |
+| `REGISTRATION_MINUTES` | `int` | How long a pending sign-up waits for its OTP | `10` | `10` |
+| `REGISTRATION_MAX_ATTEMPTS` | `int` | Wrong codes allowed before sign-up must restart | `5` | `5` |
 | `INVITATION_EXPIRY_DAYS` | `int` | Invitation link lifetime | `7` | `7` |
 | `COOKIE_SECURE` | `bool` | `Secure` flag on the refresh cookie | `false` (http on localhost) | `true` |
 | `ALLOWED_HOSTS` | `list[str]` | `TrustedHostMiddleware` hosts | `["localhost", "127.0.0.1"]` | API Gateway host (CloudFront does not forward the viewer host) |

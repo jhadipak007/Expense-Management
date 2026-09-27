@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../auth/useAuth.js';
-import styles from './Login.module.css';
+import styles from '../../components/AuthForm/AuthForm.module.css';
+import Field from '../../components/AuthForm/Field.jsx';
 
 const INCORRECT = 'Incorrect email or password';
 const UNAVAILABLE = 'Something went wrong. Please try again.';
@@ -63,29 +64,12 @@ export default function Login() {
         <button className={`button ${styles.submit}`} type="submit" disabled={submitting}>
           {submitting ? 'Logging in...' : 'Log in'}
         </button>
+
+        <p className={styles.switch}>
+          New to Expense Sarathi? <Link to="/register">Create an account</Link>
+        </p>
       </form>
     </main>
   );
 }
-
-function Field({ id, label, error, onChange, ...inputProps }) {
-  const errorId = `${id}-error`;
-  return (
-    <div className={styles.field}>
-      <label htmlFor={id}>{label}</label>
-      <input
-        id={id}
-        className={styles.input}
-        onChange={(event) => onChange(event.target.value)}
-        aria-invalid={Boolean(error)}
-        aria-describedby={error ? errorId : undefined}
-        {...inputProps}
-      />
-      {error && (
-        <span id={errorId} className={styles.fieldError}>
-          {error}
-        </span>
-      )}
-    </div>
-  );
-}
+

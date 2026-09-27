@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.models import RefreshToken, User
 from app.models.base import utcnow
-from app.security import hash_password, hash_token, new_refresh_token, verify_password
+from app.security import hash_password, hash_token, new_token, verify_password
 
 DUMMY_PASSWORD_HASH = hash_password("not-a-real-password")
 
@@ -33,7 +33,7 @@ def authenticate_user(db: Session, email: str, password: str) -> User | None:
 
 def issue_refresh_token(db: Session, user_id: int) -> str:
     """Store a new refresh token that expires after the idle window; return the raw token."""
-    raw = new_refresh_token()
+    raw = new_token()
     idle = timedelta(minutes=get_settings().refresh_token_idle_minutes)
     db.add(RefreshToken(user_id=user_id, token_hash=hash_token(raw), expires_at=utcnow() + idle))
     db.commit()

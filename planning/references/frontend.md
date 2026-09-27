@@ -38,7 +38,7 @@ Every page and component adapts to screen size.
 | Route | Page | Access |
 |---|---|---|
 | `/login` | Login | public |
-| `/register` | Register | public |
+| `/register` | Register: details, then the OTP screen with Back (details kept). Links to login. After 5 wrong codes, returns to the details step | public; logged-in users go to `/` |
 | `/` | Dashboard: welcome message and Logout (redirect target after login). Becomes the expenses list in a later ticket | logged in |
 | `/expenses/new`, `/expenses/:id` | Add / edit expense | logged in |
 | `/families`, `/families/:id` | Families list, family detail with members and invitations | logged in |

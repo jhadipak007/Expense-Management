@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     jwt_secret: SecretStr
     access_token_minutes: int = 10
     refresh_token_idle_minutes: int = 30  # keep equal to IDLE_MINUTES in frontend/src/auth/useIdleLogout.js
+    registration_otp: str = "2211"  # fixed until codes are sent by email
+    registration_minutes: int = 10
+    registration_max_attempts: int = 5
     cookie_secure: bool = True
     allowed_hosts: list[str] = ["localhost", "127.0.0.1"]
     enable_api_docs: bool = False

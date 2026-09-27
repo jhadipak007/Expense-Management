@@ -43,7 +43,7 @@ Tests never depend on each other or on execution order.
 - Derived fields: `is_personal`, `is_expired`, `is_active`, computed `month`.
 
 **Integration**
-- Auth: register, duplicate email (409), login success and failure (401, same message for unknown email and wrong password), only one request using a refresh token succeeds and a duplicate/replayed use revokes all refresh tokens, logout works with a refresh cookie and no access token (including missing/expired/revoked cookie, always 204 and clears cookie), access token expiry.
+- Auth: register with OTP (correct code creates and logs in the user; wrong code; 5th wrong code ends the registration; expiry; abandoned sign-up does not block the email), duplicate email (409), login success and failure (401, same message for unknown email and wrong password), only one request using a refresh token succeeds and a duplicate/replayed use revokes all refresh tokens, logout works with a refresh cookie and no access token (including missing/expired/revoked cookie, always 204 and clears cookie), access token expiry.
 - Every protected endpoint returns 401 without a token (one parametrized test over all routes).
 - Expenses: create personal and family expenses; list returns only visible expenses; non-member gets 404 for a family expense; only the recorder can edit or delete; filters, sorting and pagination.
 - Families: create (creator is owner), invite, accept with matching email, reject mismatched email, expired invitation, owner-only actions return 403 for members, members can leave, owners cannot leave or remove themselves, and every family retains an owner.
@@ -77,7 +77,7 @@ Tests never depend on each other or on execution order.
 
 **Auth pages**
 - Login: shows field errors for empty inputs; shows the server error on 401; redirects to the originally requested page on success.
-- Register: password shorter than 8 characters is blocked; 409 shows "email already registered".
+- Register: missing fields are named, invalid email, password shorter than 8 characters and mismatched passwords are blocked; 409 shows "email already registered" with a login link; a non-4-digit code is blocked; a wrong code shows "Incorrect code, please try again"; a 404 returns to the details step.
 - Route guard: a logged-out user opening `/reports` is sent to `/login` and returned after login.
 - App start: session is restored through `/refresh` when the cookie is valid.
 

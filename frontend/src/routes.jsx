@@ -4,12 +4,19 @@ import { GuestOnly, RequireAuth } from './auth/guards.jsx';
 import AppLayout from './layouts/AppLayout.jsx';
 import Dashboard from './pages/Dashboard/Dashboard.jsx';
 import Login from './pages/Login/Login.jsx';
+import Register from './pages/Register/Register.jsx';
 
 export const routes = [
   {
     element: <AuthProvider />,
     children: [
-      { element: <GuestOnly />, children: [{ path: '/login', element: <Login /> }] },
+      {
+        element: <GuestOnly />,
+        children: [
+          { path: '/login', element: <Login /> },
+          { path: '/register', element: <Register /> },
+        ],
+      },
       {
         element: <RequireAuth />,
         children: [{ element: <AppLayout />, children: [{ path: '/', element: <Dashboard /> }] }],

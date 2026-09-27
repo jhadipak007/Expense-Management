@@ -1,0 +1,101 @@
+import { useState } from 'react';
+import { register } from '../../api/auth.js';
+import styles from '../../components/AuthForm/AuthForm.module.css';
+import Field from '../../components/AuthForm/Field.jsx';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const UNAVAILABLE = 'Something went wrong. Please try again.';
+const SERVER_FIELD_ERRORS = {
+  display_name: 'Name must be 1 to 100 characters',
+  email: 'Enter a valid email address',
+  password: 'Password must be 8 to 72 characters',
+};
+
+/** Browser-side checks that mirror the API rules; returns errors keyed by field. */
+function validateDetails({ displayName, email, password, confirm }) {
+  const errors = {};
+  if (!displayName.trim()) errors.displayName = 'Name is required';
+  if (!email.trim()) errors.email = 'Email is required';
+  else if (!EMAIL_PATTERN.test(email.trim())) errors.email = 'Enter a valid email address';
+  if (!password) errors.password = 'Password is required';
+  else if (password.length < 8) errors.password = 'Password must be at least 8 characters';
+  else if (new TextEncoder().encode(password).length > 72) errors.password = 'Password is too long';
+  if (!confirm) errors.confirm = 'Please confirm your password';
+  else if (password && confirm !== password) errors.confirm = 'Passwords do not match';
+  return errors;
+}
+
+function serverFieldErrors(body) {
+  const errors = {};
+  for (const { loc } of body?.detail ?? []) {
+    const field = loc?.[1];
+    if (SERVER_FIELD_ERRORS[field]) {
+      errors[field === 'display_name' ? 'displayName' : field] = SERVER_FIELD_ERRORS[field];
+    }
+  }
+  return errors;
+}
+
+export default function DetailsForm({ details, onChange, notice, onRegistered, loginLink }) {
+  const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const set = (field) => (value) => onChange({ ...details, [field]: value });
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    const fieldErrors = validateDetails(details);
+    setErrors(fieldErrors);
+    setFormError(null);
+    if (Object.keys(fieldErrors).length) return;
+    setSubmitting(true);
+    try {
+      onRegistered(await register(details.displayName.trim(), details.email.trim(), details.password));
+    } catch (error) {
+      if (error.status === 409) {
+        setFormError(<>An account with this email already exists. {loginLink} instead.</>);
+      } else if (error.status === 422) {
+        setErrors(serverFieldErrors(error.body));
+      } else {
+        setFormError(UNAVAILABLE);
+      }
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form className={styles.card} onSubmit={handleSubmit} noValidate>
+      <h1 className={styles.title}>Expense Sarathi</h1>
+      <p className={styles.subtitle}>Create your account</p>
+
+      {(formError || notice) && (
+        <p className={styles.formError} role="alert">
+          {formError || notice}
+        </p>
+      )}
+
+      <Field
+        id="displayName" label="Name" autoComplete="name" maxLength={100}
+        value={details.displayName} onChange={set('displayName')} error={errors.displayName}
+      />
+      <Field
+        id="email" label="Email" type="email" autoComplete="email"
+        value={details.email} onChange={set('email')} error={errors.email}
+      />
+      <Field
+        id="password" label="Password" type="password" autoComplete="new-password"
+        value={details.password} onChange={set('password')} error={errors.password}
+      />
+      <Field
+        id="confirm" label="Confirm password" type="password" autoComplete="new-password"
+        value={details.confirm} onChange={set('confirm')} error={errors.confirm}
+      />
+
+      <button className={`button ${styles.submit}`} type="submit" disabled={submitting}>
+        {submitting ? 'Signing up...' : 'Sign up'}
+      </button>
+
+      <p className={styles.switch}>Already have an account? {loginLink}</p>
+    </form>
+  );
+}
