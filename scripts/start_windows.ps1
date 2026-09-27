@@ -1,6 +1,5 @@
 # Build and start Expense Sarathi in Docker, wait until healthy, print the URL.
-$ErrorActionPreference = 'Stop'
-Set-Location (Join-Path $PSScriptRoot '..')
+Set-Location (Join-Path $PSScriptRoot '..') -ErrorAction Stop
 
 docker info *> $null
 if ($LASTEXITCODE -ne 0) {
