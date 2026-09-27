@@ -8,7 +8,7 @@ A web app for recording and reviewing personal and family expenses.
 
 ## Status
 
-In the design phase. The architecture and plans are written; application code has not been started.
+Login, logout and the dashboard greeting work. Registration, families, expenses and reports are next.
 
 ## Tech stack
 
@@ -20,16 +20,24 @@ In the design phase. The architecture and plans are written; application code ha
 | Auth | JWT access tokens with rotating refresh tokens |
 | Hosting | CloudFront + S3 (frontend), API Gateway + Lambda (API) |
 
-## Running locally (planned)
+## Running locally
 
 Requires Docker Desktop.
 
 ```bash
-cp .env.example .env              # then set JWT_SECRET
+cp .env.example .env              # then set JWT_SECRET (openssl rand -hex 32)
 ./scripts/start_mac.sh            # Windows: .\scripts\start_windows.ps1
 ```
 
-The app runs at `http://localhost:8080`. Stop it with `./scripts/stop_mac.sh` (Windows: `.\scripts\stop_windows.ps1`).
+The app runs at `http://localhost:8080`. Log in with the local test user `test@gmail.com` / `P@ssw0rd`. Stop it with `./scripts/stop_mac.sh` (Windows: `.\scripts\stop_windows.ps1`).
+
+## Tests
+
+```bash
+cd backend && uv run pytest       # API, on SQLite
+cd frontend && npm test           # components
+cd frontend && npm run e2e        # end to end, against the running app
+```
 
 ## Documentation
 

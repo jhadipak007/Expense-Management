@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    image: expense-sarathi:local
+    ports:
+      - "8080:8080"
+    env_file: .env
+    volumes:
+      - ./db:/app/db
+    command: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  postgres:                      # only for the release check: docker compose --profile postgres up -d postgres
+    image: postgres:17
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_USER: expense
+      POSTGRES_PASSWORD: expense
+      POSTGRES_DB: expense_sarathi
+    ports:
+      - "5433:5432"             # 5433 on the host, so a locally installed PostgreSQL can keep 5432

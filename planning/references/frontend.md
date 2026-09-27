@@ -39,7 +39,7 @@ Every page and component adapts to screen size.
 |---|---|---|
 | `/login` | Login | public |
 | `/register` | Register | public |
-| `/` | Expenses list (redirect target after login) | logged in |
+| `/` | Dashboard: welcome message and Logout (redirect target after login). Becomes the expenses list in a later ticket | logged in |
 | `/expenses/new`, `/expenses/:id` | Add / edit expense | logged in |
 | `/families`, `/families/:id` | Families list, family detail with members and invitations | logged in |
 | `/invite/:token` | Accept or decline an invitation | logged in; redirects to login and back |

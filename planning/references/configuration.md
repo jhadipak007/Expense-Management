@@ -18,7 +18,7 @@
 | `DB_USER`, `DB_PASSWORD` | `str`, `SecretStr` | PostgreSQL credentials | not used | Secrets Manager (`db_user`, `db_password`) |
 | `JWT_SECRET` | `SecretStr` | Signs access tokens | dev value in `.env` | Secrets Manager (`jwt_secret`) |
 | `ACCESS_TOKEN_MINUTES` | `int` | Access token lifetime | `10` | `10` |
-| `REFRESH_TOKEN_DAYS` | `int` | Refresh token lifetime | `7` | `7` |
+| `REFRESH_TOKEN_IDLE_MINUTES` | `int` | Session idle timeout: refresh token and cookie lifetime, renewed on every refresh | `30` | `30` |
 | `INVITATION_EXPIRY_DAYS` | `int` | Invitation link lifetime | `7` | `7` |
 | `COOKIE_SECURE` | `bool` | `Secure` flag on the refresh cookie | `false` (http on localhost) | `true` |
 | `ALLOWED_HOSTS` | `list[str]` | `TrustedHostMiddleware` hosts | `["localhost", "127.0.0.1"]` | API Gateway host (CloudFront does not forward the viewer host) |

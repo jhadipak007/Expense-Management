@@ -1,0 +1,35 @@
+/* Design tokens. Components use these variables, never raw hex values. */
+:root {
+  --color-primary: #3a78b5;
+  --color-primary-dark: #2f6293;
+  --color-on-primary: #ffffff;
+  --color-accent: #e6b340;
+  --color-heading: #1c2b3f;
+  --color-text: #556270;
+  --color-background: #f6f7f9;
+  --color-card: #ffffff;
+  --color-border: #e4e7eb;
+  --color-error: #d0584c;
+  --color-success: #3a9e84;
+
+  --color-grocery: #8aa84a;
+  --color-eating-out: #e08e5a;
+  --color-trips: #3a9e84;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: clamp(1.5rem, 1.2rem + 1.5vw, 2rem);
+
+  --radius: 0.5rem;
+  --touch-target: 44px;
+  --content-max-width: 1280px;
+}

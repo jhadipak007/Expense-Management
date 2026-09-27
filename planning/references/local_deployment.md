@@ -25,7 +25,7 @@ Browser ──http://localhost:8080──> Docker container "app"
 | Git | Clone the repo | `git --version` |
 | Docker Desktop (Compose v2) | Build and run the container | `docker compose version` |
 | `openssl` (Git Bash on Windows includes it) | Generate a local JWT secret | `openssl version` |
-| Optional: `uv`, Node.js 22 LTS | Run tests or dev servers outside Docker | `uv --version`, `node --version` |
+| Optional: `uv`, Node.js 24 LTS | Run tests or dev servers outside Docker | `uv --version`, `node --version` |
 
 Windows only: allow local PowerShell scripts once with `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
@@ -46,7 +46,7 @@ Windows only: allow local PowerShell scripts once with `Set-ExecutionPolicy -Sco
 
 ```dockerfile
 # Stage 1: build the frontend
-FROM node:22-alpine AS frontend
+FROM node:24-alpine AS frontend
 WORKDIR /frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
@@ -56,8 +56,8 @@ RUN npm run build
 # Stage 2: backend image (used locally and on Lambda)
 FROM python:3.13-slim
 # Lambda Web Adapter: inactive locally, translates Lambda events on AWS. Pin the latest release.
-COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.1 /lambda-adapter /opt/extensions/lambda-adapter
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:1.1.0 /lambda-adapter /opt/extensions/lambda-adapter
+COPY --from=ghcr.io/astral-sh/uv:0.12.19 /uv /usr/local/bin/uv
 
 WORKDIR /app
 ENV PATH="/app/.venv/bin:$PATH" \
@@ -92,7 +92,7 @@ services:
     env_file: .env
     volumes:
       - ./db:/app/db
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8080"
+    command: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8080"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/health')"]
       interval: 5s
@@ -107,7 +107,7 @@ services:
       POSTGRES_PASSWORD: expense
       POSTGRES_DB: expense_sarathi
     ports:
-      - "5432:5432"
+      - "5433:5432"             # 5433 on the host, so a locally installed PostgreSQL can keep 5432
 ```
 
 ## 4. First-time setup
@@ -156,8 +156,9 @@ What the start script does, in order:
    1. builds the frontend in the Node stage,
    2. installs the backend dependencies with `uv sync --locked`,
    3. starts the container,
-   4. runs `alembic upgrade head` against the SQLite file (creates tables, seeds categories),
-   5. starts uvicorn on port 8080.
+   4. runs `alembic upgrade head` against the SQLite file (creates tables),
+   5. runs `python -m app.seed`, which creates the local test user `test@gmail.com` / `P@ssw0rd` if it is missing (skipped when `ENVIRONMENT=production`),
+   6. starts uvicorn on port 8080.
 5. Waits until the container health check reports `healthy` (polls `docker compose ps`), with a timeout of about 60 seconds. On timeout it prints `docker compose logs app` and exits with an error.
 6. Prints the URL: `Expense Sarathi is running at http://localhost:8080`.
 
@@ -165,10 +166,10 @@ What the start script does, in order:
 
 1. `http://localhost:8080/api/health` returns `{"status": "ok"}`.
 2. `http://localhost:8080` shows the login page.
-3. Register a user, log in, add an expense and see it in the list.
+3. Log in as `test@gmail.com` / `P@ssw0rd` and see "Welcome, Test User"; Logout returns to the login page.
 4. Reload a deep link such as `http://localhost:8080/reports`; the app loads (index.html fallback works).
 5. `http://localhost:8080/docs` shows the API docs (enabled locally only).
-6. Stop and start again; the expense is still there (data persisted in `db/`).
+6. Stop and start again; your data is still there (persisted in `db/`).
 
 ## 7. Day-to-day operations
 
@@ -201,7 +202,7 @@ For fast frontend/backend iteration without rebuilding the image:
    ```bash
    docker compose --profile postgres up -d postgres
    cd backend
-   USE_POSTGRESQL_DB=true DB_HOST=localhost DB_PORT=5432 DB_NAME=expense_sarathi \
+   USE_POSTGRESQL_DB=true DB_HOST=localhost DB_PORT=5433 DB_NAME=expense_sarathi \
    DB_USER=expense DB_PASSWORD=expense uv run pytest
    docker compose --profile postgres down
    ```

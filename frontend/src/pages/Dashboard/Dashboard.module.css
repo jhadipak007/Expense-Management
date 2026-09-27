@@ -1,0 +1,12 @@
+.card {
+  padding: var(--space-6);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.greeting {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xl);
+  overflow-wrap: anywhere;
+}
