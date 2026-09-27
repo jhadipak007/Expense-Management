@@ -6,6 +6,7 @@ from sqlalchemy import select, update
 from app.models import RefreshToken
 from app.models.base import utcnow
 from app.routers.auth import REFRESH_COOKIE
+from app.services import auth_service
 from tests.conftest import DEFAULT_PASSWORD
 
 LOGIN = "/api/auth/login"
@@ -152,3 +153,18 @@ def test_logout_with_already_revoked_token_succeeds(client, make_user):
     client.post(LOGOUT)
     use_cookie(client, raw)
     assert client.post(LOGOUT).status_code == 204
+
+
+@pytest.mark.parametrize("email,is_active", [
+    ("nobody@example.com", True),
+    ("priya@example.com", False),
+])
+def test_failed_login_always_checks_a_password(client, make_user, monkeypatch, email, is_active):
+    """Every failed login pays the bcrypt cost, so response time does not reveal accounts."""
+    make_user(is_active=is_active)
+    checks = []
+    real_verify = auth_service.verify_password
+    monkeypatch.setattr(auth_service, "verify_password",
+                        lambda *args: checks.append(1) or real_verify(*args))
+    assert login(client, email=email).status_code == 401
+    assert checks == [1]

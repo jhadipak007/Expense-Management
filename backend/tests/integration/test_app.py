@@ -59,3 +59,9 @@ def test_seed_creates_the_test_user_once(db):
 def test_migrations_downgrade_and_upgrade_cleanly(engine):
     command.downgrade(alembic_config(), "base")
     command.upgrade(alembic_config(), "head")
+
+
+def test_rejected_host_response_carries_security_headers(client):
+    headers = client.get("/api/health", headers={"Host": "evil.example"}).headers
+    assert headers["X-Frame-Options"] == "DENY"
+    assert headers["Cache-Control"] == "no-store"

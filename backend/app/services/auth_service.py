@@ -8,7 +8,9 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.models import RefreshToken, User
 from app.models.base import utcnow
-from app.security import hash_token, new_refresh_token, verify_password
+from app.security import hash_password, hash_token, new_refresh_token, verify_password
+
+DUMMY_PASSWORD_HASH = hash_password("not-a-real-password")
 
 
 class InvalidRefreshToken(Exception):
@@ -16,10 +18,15 @@ class InvalidRefreshToken(Exception):
 
 
 def authenticate_user(db: Session, email: str, password: str) -> User | None:
-    """Return the active user matching these credentials, or None."""
+    """Return the active user matching these credentials, or None.
+
+    The password is always checked, against a dummy hash when there is no
+    user, so response time does not reveal which emails have accounts.
+    """
     user = db.scalar(select(User).where(User.email == email.lower()))
     db.commit()  # end the read transaction; don't hold database locks during the slow bcrypt check
-    if user is None or not user.is_active or not verify_password(password, user.password_hash):
+    password_ok = verify_password(password, user.password_hash if user else DUMMY_PASSWORD_HASH)
+    if user is None or not user.is_active or not password_ok:
         return None
     return user
 

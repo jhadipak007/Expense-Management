@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 
+// Keep equal to REFRESH_TOKEN_IDLE_MINUTES on the server (backend/app/config.py).
 export const IDLE_MINUTES = 30;
 const ACTIVITY_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'scroll', 'touchstart'];
 

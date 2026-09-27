@@ -29,8 +29,9 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if docs else None,
         openapi_url="/openapi.json" if docs else None,
     )
-    app.middleware("http")(add_security_headers)
+    # The last middleware added runs first: headers wrap every response, including host rejections.
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
+    app.middleware("http")(add_security_headers)
     for module in (health, auth, users):
         app.include_router(module.router)
     dist = Path(settings.frontend_dist_dir)
