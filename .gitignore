@@ -6,3 +6,15 @@ db/
 
 *.local.md
 
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
