@@ -28,7 +28,8 @@ All under `/api/auth`.
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/register` | Create a user (email, password, display name) |
+| POST | `/register` | Start a sign-up (email, password, display name); return a registration id |
+| POST | `/register/verify` | Check the OTP, create the user and log them in (access token and refresh cookie) |
 | POST | `/login` | Check credentials; return access token and set refresh cookie |
 | POST | `/refresh` | Exchange the refresh cookie for a new access token and a new refresh cookie |
 | POST | `/logout` | Requires the refresh cookie but not an access token; revoke its token if valid and clear the cookie. Return 204 even if the cookie is missing, expired or already revoked. |
@@ -37,6 +38,7 @@ The current user is returned by `GET /api/users/me` (see [api_design.md](api_des
 
 ## Flows
 
+- **Sign-up with OTP**: `/register` rejects an email that already has an account (409), then stores a `pending_registrations` row (hashed password, 10-minute expiry) and returns a random registration id; only its SHA-256 hash is stored. `/register/verify` checks the 4-digit code. A wrong code returns 400 and counts an attempt; the 5th wrong code deletes the row, and an unknown or expired registration returns 404 so the client restarts sign-up. The correct code creates the `users` row, deletes the pending row and logs the user in like `/login`. Until email sending exists the code is always `2211` (`REGISTRATION_OTP`); only `registration_service` knows how the code is chosen.
 - **Login**: verify the password hash, create a `refresh_tokens` row, return the access token and set the cookie.
 - **Authenticated request**: a FastAPI dependency decodes the JWT, checks `exp` and `type`, loads the user and rejects inactive users with 401.
 - **Refresh (rotation)**: atomically consume the cookie's token and issue a new refresh token and access token. If it is expired or unknown, return 401 and clear the cookie. Only one request using a token can succeed: consumption is a conditional `UPDATE ... WHERE revoked_at IS NULL AND expires_at > now`, and only the request that updates the row wins (dialect-neutral; no `SELECT ... FOR UPDATE`).

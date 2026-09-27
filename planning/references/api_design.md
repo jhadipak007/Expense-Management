@@ -9,6 +9,7 @@ Every endpoint requires a valid access token, except these, which cannot require
 | Endpoint | Protection instead |
 |---|---|
 | `POST /api/auth/register` | Input validation, rate limiting |
+| `POST /api/auth/register/verify` | Requires a registration id; 5 wrong codes end the registration |
 | `POST /api/auth/login` | Input validation, rate limiting |
 | `POST /api/auth/refresh` | Requires a valid refresh cookie |
 | `POST /api/auth/logout` | Requires the refresh cookie; does not require an access token |
@@ -26,7 +27,8 @@ Authorization is checked in the service layer after authentication:
 ### Auth (`/api/auth`)
 | Method | Path | Body | Returns |
 |---|---|---|---|
-| POST | `/register` | `RegisterIn` | `UserOut` (201) |
+| POST | `/register` | `RegisterIn` | `RegistrationOut` (201) with `registration_id`; 409 if the email has an account |
+| POST | `/register/verify` | `VerifyRegistrationIn` (`registration_id`, 4-digit `code`) | `TokenOut` + refresh cookie; 400 wrong code, 404 expired or out of attempts, 409 email taken meanwhile |
 | POST | `/login` | `LoginIn` | `TokenOut` + refresh cookie |
 | POST | `/refresh` | none (cookie) | `TokenOut` + new cookie |
 | POST | `/logout` | none | 204 |
@@ -127,7 +129,7 @@ Relevant endpoints: everything that takes a path parameter or filter, above all 
 | CORS | none | Same origin; no `CORSMiddleware` |
 | Trusted hosts | `TrustedHostMiddleware` | Allowed hosts from `Settings` |
 | API docs | FastAPI app | `/docs`, `/redoc`, `/openapi.json` disabled in production (`docs_url=None` etc., controlled by `Settings`) |
-| Rate limiting | API Gateway throttling | Stricter limits on `/api/auth/login` and `/api/auth/register` |
+| Rate limiting | API Gateway throttling | Stricter limits on `/api/auth/login` and `/api/auth/register*` |
 | Error responses | Exception handler | Unhandled errors return a generic 500 message; details go only to logs |
 | Secrets | `Settings` / AWS Secrets Manager | `JWT_SECRET`, database URL; never logged |
 | CSRF | Design | Access token is sent in a header, not a cookie; the refresh cookie is `SameSite=Strict` |
