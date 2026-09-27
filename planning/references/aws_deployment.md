@@ -85,7 +85,7 @@ The migration task uses the same variables except the `AWS_LWA_*` ones.
 
 1. **AWS account**: use an IAM Identity Center (SSO) user or IAM user with admin rights for the one-time setup. Do not use the root user; enable MFA on root.
 2. **Billing alarm**: Billing and Cost Management -> Budgets -> create a monthly cost budget with an email alert.
-3. **Tools on your machine**: AWS CLI v2 (`aws --version`), Docker with `buildx`, Node.js 22, `uv`, and for option C Terraform (latest 1.x).
+3. **Tools on your machine**: AWS CLI v2 (`aws --version`), Docker with `buildx`, Node.js 24, `uv`, and for option C Terraform (latest 1.x).
 4. **Log in**: `aws configure sso` (or `aws configure`), then `aws sts get-caller-identity` shows the right account.
 5. **Generate secrets locally** (do not commit them):
    ```bash

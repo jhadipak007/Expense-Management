@@ -24,7 +24,7 @@ ORM mapping, relationships and migrations: see [database.md](database.md).
 | id | integer PK | |
 | user_id | FK users.id | indexed |
 | token_hash | string, unique | SHA-256 of the token; the raw token is never stored |
-| expires_at | datetime | 7 days after issue |
+| expires_at | datetime | 30 minutes after issue; rotation issues a new row with a new 30-minute window (idle timeout) |
 | revoked_at | datetime, nullable | set on refresh (rotation) or logout |
 | created_at | datetime | UTC |
 

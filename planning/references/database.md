@@ -8,9 +8,12 @@ How the tables in [data_model.md](data_model.md) are mapped with the SQLAlchemy 
 - All data access goes through the ORM (`select()`, `insert()`, `update()`, `delete()`). No raw SQL strings.
 - Sync `Session` from `sessionmaker`; one session per request through a `get_db` FastAPI dependency.
 - The base uses `MetaData(naming_convention=...)` so constraints get stable names. Alembic needs this, especially on SQLite.
-- Dialect-neutral types only: `String(n)`, `Numeric(12, 2)`, `Date`, `DateTime(timezone=True)`, `Boolean`, and `Enum(..., native_enum=False)` (VARCHAR plus CHECK) for `role` and `status`.
+- Dialect-neutral types only: `String(n)`, `Numeric(12, 2)`, `Date`, `UTCDateTime`, `Boolean`, and `Enum(..., native_enum=False)` (VARCHAR plus CHECK) for `role` and `status`.
+- `UTCDateTime` (in `app/models/base.py`) wraps `DateTime(timezone=True)`. SQLite drops the timezone, which makes values come back naive and makes non-UTC values compare wrongly, so the type stores UTC and returns aware datetimes. Migrations use plain `sa.DateTime(timezone=True)`.
 - Timestamps are set in Python (`datetime.now(UTC)`), not by database-specific defaults.
-- SQLite does not enforce foreign keys by default. Enable `PRAGMA foreign_keys=ON` in an engine `connect` event, only when SQLite is in use.
+- SQLite-only engine setup (`app/db.py`), applied in `connect` and `begin` events:
+  - `PRAGMA foreign_keys=ON`, since SQLite does not enforce foreign keys by default.
+  - SQLAlchemy emits `BEGIN IMMEDIATE` itself (the driver's own transaction handling is turned off). This gives real savepoints, so each test can be rolled back, and it makes concurrent writers wait instead of failing with "database is locked".
 
 ## Relationships
 
