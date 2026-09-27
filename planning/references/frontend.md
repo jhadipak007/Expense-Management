@@ -57,9 +57,29 @@ When adding an expense, the user chooses **Personal** or one of their families.
 
 ## Styling
 
-- `styles/tokens.css` defines CSS variables for the color scheme in `AGENTS.md`, including the category colors, and for spacing and font sizes.
+- `styles/tokens.css` defines CSS variables for the color scheme below, including the category colors, and for spacing and font sizes.
 - Components use the variables only, never hard-coded hex values.
 - Category color appears as a small badge or bar next to each expense and in report bars.
+
+### Color scheme
+
+Base:
+- Primary Blue: `#3a78b5` (all buttons and links)
+- Accent Amber: `#e6b340` (small highlights and badges only)
+- Deep Navy: `#1c2b3f` (headings)
+- Slate Gray: `#556270` (body text)
+- Background: `#f6f7f9`
+- Cards: `#ffffff`
+- Borders: `#e4e7eb`
+
+Categories:
+- Grocery: Olive Green `#8aa84a`
+- Eating Out: Soft Orange `#e08e5a`
+- Trips: Sea Green `#3a9e84`
+
+Status:
+- Error / over budget: Warm Red `#d0584c`
+- Success: Sea Green `#3a9e84`
 
 ## Accessibility
 

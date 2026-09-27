@@ -58,25 +58,6 @@ These are the intended architecture and implementation constraints for the proje
 Detailed application architecture: see @planning/architecture_plan.md.
 
 
-## Intended Color Scheme
-Base:
-- Primary Blue: `#3a78b5` (all buttons and links)
-- Accent Amber: `#e6b340` (small highlights and badges only)
-- Deep Navy: `#1c2b3f` (headings)
-- Slate Gray: `#556270` (body text)
-- Background: `#f6f7f9`
-- Cards: `#ffffff`
-- Borders: `#e4e7eb`
-
-Categories:
-- Grocery: Olive Green `#8aa84a`
-- Eating Out: Soft Orange `#e08e5a`
-- Trips: Sea Green `#3a9e84`
-
-Status:
-- Error / over budget: Warm Red `#d0584c`
-- Success: Sea Green `#3a9e84`
-
 ## Intended Deployment Architecture
 - AWS CloudFront is the CDN and single origin: `/api/*` routes to API Gateway -> Lambda; everything else to S3 (static Vite build).
 - Backend: the same container image as local, pushed to Amazon ECR and deployed to AWS Lambda with AWS Lambda Web Adapter.
