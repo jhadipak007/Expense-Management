@@ -3,9 +3,13 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../auth/useAuth.js';
 import styles from '../../components/AuthForm/AuthForm.module.css';
 import Field from '../../components/AuthForm/Field.jsx';
+import SubmitButton from '../../components/AuthForm/SubmitButton.jsx';
+import { LockIcon, MailIcon } from '../../components/AuthForm/icons.jsx';
+import AuthLayout from '../../components/AuthLayout/AuthLayout.jsx';
 
 const INCORRECT = 'Incorrect email or password';
 const UNAVAILABLE = 'Something went wrong. Please try again.';
+const RESET_COMING_SOON = 'Password reset is coming soon.';
 
 function requiredErrors(email, password) {
   const errors = {};
@@ -22,6 +26,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
+  const [resetAsked, setResetAsked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event) {
@@ -41,10 +46,10 @@ export default function Login() {
   }
 
   return (
-    <main className={styles.page}>
+    <AuthLayout>
       <form className={styles.card} onSubmit={handleSubmit} noValidate>
-        <h1 className={styles.title}>Expense Sarathi</h1>
-        <p className={styles.subtitle}>Log in to your account</p>
+        <h1 className={styles.title}>Welcome back</h1>
+        <p className={styles.subtitle}>Log in to keep track of your expenses.</p>
 
         {formError && (
           <p className={styles.formError} role="alert">
@@ -53,23 +58,30 @@ export default function Login() {
         )}
 
         <Field
-          id="email" label="Email" type="email" autoComplete="email"
-          value={email} onChange={setEmail} error={errors.email}
+          id="email" label="Email" type="email" autoComplete="email" placeholder="you@example.com"
+          icon={<MailIcon />} value={email} onChange={setEmail} error={errors.email}
         />
         <Field
-          id="password" label="Password" type="password" autoComplete="current-password"
-          value={password} onChange={setPassword} error={errors.password}
+          id="password" label="Password" autoComplete="current-password" placeholder="Your password"
+          icon={<LockIcon />} revealable value={password} onChange={setPassword} error={errors.password}
         />
+        <div className={styles.forgotRow}>
+          <button type="button" className={styles.linkButton} onClick={() => setResetAsked(true)}>
+            Forgot password?
+          </button>
+        </div>
+        {resetAsked && (
+          <p className={styles.status} role="status">
+            {RESET_COMING_SOON}
+          </p>
+        )}
 
-        <button className={`button ${styles.submit}`} type="submit" disabled={submitting}>
-          {submitting ? 'Logging in...' : 'Log in'}
-        </button>
+        <SubmitButton pending={submitting} pendingLabel="Logging in...">Log in</SubmitButton>
 
         <p className={styles.switch}>
           New to Expense Sarathi? <Link to="/register">Create an account</Link>
         </p>
       </form>
-    </main>
+    </AuthLayout>
   );
 }
-

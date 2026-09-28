@@ -8,7 +8,7 @@ export async function fillSignUp(page, { name = 'Asha', email = newEmail(), pass
   await page.getByLabel('Name').fill(name);
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password', { exact: true }).fill(password);
-  await page.getByLabel('Confirm password').fill(password);
+  await page.getByLabel('Confirm password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign up' }).click();
 }
 

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { register } from '../../api/auth.js';
 import styles from '../../components/AuthForm/AuthForm.module.css';
 import Field from '../../components/AuthForm/Field.jsx';
+import SubmitButton from '../../components/AuthForm/SubmitButton.jsx';
+import { LockIcon, MailIcon } from '../../components/AuthForm/icons.jsx';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UNAVAILABLE = 'Something went wrong. Please try again.';
@@ -65,8 +67,8 @@ export default function DetailsForm({ details, onChange, notice, onRegistered, l
 
   return (
     <form className={styles.card} onSubmit={handleSubmit} noValidate>
-      <h1 className={styles.title}>Expense Sarathi</h1>
-      <p className={styles.subtitle}>Create your account</p>
+      <h1 className={styles.title}>Create your account</h1>
+      <p className={styles.subtitle}>Start tracking your expenses in minutes.</p>
 
       {(formError || notice) && (
         <p className={styles.formError} role="alert">
@@ -75,25 +77,24 @@ export default function DetailsForm({ details, onChange, notice, onRegistered, l
       )}
 
       <Field
-        id="displayName" label="Name" autoComplete="name" maxLength={100}
+        id="displayName" label="Name" autoComplete="name" maxLength={100} placeholder="Your name"
         value={details.displayName} onChange={set('displayName')} error={errors.displayName}
       />
       <Field
         id="email" label="Email" type="email" autoComplete="email"
+        placeholder="you@example.com" icon={<MailIcon />}
         value={details.email} onChange={set('email')} error={errors.email}
       />
       <Field
-        id="password" label="Password" type="password" autoComplete="new-password"
-        value={details.password} onChange={set('password')} error={errors.password}
+        id="password" label="Password" autoComplete="new-password" icon={<LockIcon />} revealable
+        placeholder="At least 8 characters" value={details.password} onChange={set('password')} error={errors.password}
       />
       <Field
-        id="confirm" label="Confirm password" type="password" autoComplete="new-password"
-        value={details.confirm} onChange={set('confirm')} error={errors.confirm}
+        id="confirm" label="Confirm password" autoComplete="new-password" icon={<LockIcon />} revealable
+        placeholder="Repeat your password" value={details.confirm} onChange={set('confirm')} error={errors.confirm}
       />
 
-      <button className={`button ${styles.submit}`} type="submit" disabled={submitting}>
-        {submitting ? 'Signing up...' : 'Sign up'}
-      </button>
+      <SubmitButton pending={submitting} pendingLabel="Signing up...">Sign up</SubmitButton>
 
       <p className={styles.switch}>Already have an account? {loginLink}</p>
     </form>

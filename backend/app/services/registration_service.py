@@ -29,13 +29,14 @@ class IncorrectCode(Exception):
 
 def start_registration(db: Session, display_name: str, email: str, password: str) -> str:
     """Store a pending registration and return its raw registration id."""
+    password_hash = hash_password(password)  # before any query: don't hold the write lock during bcrypt
     if _email_taken(db, email):
         raise EmailAlreadyRegistered
     raw = new_token()
     expires_at = utcnow() + timedelta(minutes=get_settings().registration_minutes)
     db.add(PendingRegistration(
         token_hash=hash_token(raw), email=email, display_name=display_name,
-        password_hash=hash_password(password), expires_at=expires_at,
+        password_hash=password_hash, expires_at=expires_at,
     ))
     db.commit()
     return raw
