@@ -6,6 +6,7 @@ from sqlalchemy import func, select, update
 from app.models import PendingRegistration, User
 from app.models.base import utcnow
 from app.routers.auth import REFRESH_COOKIE
+from app.services import registration_service
 
 REGISTER = "/api/auth/register"
 VERIFY = "/api/auth/register/verify"
@@ -128,3 +129,13 @@ def test_register_names_the_missing_field(client, missing):
 
 def test_register_rejects_unknown_fields(client):
     assert register(client, is_active=False).status_code == 422
+
+
+def test_register_hashes_the_password_outside_a_transaction(client, db, monkeypatch):
+    """bcrypt is slow; holding SQLite's write lock during it stalls every other request."""
+    in_transaction = []
+    real_hash = registration_service.hash_password
+    monkeypatch.setattr(registration_service, "hash_password",
+                        lambda password: in_transaction.append(db.in_transaction()) or real_hash(password))
+    assert register(client).status_code == 201
+    assert in_transaction == [False]
