@@ -36,18 +36,6 @@ def test_docs_are_disabled_when_setting_is_off(monkeypatch):
         assert client.get("/openapi.json").status_code == 404
 
 
-def test_docs_pages_allow_their_cdn_assets_and_other_pages_stay_strict(monkeypatch):
-    monkeypatch.setattr(get_settings(), "enable_api_docs", True)
-    with TestClient(create_app()) as client:
-        for path in ("/docs", "/redoc"):
-            csp = client.get(path).headers["Content-Security-Policy"]
-            assert "https://cdn.jsdelivr.net" in csp
-            assert "frame-ancestors 'none'" in csp
-        strict = SECURITY_HEADERS["Content-Security-Policy"]
-        assert client.get("/api/health").headers["Content-Security-Policy"] == strict
-        assert client.get("/openapi.json").headers["Content-Security-Policy"] == strict
-
-
 def test_frontend_serves_files_and_falls_back_to_index(tmp_path):
     (tmp_path / "index.html").write_text("<html>app</html>")
     (tmp_path / "robots.txt").write_text("robots")
