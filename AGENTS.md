@@ -77,6 +77,9 @@ Detailed deployment architecture: see `planning/deployment_architecture.md`.
 - Move it to "In Progress" when starting
 - After the PR is merged, move the Jira issue to "Done" and add the PR link as a comment.
 
+## Key learnings
+Record important lessons here as you discover them, one short bullet each. Add only points worth remembering for future work.
+
 ## Personal progress tracking
 
 All personal feature progress shuld be tracked in a file planning/progress.local.md. If such file doesn't exist create it in the planning/ directory. 
