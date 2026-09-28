@@ -11,6 +11,7 @@
   --color-border: #e4e7eb;
   --color-error: #d0584c;
   --color-success: #3a9e84;
+  --color-overlay: rgb(28 43 63 / 40%);
 
   --color-grocery: #8aa84a;
   --color-eating-out: #e08e5a;
@@ -31,5 +32,6 @@
 
   --radius: 0.5rem;
   --touch-target: 44px;
+  --topbar-height: 3.75rem;
   --content-max-width: 1280px;
 }

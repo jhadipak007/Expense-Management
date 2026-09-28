@@ -54,23 +54,24 @@ ORM mapping, relationships and migrations: see [database.md](database.md).
 
 | Column | Type | Notes |
 |---|---|---|
-| family_id | FK families.id | composite PK with user_id |
-| user_id | FK users.id | |
-| role | string | `owner` or `member` |
+| family_id | FK families.id | composite PK with user_id; `ON DELETE CASCADE` |
+| user_id | FK users.id | indexed; `ON DELETE CASCADE` |
+| role | string + CHECK | `owner` or `member` |
 | joined_at | datetime | |
 
-**family_invitations**: pending invites to join a family.
+**family_invitations**: invitations for existing users to join a family. They appear on the invitee's dashboard; no email is sent.
 
 | Column | Type | Notes |
 |---|---|---|
 | id | integer PK | |
-| family_id | FK families.id | |
-| email | string | invitee; may not have an account yet |
-| invited_by | FK users.id | |
-| token_hash | string, unique | hash of the invite link token |
-| status | string | `pending`, `accepted`, `declined`, `expired` |
-| expires_at | datetime | |
-| created_at | datetime | |
+| family_id | FK families.id | indexed |
+| invitee_id | FK users.id | indexed; only registered users can be invited |
+| invited_by | FK users.id | the owner who sent it |
+| status | string + CHECK | `pending`, `accepted`, `declined`, `cancelled` |
+| expires_at | datetime | 7 days after `created_at` (`INVITATION_DAYS`) |
+| created_at | datetime | the date sent |
+
+Expiry is not stored as a status. An invitation is **open** while it is `pending` and `expires_at` is in the future; only open invitations are listed, accepted, declined or cancelled. A user has at most one open invitation per family, and can be invited again once the previous one is declined, cancelled or expired. Status changes are one conditional `UPDATE ... WHERE status = 'pending' AND expires_at > now`, so a cancel and an accept cannot both succeed.
 
 ## Expenses
 
@@ -99,6 +100,6 @@ ORM mapping, relationships and migrations: see [database.md](database.md).
 ## Access rules
 - A user sees an expense if they recorded it and `family_id` is null, or if they are a member of its `family_id`.
 - Any family member can add expenses to that family. Only the recorder can edit or delete an expense.
-- Only a family `owner` can invite, remove other members or rename the family. A member may leave; an owner may not leave or remove themself. This ensures every family always has at least one owner. Ownership transfer is not supported by the current API.
+- Only members see a family and its member list (name, email, role). Only a family `owner` can search for users, invite, cancel invitations, remove other members or rename the family. A member may leave; an owner may not leave or remove themself. This ensures every family always has at least one owner. Ownership transfer is not supported by the current API.
 - Reports are scoped either to the authenticated user's personal expenses (no `family_id`) or to one specified family (member access required); they do not combine personal and family expenses. Totals are grouped by `currency` (and by category or month), with no conversion.
 - Indexes: `expenses(user_id, spent_on)`, `expenses(family_id, spent_on)`, `family_members(user_id)`.

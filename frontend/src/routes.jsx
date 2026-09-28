@@ -3,6 +3,8 @@ import { AuthProvider } from './auth/AuthProvider.jsx';
 import { GuestOnly, RequireAuth } from './auth/guards.jsx';
 import AppLayout from './layouts/AppLayout.jsx';
 import Dashboard from './pages/Dashboard/Dashboard.jsx';
+import Families from './pages/Families/Families.jsx';
+import FamilyDetail from './pages/Families/FamilyDetail.jsx';
 import Login from './pages/Login/Login.jsx';
 import Register from './pages/Register/Register.jsx';
 
@@ -19,7 +21,16 @@ export const routes = [
       },
       {
         element: <RequireAuth />,
-        children: [{ element: <AppLayout />, children: [{ path: '/', element: <Dashboard /> }] }],
+        children: [
+          {
+            element: <AppLayout />,
+            children: [
+              { path: '/', element: <Dashboard /> },
+              { path: '/families', element: <Families /> },
+              { path: '/families/:familyId', element: <FamilyDetail /> },
+            ],
+          },
+        ],
       },
       { path: '*', element: <Navigate to="/" replace /> },
     ],

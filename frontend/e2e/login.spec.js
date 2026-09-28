@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectDashboard, logIn } from './helpers.js';
+import { expectDashboard, logIn, logOut } from './helpers.js';
 
 const loginButton = (page) => page.getByRole('button', { name: 'Log in' });
 
@@ -38,7 +38,7 @@ test('logout returns to login and the back button does not show the dashboard', 
   // dashboard) so history holds a dashboard page load for "back" to return to.
   await page.goto('/login');
   await expectDashboard(page);
-  await page.getByRole('button', { name: 'Logout' }).click();
+  await logOut(page);
   await expect(page).toHaveURL('/login');
 
   await page.goBack();

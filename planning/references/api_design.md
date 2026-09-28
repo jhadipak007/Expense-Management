@@ -53,14 +53,26 @@ Authorization is checked in the service layer after authentication:
 | GET | `/{family_id}` | none | member | `FamilyOut` with members |
 | PATCH | `/{family_id}` | `FamilyIn` | owner | `FamilyOut` |
 | DELETE | `/{family_id}/members/{user_id}` | none | owner removing another member, or a member leaving; an owner cannot remove themself | 204; owner self-removal returns 409 |
-| POST | `/{family_id}/invitations` | `InvitationIn` | owner | `InvitationOut` (201) with the one-time link token |
-| GET | `/{family_id}/invitations` | none | owner | `list[InvitationOut]` (no tokens) |
+| GET | `/{family_id}/user-search` | `UserSearchQuery` query | owner | `UserSearchOut`: up to 10 `results` and `has_more` |
+| POST | `/{family_id}/invitations` | `InvitationIn` (`user_id`) | owner | `FamilyInvitationOut` (201); 404 unknown or inactive user; 409 already a member or already invited |
+| GET | `/{family_id}/invitations` | none | owner | open invitations: `list[FamilyInvitationOut]` (invitee name, sent, expires) |
+| DELETE | `/{family_id}/invitations/{invitation_id}` | none | owner | 204; 409 if no longer open (accepted, declined, cancelled or expired) |
+
+`FamilyOut` is `id`, `name` and the caller's `role`. `GET /{family_id}` adds `members` (`user_id`, `display_name`, `email`, `role`), owners first.
+
+User search (`UserSearchQuery`, exactly one of):
+- `email`: exact match on the full address (lowercased). The result shows the email searched for.
+- `name`: 3 to 100 characters, case-insensitive substring of `display_name`. Results show a masked email: first character, `****`, then `@domain` (`d****@gmail.com`).
+- Only active users are returned; the owner never appears in their own results.
 
 ### Invitations (`/api/invitations`)
+Invitee-side actions; an invitation belonging to someone else returns 404.
+
 | Method | Path | Body | Returns |
 |---|---|---|---|
-| POST | `/accept` | `InvitationTokenIn` | `FamilyOut`; user's email must match the invitation |
-| POST | `/decline` | `InvitationTokenIn` | 204 |
+| GET | `/` | none | the caller's open invitations: `list[MyInvitationOut]` (family, inviter, expires) |
+| POST | `/{invitation_id}/accept` | none | `FamilyOut` with role `member`; 409 "This invitation is no longer available" if not open |
+| POST | `/{invitation_id}/decline` | none | 204; 409 if not open |
 
 ### Expenses (`/api/expenses`)
 | Method | Path | Input | Who | Returns |
@@ -100,7 +112,7 @@ Field rules:
 | currency | `str`, pattern `^[A-Z]{3}$` |
 | spent_on, date_from, date_to | `date`; `date_from <= date_to` (model validator) |
 | category_id, family_id | `int`, `gt=0` |
-| invitation token | `str`, 20 to 100 chars, URL-safe characters only |
+| user search `name` | `str`, 3 to 100 chars |
 | role, status, scope, group_by, sort | `Literal[...]` or `StrEnum` |
 
 Query models (FastAPI `Annotated[Model, Query()]`):
@@ -117,7 +129,7 @@ Relevant endpoints: everything that takes a path parameter or filter, above all 
 - No `text()` with string formatting or f-strings. If `text()` is ever needed, values go through `bindparams`.
 - Sort fields and `group_by` come from a fixed enum mapped to column objects in code. User input never becomes a column or SQL fragment.
 - Typed parameters reject anything that is not an int, date or allowed literal before any query runs.
-- There is no free-text search. If one is added, escape `%` and `_` and pass the value as a bound parameter.
+- The only free-text search is the family user search by name. `%`, `_` and `\` are escaped and the value is passed as a bound parameter to `ILIKE ... ESCAPE`.
 - Tests: send injection payloads (for example `1 OR 1=1`, `'; DROP TABLE expenses;--`) to path and query parameters and confirm 422 and no data leak.
 
 ## Security settings

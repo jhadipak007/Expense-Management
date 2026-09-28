@@ -1,11 +1,20 @@
 .content {
-  max-width: var(--content-max-width);
-  margin: 0 auto;
+  min-width: 0;
   padding: var(--space-4);
 }
 
 @media (min-width: 768px) {
   .content {
     padding: var(--space-8) var(--space-6);
+  }
+}
+
+/* Desktop: sidebar and content side by side, capped at the content width. */
+@media (min-width: 1024px) {
+  .shell {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    max-width: var(--content-max-width);
+    margin: 0 auto;
   }
 }
