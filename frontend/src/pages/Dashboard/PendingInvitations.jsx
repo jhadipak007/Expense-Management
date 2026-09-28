@@ -8,9 +8,9 @@ import { formatDate } from '../../utils/format.js';
 const NO_LONGER_AVAILABLE = 'This invitation is no longer available.';
 const UNAVAILABLE = 'Something went wrong. Please try again.';
 
-/** The user's open family invitations with Accept and Decline. Hidden when there are none. */
+/** The user's open family invitations with Accept and Decline. Hidden when there are none and nothing failed. */
 export default function PendingInvitations() {
-  const { data: invitations, reload } = useAsyncList(listMyInvitations);
+  const { data: invitations, error: loadError, reload } = useAsyncList(listMyInvitations);
   const [message, setMessage] = useState(null);
   const [busyId, setBusyId] = useState(null);
 
@@ -31,11 +31,12 @@ export default function PendingInvitations() {
     reload();
   }
 
-  if (!invitations?.length && !message) return null;
+  if (!invitations?.length && !message && !loadError) return null;
 
   return (
     <section className={page.card}>
       <h2 className={page.heading}>Family invitations</h2>
+      {loadError && <p className={page.error} role="alert">Could not load your invitations.</p>}
       {message?.error && <p className={page.error} role="alert">{message.error}</p>}
       {message?.joined && (
         <p className={page.success} role="status">

@@ -23,7 +23,6 @@ Every relationship is declared on both sides with `back_populates`.
 |---|---|---|---|
 | User | `expenses` | Expense | |
 | User | `memberships` | FamilyMember | |
-| User | `families` | Family | `association_proxy("memberships", "family")` |
 | User | `refresh_tokens` | RefreshToken | `cascade="all, delete-orphan"` |
 | Family | `members` | FamilyMember | `cascade="all, delete-orphan"` |
 | Family | `invitations` | FamilyInvitation | `cascade="all, delete-orphan"` |
@@ -43,18 +42,17 @@ Every relationship is declared on both sides with `back_populates`.
 |---|---|---|---|
 | Expense | `is_personal` | `hybrid_property` | `family_id` is null; also usable in queries |
 | Expense | `category_name` | `association_proxy` | the category's name |
-| Family | `member_count` | `column_property` (scalar subquery) | number of members |
 | FamilyInvitation | `is_open` | `hybrid_property` | `pending` and not expired; also used in queries and conditional updates |
 | RefreshToken | `is_active` | `hybrid_property` | not revoked and not expired |
 
 ## Derived fields on response schemas
 
 - Pydantic output models use `ConfigDict(from_attributes=True)` and are built directly from ORM objects.
-- Relationships become nested models: `ExpenseOut.category: CategoryOut`, `FamilyOut.members: list[MemberOut]`.
+- Relationships become nested models: `ExpenseOut.category: CategoryOut`.
+- Family and invitation responses carry per-viewer or joined values (the caller's `role`, member and inviter names), so they are built with explicit classmethods: `FamilyOut.from_membership`, `FamilyDetailOut.from_family` (members, owners first), `FamilyInvitationOut.from_invitation`, `MyInvitationOut.from_invitation`.
 - `@computed_field` adds display values:
   - `ExpenseOut.month`: `"YYYY-MM"` from `spent_on`, for grouping in the UI
   - `ExpenseOut.recorded_by`: the recorder's display name
-  - `FamilyOut.member_count`: from the model's `member_count`
 
 ## Migrations (Alembic)
 

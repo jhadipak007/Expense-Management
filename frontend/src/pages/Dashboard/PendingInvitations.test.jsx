@@ -46,6 +46,12 @@ describe('Dashboard invitations', () => {
     expect(screen.queryByRole('heading', { name: 'Family invitations' })).not.toBeInTheDocument();
   });
 
+  it('says when invitations could not be loaded', async () => {
+    server.use(validRefresh, http.get('/api/invitations', () => HttpResponse.json({}, { status: 500 })));
+    renderApp('/');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not load your invitations.');
+  });
+
   it('accepts an invitation and links to the family', async () => {
     mockInvitationsApi();
     const { user } = renderApp('/');

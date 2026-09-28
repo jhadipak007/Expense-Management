@@ -125,8 +125,20 @@ describe('Family detail page', () => {
     expect(await screen.findByText(/Narrow your search/)).toBeInTheDocument();
   });
 
-  it('explains why a duplicate invitation cannot be sent', async () => {
+  it('shows people who already have a pending invitation as invited', async () => {
     mockFamilyApi({ invitations: [RAVI_INVITATION] });
+    const { user } = renderApp('/families/1');
+    await searchFor(user, 'Email', 'ravi@example.com');
+    expect(await within(screen.getByRole('list', { name: 'Search results' }))
+      .findByText('Invited')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Invite Ravi' })).not.toBeInTheDocument();
+  });
+
+  it('explains why an invitation sent meanwhile elsewhere cannot be sent again', async () => {
+    mockFamilyApi();
+    server.use(http.post('/api/families/1/invitations', () => HttpResponse.json(
+      { detail: 'This person already has a pending invitation to the family' }, { status: 409 },
+    )));
     const { user } = renderApp('/families/1');
     await searchFor(user, 'Email', 'ravi@example.com');
     await user.click(await screen.findByRole('button', { name: 'Invite Ravi' }));
@@ -141,4 +153,15 @@ describe('Family detail page', () => {
     await user.click(await screen.findByRole('button', { name: 'Cancel invitation for Ravi' }));
     expect(await within(pendingSection()).findByText('No pending invitations.')).toBeInTheDocument();
   });
+
+  it('marks people with a pending invitation and lets the owner invite again after cancelling',
+    async () => {
+      mockFamilyApi();
+      const { user } = renderApp('/families/1');
+      await searchFor(user, 'Email', 'ravi@example.com');
+      await user.click(await screen.findByRole('button', { name: 'Invite Ravi' }));
+      expect(await screen.findByText('Invited')).toBeInTheDocument();
+      await user.click(await screen.findByRole('button', { name: 'Cancel invitation for Ravi' }));
+      expect(await screen.findByRole('button', { name: 'Invite Ravi' })).toBeInTheDocument();
+    });
 });

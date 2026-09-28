@@ -13,14 +13,13 @@ function validate(mode, value) {
 }
 
 /** Owner-only: find users by exact email or part of a name, and invite them. */
-export default function UserSearch({ familyId, onInvited }) {
+export default function UserSearch({ familyId, invitedIds, onInvited }) {
   const [mode, setMode] = useState('email');
   const [query, setQuery] = useState('');
   const [fieldError, setFieldError] = useState('');
   const [search, setSearch] = useState(null);
   const [message, setMessage] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [invited, setInvited] = useState([]);
 
   function changeMode(next) {
     setMode(next);
@@ -52,7 +51,6 @@ export default function UserSearch({ familyId, onInvited }) {
     setMessage(null);
     try {
       await inviteUser(familyId, person.user_id);
-      setInvited([...invited, person.user_id]);
       setMessage({ success: `Invitation sent to ${person.display_name}.` });
       onInvited();
     } catch (err) {
@@ -88,12 +86,12 @@ export default function UserSearch({ familyId, onInvited }) {
 
       {message?.error && <p className={page.error} role="alert">{message.error}</p>}
       {message?.success && <p className={page.success} role="status">{message.success}</p>}
-      {search && <SearchResults search={search} invited={invited} busy={busy} onInvite={invite} />}
+      {search && <SearchResults search={search} invitedIds={invitedIds} busy={busy} onInvite={invite} />}
     </section>
   );
 }
 
-function SearchResults({ search, invited, busy, onInvite }) {
+function SearchResults({ search, invitedIds, busy, onInvite }) {
   if (search.results.length === 0) return <p className={page.muted}>No user found.</p>;
   return (
     <>
@@ -110,7 +108,7 @@ function SearchResults({ search, invited, busy, onInvite }) {
               <span className={page.muted}>{person.email}</span>
             </div>
             <div className={page.actions}>
-              {invited.includes(person.user_id) ? (
+              {invitedIds.includes(person.user_id) ? (
                 <span className={page.muted}>Invited</span>
               ) : (
                 <button

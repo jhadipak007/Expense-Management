@@ -8,10 +8,11 @@ import UserSearch from './UserSearch.jsx';
 export default function InviteMembers({ familyId }) {
   const load = useCallback(() => listFamilyInvitations(familyId), [familyId]);
   const invitations = useAsyncList(load);
+  const invitedIds = (invitations.data ?? []).map((invitation) => invitation.invitee_id);
 
   return (
     <>
-      <UserSearch familyId={familyId} onInvited={invitations.reload} />
+      <UserSearch familyId={familyId} invitedIds={invitedIds} onInvited={invitations.reload} />
       <FamilyInvitations familyId={familyId} {...invitations} />
     </>
   );
