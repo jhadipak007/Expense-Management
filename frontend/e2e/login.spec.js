@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectDashboard, logIn, logOut } from './helpers.js';
+import { TEST_USER, expectDashboard, logIn, logOut } from './helpers.js';
 
 const loginButton = (page) => page.getByRole('button', { name: 'Log in' });
 
@@ -44,7 +44,7 @@ test('logout returns to login and the back button does not show the dashboard', 
   await page.goBack();
   await expect(loginButton(page)).toBeVisible();
   await expect(page).toHaveURL('/login');
-  await expect(page.getByRole('heading', { name: /Welcome/ })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: /^Welcome,/ })).toHaveCount(0);
 
   await page.goto('/');
   await expect(page).toHaveURL('/login');
@@ -65,4 +65,29 @@ test('the refresh cookie is HttpOnly and scoped to /api/auth', async ({ page, co
   const [cookie] = (await context.cookies()).filter((c) => c.name === 'refresh_token');
   expect(cookie).toMatchObject({ httpOnly: true, path: '/api/auth', sameSite: 'Strict' });
   expect(await page.evaluate(() => document.cookie)).not.toContain('refresh_token');
+});
+
+test('the login form works with the keyboard alone', async ({ page }) => {
+  await page.goto('/login');
+  await expect(page.getByLabel('Email')).toBeVisible();
+  const focused = (locator) => expect(locator).toBeFocused();
+  await page.keyboard.press('Tab');
+  await focused(page.getByLabel('Email'));
+  await page.keyboard.type(TEST_USER.email);
+  await page.keyboard.press('Tab');
+  await focused(page.getByLabel('Password', { exact: true }));
+  await page.keyboard.type(TEST_USER.password);
+  for (const name of ['Show password', 'Forgot password?', 'Log in']) {
+    await page.keyboard.press('Tab');
+    await focused(page.getByRole('button', { name }));
+  }
+  await page.getByLabel('Password', { exact: true }).press('Enter');
+  await expectDashboard(page);
+});
+
+test('the favicon is the Expense Sarathi icon', async ({ page }) => {
+  await page.goto('/login');
+  const href = await page.locator('link[rel=icon]').getAttribute('href');
+  expect(href).toBe('/logo-icon-light.svg');
+  expect((await page.request.get(href)).ok()).toBe(true);
 });

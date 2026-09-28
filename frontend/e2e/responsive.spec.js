@@ -25,7 +25,15 @@ for (const width of WIDTHS) {
       await expectNoHorizontalScroll(page);
       await expectTouchTarget(page.getByRole('button', { name: 'Log in' }));
       await expectTouchTarget(page.getByLabel('Email'));
+      await expectTouchTarget(page.getByRole('button', { name: 'Show password' }));
+      await expectTouchTarget(page.getByRole('button', { name: 'Forgot password?' }));
+      await expect(page.getByRole('img', { name: 'Expense Sarathi' })).toBeVisible();
+      const highlight = page.getByText('Share expenses and reports with your family');
+      await expect(highlight).toBeVisible({ visible: width >= 1024 });
       await page.screenshot({ path: `test-results/screens/login-${width}.png`, fullPage: true });
+      await page.getByRole('button', { name: 'Forgot password?' }).click();
+      await expect(page.getByRole('status')).toHaveText('Password reset is coming soon.');
+      await expectNoHorizontalScroll(page);
     });
 
     test('sign-up and OTP screens fit and have large touch targets', async ({ page }) => {

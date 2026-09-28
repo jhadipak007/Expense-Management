@@ -47,7 +47,7 @@ input {
   cursor: pointer;
 }
 
-.button:hover {
+.button:hover:not(:disabled) {
   background: var(--color-primary-dark);
 }
 

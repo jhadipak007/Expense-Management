@@ -37,7 +37,7 @@ Every page and component adapts to screen size.
 
 | Route | Page | Access |
 |---|---|---|
-| `/login` | Login | public |
+| `/login` | Login: "Welcome back", show/hide password, a "Forgot password?" placeholder (says reset is coming soon), link to sign-up | public; logged-in users go to `/` |
 | `/register` | Register: details, then the OTP screen with Back (details kept). Links to login. After 5 wrong codes, returns to the details step | public; logged-in users go to `/` |
 | `/` | Dashboard: welcome message and Logout (redirect target after login). Becomes the expenses list in a later ticket | logged in |
 | `/expenses/new`, `/expenses/:id` | Add / edit expense | logged in |
@@ -51,6 +51,8 @@ The dashboard also lists the user's open family invitations with Accept and Decl
 A route guard sends logged-out users to `/login` and returns them to the page they asked for after login.
 
 Navigation (`components/Nav`): links to Dashboard and Families. Below 1024px it is a drawer under the top bar, opened by the top bar's Menu button and closed by Escape, the backdrop or choosing a link. From 1024px it is a sticky sidebar and the Menu button is hidden. Logout stays in the top bar.
+
+Auth screens (`components/AuthLayout`): login, sign-up and OTP share a brand block with the logo, tagline and, from 1024px, feature highlights. Below 1024px it is a band above the form; from 1024px it is a left panel. `AuthForm/Field` takes `icon` and `revealable` (password show/hide), and `AuthForm/SubmitButton` shows a spinner while pending. Logos live in `public/` (`logo-*` light for white backgrounds, dark for the brand colour); `logo-icon-light.svg` is the favicon.
 
 Lists load with `hooks/useAsyncList` (`data`, `error`, `loading`, `reload`); shared card and list styles live in `styles/page.module.css`.
 
@@ -102,7 +104,7 @@ Categories:
 - Trips: Sea Green `#3a9e84`
 
 Status:
-- Error / over budget: Warm Red `#d0584c`
+- Error / over budget: Warm Red `#b8453b` (darkened from `#d0584c` to meet WCAG AA on white)
 - Success: Sea Green `#3a9e84`
 
 ## Accessibility

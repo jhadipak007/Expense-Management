@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useAuth } from '../../auth/useAuth.js';
 import styles from '../../components/AuthForm/AuthForm.module.css';
 import Field from '../../components/AuthForm/Field.jsx';
+import SubmitButton from '../../components/AuthForm/SubmitButton.jsx';
 
 const INCORRECT = 'Incorrect code, please try again';
 const UNAVAILABLE = 'Something went wrong. Please try again.';
@@ -50,9 +51,7 @@ export default function OtpForm({ registrationId, onBack, onRestart }) {
         value={code} onChange={setCode} error={codeError}
       />
 
-      <button className={`button ${styles.submit}`} type="submit" disabled={submitting}>
-        {submitting ? 'Verifying...' : 'Verify'}
-      </button>
+      <SubmitButton pending={submitting} pendingLabel="Verifying...">Verify</SubmitButton>
       <button className={styles.secondary} type="button" onClick={onBack} disabled={submitting}>
         Back
       </button>

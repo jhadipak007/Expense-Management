@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import styles from '../../components/AuthForm/AuthForm.module.css';
+import AuthLayout from '../../components/AuthLayout/AuthLayout.jsx';
 import DetailsForm from './DetailsForm.jsx';
 import OtpForm from './OtpForm.jsx';
 
@@ -22,7 +22,7 @@ export default function Register() {
   }
 
   return (
-    <main className={styles.page}>
+    <AuthLayout>
       {registrationId ? (
         <OtpForm
           registrationId={registrationId}
@@ -41,6 +41,6 @@ export default function Register() {
           loginLink={<Link to="/login">Log in</Link>}
         />
       )}
-    </main>
+    </AuthLayout>
   );
 }

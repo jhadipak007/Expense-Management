@@ -6,7 +6,7 @@ export const TEST_USER = { email: 'test@gmail.com', password: 'P@ssw0rd', name: 
 export async function logIn(page, { email = TEST_USER.email, password = TEST_USER.password } = {}) {
   await page.goto('/login');
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill(password);
+  await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Log in' }).click();
 }
 

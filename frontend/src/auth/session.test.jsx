@@ -57,7 +57,7 @@ describe('session and route guards', () => {
     await screen.findByRole('button', { name: 'Log in' });
     await act(() => router.navigate('/'));
     expect(router.state.location.pathname).toBe('/login');
-    expect(screen.queryByRole('heading', { name: /Welcome/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /^Welcome,/ })).not.toBeInTheDocument();
   });
 
   it('re-checks the session when the page is restored from the back-forward cache', async () => {

@@ -1,0 +1,90 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  background: linear-gradient(160deg, var(--color-primary-dark), var(--color-heading));
+  color: var(--color-on-primary);
+  text-align: center;
+}
+
+.logo {
+  height: 2.5rem;
+  max-width: 100%;
+}
+
+.tagline {
+  margin: 0;
+}
+
+.highlights {
+  display: none;
+}
+
+.formPanel {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+}
+
+@media (min-width: 1024px) {
+  .page {
+    flex-direction: row;
+  }
+
+  .brand {
+    flex: 0 0 40%;
+    max-width: 32rem;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--space-6);
+    padding: var(--space-8);
+    text-align: left;
+  }
+
+  .logo {
+    height: 4rem;
+  }
+
+  .tagline {
+    font-size: var(--font-size-lg);
+  }
+
+  .highlights {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .highlights li {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  .highlights li::before {
+    content: '';
+    flex: none;
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-top: 0.5em;
+    border-radius: 50%;
+    background: var(--color-accent);
+  }
+
+  .formPanel {
+    align-items: center;
+    padding: var(--space-8);
+  }
+}

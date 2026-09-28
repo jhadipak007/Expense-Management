@@ -118,4 +118,11 @@ describe('Register page', () => {
     await screen.findByRole('heading', { name: 'Welcome, Priya' });
     expect(router.state.location.pathname).toBe('/');
   });
+
+  it('gives each password field its own show/hide toggle', async () => {
+    const { user } = await openRegister();
+    await user.click(screen.getByRole('button', { name: 'Show confirm password' }));
+    expect(screen.getByLabelText('Confirm password')).toHaveAttribute('type', 'text');
+    expect(screen.getByLabelText('Password')).toHaveAttribute('type', 'password');
+  });
 });
