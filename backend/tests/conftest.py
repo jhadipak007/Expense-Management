@@ -27,7 +27,7 @@ from sqlalchemy.orm import Session  # noqa: E402
 from app.db import engine as app_engine  # noqa: E402
 from app.db import get_db  # noqa: E402
 from app.main import app  # noqa: E402
-from app.models import User  # noqa: E402
+from app.models import Family, FamilyMember, FamilyRole, User  # noqa: E402
 from app.security import create_access_token, hash_password  # noqa: E402
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
@@ -76,6 +76,19 @@ def make_user(db):
         db.commit()
         return user
     return _make_user
+
+
+@pytest.fixture
+def make_family(db):
+    """Create a family owned by `owner`, with `members` added as plain members."""
+    def _make_family(owner: User, name="Jha Household", members=()) -> Family:
+        family = Family(name=name, created_by=owner.id)
+        family.members = [FamilyMember(user_id=owner.id, role=FamilyRole.owner)]
+        family.members += [FamilyMember(user_id=m.id, role=FamilyRole.member) for m in members]
+        db.add(family)
+        db.commit()
+        return family
+    return _make_family
 
 
 @pytest.fixture

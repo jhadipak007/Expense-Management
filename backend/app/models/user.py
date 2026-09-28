@@ -22,3 +22,6 @@ class User(Base):
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(  # noqa: F821
         back_populates="user", cascade="all, delete-orphan"
     )
+    memberships: Mapped[list["FamilyMember"]] = relationship(  # noqa: F821
+        back_populates="user", cascade="all, delete-orphan"
+    )
