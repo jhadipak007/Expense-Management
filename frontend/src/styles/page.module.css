@@ -166,4 +166,12 @@ a.name {
   .actions > * {
     flex: none;
   }
+
+  .form > button {
+    align-self: flex-start;
+  }
+
+  .item > .badge {
+    align-self: center;
+  }
 }

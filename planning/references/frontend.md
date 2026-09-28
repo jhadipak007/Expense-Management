@@ -41,12 +41,18 @@ Every page and component adapts to screen size.
 | `/register` | Register: details, then the OTP screen with Back (details kept). Links to login. After 5 wrong codes, returns to the details step | public; logged-in users go to `/` |
 | `/` | Dashboard: welcome message and Logout (redirect target after login). Becomes the expenses list in a later ticket | logged in |
 | `/expenses/new`, `/expenses/:id` | Add / edit expense | logged in |
-| `/families`, `/families/:id` | Families list, family detail with members and invitations | logged in |
-| `/invite/:token` | Accept or decline an invitation | logged in; redirects to login and back |
+| `/families` | The user's families with their role, and a Create family form | logged in |
+| `/families/:familyId` | Members (name, email, role). Owner only: search by email or name, invite, pending invitations with Cancel | logged in; non-members see "Family not found" |
 | `/reports` | Totals by currency, then by category or month | logged in |
 | `/profile` | Display name and password change | logged in |
 
+The dashboard also lists the user's open family invitations with Accept and Decline, and hides the section when there are none.
+
 A route guard sends logged-out users to `/login` and returns them to the page they asked for after login.
+
+Navigation (`components/Nav`): links to Dashboard and Families. Below 1024px it is a drawer under the top bar, opened by the top bar's Menu button and closed by Escape, the backdrop or choosing a link. From 1024px it is a sticky sidebar and the Menu button is hidden. Logout stays in the top bar.
+
+Lists load with `hooks/useAsyncList` (`data`, `error`, `loading`, `reload`); shared card and list styles live in `styles/page.module.css`.
 
 Deep links: every non-`/api` path must return `index.html`. FastAPI does this locally with a catch-all route. CloudFront does it in production with a CloudFront Function on the S3 behavior that rewrites paths without a file extension to `/index.html`. Distribution-wide custom error pages are not used, because they would also turn API 404s into `index.html`.
 

@@ -47,5 +47,48 @@ for (const width of WIDTHS) {
       await expectTouchTarget(page.getByRole('button', { name: 'Logout' }));
       await page.screenshot({ path: `test-results/screens/dashboard-${width}.png`, fullPage: true });
     });
+
+    test('navigation is a drawer below 1024px and a sidebar above', async ({ page }) => {
+      await logIn(page);
+      await expectDashboard(page);
+      const menu = page.getByRole('button', { name: 'Menu' });
+      const families = page.getByRole('link', { name: 'Families' });
+      if (width < 1024) {
+        await expect(families).toBeHidden();
+        await expectTouchTarget(menu);
+        await menu.click();
+        await expect(families).toBeVisible();
+        await expectNoHorizontalScroll(page);
+        await page.screenshot({ path: `test-results/screens/drawer-${width}.png`, animations: 'disabled' });
+      } else {
+        await expect(menu).toBeHidden();
+        await expect(families).toBeVisible();
+      }
+      await expectTouchTarget(families);
+      await families.click();
+      await expect(page).toHaveURL('/families');
+    });
+
+    test('families pages fit and have large touch targets', async ({ page }) => {
+      await logIn(page);
+      await expectDashboard(page);
+      await page.goto('/families');
+      const name = `Responsive ${width} ${Date.now()}`;
+      await page.getByLabel('Family name').fill(name);
+      await page.getByRole('button', { name: 'Create family' }).click();
+      await expectNoHorizontalScroll(page);
+      await expectTouchTarget(page.getByRole('button', { name: 'Create family' }));
+      await expectTouchTarget(page.getByRole('link', { name }));
+      await page.screenshot({ path: `test-results/screens/families-${width}.png`, fullPage: true });
+      await page.getByRole('link', { name }).click();
+      await page.getByRole('textbox', { name: 'Email' }).fill('nobody-here@example.com');
+      await page.getByRole('button', { name: 'Search' }).click();
+      await expect(page.getByText('No user found.')).toBeVisible();
+      await expectNoHorizontalScroll(page);
+      await expectTouchTarget(page.getByRole('button', { name: 'Search' }));
+      await expectTouchTarget(page.getByRole('textbox', { name: 'Email' }));
+      await expectTouchTarget(page.getByRole('radio', { name: 'Name' }).locator('..'));
+      await page.screenshot({ path: `test-results/screens/family-${width}.png`, fullPage: true });
+    });
   });
 }

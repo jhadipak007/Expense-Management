@@ -40,13 +40,15 @@ Tests never depend on each other or on execution order.
 - Password hashing: hash then verify succeeds; wrong password fails; password over 72 bytes is rejected.
 - JWT: token encodes `sub`, `type`, `exp`; expired, tampered and wrong-type tokens are rejected.
 - Schemas: each field rule in [api_design.md](api_design.md) (amount > 0 with 2 decimals, currency `^[A-Z]{3}$`, `date_from <= date_to`, unknown fields rejected, `password_hash` never in output models).
-- Derived fields: `is_personal`, `is_expired`, `is_active`, computed `month`.
+- Derived fields: `is_personal`, `is_open`, `is_active`, computed `month`.
 
 **Integration**
 - Auth: register with OTP (correct code creates and logs in the user; wrong code; 5th wrong code ends the registration; expiry; abandoned sign-up does not block the email), duplicate email (409), login success and failure (401, same message for unknown email and wrong password), only one request using a refresh token succeeds and a duplicate/replayed use revokes all refresh tokens, logout works with a refresh cookie and no access token (including missing/expired/revoked cookie, always 204 and clears cookie), access token expiry.
 - Every protected endpoint returns 401 without a token (one parametrized test over all routes).
 - Expenses: create personal and family expenses; list returns only visible expenses; non-member gets 404 for a family expense; only the recorder can edit or delete; filters, sorting and pagination.
-- Families: create (creator is owner), invite, accept with matching email, reject mismatched email, expired invitation, owner-only actions return 403 for members, members can leave, owners cannot leave or remove themselves, and every family retains an owner.
+- Families: create (creator is owner), list with role, member sees members, non-member gets 404, owner-only actions return 403 for members.
+- User search: exact email only, name needs 3+ characters, masked emails, at most 10 with `has_more`, owner and inactive users excluded, LIKE wildcards match literally.
+- Invitations: 7-day expiry, duplicate member or open invitation returns 409, re-invite after decline/cancel/expiry, cancel removes it for both sides, accepted invitations cannot be cancelled, accept joins the family, decline does not, cancelled or expired invitations return 409, someone else's invitation returns 404.
 - Reports: totals grouped by currency with no conversion; omitting `family_id` returns only the user's personal expenses, supplying a member family ID returns only that family's expenses, and no report combines personal and family expenses.
 - SQL injection: payloads such as `1 OR 1=1` and `'; DROP TABLE expenses;--` in path and query parameters return 422 and change nothing.
 - Security headers present on `/api` responses; `/docs` disabled when `ENABLE_API_DOCS=false`.
@@ -91,8 +93,9 @@ Tests never depend on each other or on execution order.
 
 **Families and invitations**
 - Create family; the creator is shown as owner.
-- Invite form is visible only to owners.
-- `/invite/:token`: accept joins the family; decline returns to the families page; expired invitation shows a message.
+- Search and pending invitations are visible only to owners; email and name search, the 3-character rule, "No user found", the narrow-your-search message, duplicate-invite message, cancel.
+- Dashboard invitations: accept shows the joined family, decline removes it, a cancelled invitation shows "no longer available".
+- Navigation: Menu toggles the drawer, Escape and choosing a link close it, the current page is marked.
 
 **Reports**
 - Totals are grouped by currency; different currencies are never summed.
@@ -105,6 +108,7 @@ Tests never depend on each other or on execution order.
 
 **End to end (Playwright)**
 - Register, log in, add an expense, see it in the list, log out.
-- Two users: owner creates a family and invites; second user accepts; both see a shared family expense; the second user's personal expense stays hidden from the owner.
+- Two users: owner creates a family and invites a newly registered user, who accepts from the dashboard and sees the family's members; a cancelled invitation disappears from the invitee's dashboard.
+- Later (family expenses): both see a shared family expense; the second user's personal expense stays hidden from the owner.
 - Session survives a page reload (refresh cookie); access token expiry is handled without logging the user out.
 - Responsive: the main pages at 360px, 768px and 1440px have no horizontal scroll, and the navigation is a drawer below 1024px and a sidebar from 1024px.

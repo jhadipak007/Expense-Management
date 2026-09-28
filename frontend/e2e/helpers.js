@@ -15,3 +15,10 @@ export async function expectDashboard(page) {
   await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
   await expect(page).toHaveURL('/');
 }
+
+/** Log out and wait for the server; navigating first would abort the request and keep the session. */
+export async function logOut(page) {
+  const loggedOut = page.waitForResponse((r) => r.url().endsWith('/api/auth/logout'));
+  await page.getByRole('button', { name: 'Logout' }).click();
+  await loggedOut;
+}
