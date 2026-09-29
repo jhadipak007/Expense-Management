@@ -7,6 +7,7 @@ import { todayIso } from '../../utils/format.js';
 
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
 const UNAVAILABLE = 'Something went wrong. Please try again.';
+const CHECK_FORM = 'Please check the form and try again.';
 const MESSAGES = {
   amount: 'Enter an amount greater than 0, with at most 2 decimal places',
   currency: 'Enter a 3-letter currency code, such as AUD',
@@ -63,6 +64,11 @@ export default function ExpenseForm({ categories, families, onSubmit }) {
   const set = (field) => (value) => setForm((current) => ({ ...current, [field]: value }));
   const complete = form.amount.trim() && form.currency && form.category_id && form.spent_on;
 
+  function showServerErrors(fieldErrors) {
+    setErrors(fieldErrors);
+    if (!Object.keys(fieldErrors).length) setFormError(CHECK_FORM);
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     const fieldErrors = validate(form);
@@ -73,7 +79,7 @@ export default function ExpenseForm({ categories, families, onSubmit }) {
     try {
       await onSubmit(toPayload(form));
     } catch (error) {
-      if (error.status === 422) setErrors(serverFieldErrors(error.body));
+      if (error.status === 422) showServerErrors(serverFieldErrors(error.body));
       else if (error.status === 404) setFormError(`${error.body.detail}. ${MESSAGES.family_id}.`);
       else setFormError(UNAVAILABLE);
       setSubmitting(false);
@@ -92,9 +98,13 @@ export default function ExpenseForm({ categories, families, onSubmit }) {
         value={form.currency} onChange={(value) => set('currency')(value.toUpperCase())}
         error={errors.currency}
       />
-      <CategorySelect
-        categories={categories} value={form.category_id} onChange={set('category_id')}
+      <SelectField
+        id="category" label="Category" value={form.category_id} onChange={set('category_id')}
         error={errors.category_id}
+        options={[
+          <option key="" value="" disabled>Choose a category</option>,
+          ...categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>),
+        ]}
       />
       <Field
         id="spent-on" label="Date" type="date" max={todayIso()}
@@ -104,9 +114,13 @@ export default function ExpenseForm({ categories, families, onSubmit }) {
         id="description" label="Description (optional)" maxLength={500}
         value={form.description} onChange={set('description')} error={errors.description}
       />
-      <ShareWith
-        families={families} value={form.family_id} onChange={set('family_id')}
+      <SelectField
+        id="share-with" label="Share with" value={form.family_id} onChange={set('family_id')}
         error={errors.family_id}
+        options={[
+          <option key="" value="">Personal</option>,
+          ...families.map((f) => <option key={f.id} value={f.id}>{f.name}</option>),
+        ]}
       />
       <SubmitButton pending={submitting} pendingLabel="Saving..." disabled={!complete}>
         Save
@@ -115,43 +129,20 @@ export default function ExpenseForm({ categories, families, onSubmit }) {
   );
 }
 
-function CategorySelect({ categories, value, onChange, error }) {
+/** Labelled select whose error is linked with aria-describedby, like `Field`. */
+function SelectField({ id, label, options, value, onChange, error }) {
+  const errorId = `${id}-error`;
   return (
     <div className={fieldStyles.field}>
-      <label htmlFor="category">Category</label>
+      <label htmlFor={id}>{label}</label>
       <select
-        id="category" className={fieldStyles.input} value={value}
+        id={id} className={fieldStyles.input} value={value}
         onChange={(event) => onChange(event.target.value)}
-        aria-invalid={Boolean(error)} aria-describedby={error ? 'category-error' : undefined}
+        aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined}
       >
-        <option value="" disabled>Choose a category</option>
-        {categories.map((category) => (
-          <option key={category.id} value={category.id}>{category.name}</option>
-        ))}
+        {options}
       </select>
-      {error && <span id="category-error" className={fieldStyles.fieldError}>{error}</span>}
-    </div>
-  );
-}
-
-/** "Personal" or one of the user's families. */
-function ShareWith({ families, value, onChange, error }) {
-  const options = [{ id: '', name: 'Personal' }, ...families];
-  return (
-    <div className={fieldStyles.field}>
-      <fieldset className={page.options} aria-describedby={error ? 'share-error' : undefined}>
-        <legend>Share with</legend>
-        {options.map((option) => (
-          <label key={option.id}>
-            <input
-              type="radio" name="share-with" value={option.id}
-              checked={value === String(option.id)} onChange={() => onChange(String(option.id))}
-            />
-            {option.name}
-          </label>
-        ))}
-      </fieldset>
-      {error && <span id="share-error" className={fieldStyles.fieldError}>{error}</span>}
+      {error && <span id={errorId} className={fieldStyles.fieldError}>{error}</span>}
     </div>
   );
 }

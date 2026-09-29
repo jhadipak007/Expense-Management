@@ -56,24 +56,25 @@ describe('Add expense', () => {
     expect(await screen.findByLabelText('Currency')).toHaveValue('AUD');
     expect(screen.getByLabelText('Date')).toHaveValue(todayIso());
     expect(screen.getByLabelText('Date')).toHaveAttribute('max', todayIso());
-    expect(screen.getByRole('radio', { name: 'Personal' })).toBeChecked();
-    const options = screen.getAllByRole('option').map((option) => option.textContent);
+    expect(screen.getByLabelText('Share with')).toHaveDisplayValue('Personal');
+    const category = screen.getByLabelText('Category');
+    const options = [...category.options].map((option) => option.textContent);
     expect(options).toEqual(['Choose a category', 'Grocery', 'Eating Out', 'Trips']);
   });
 
   it('offers only my families to share with', async () => {
     mockExpensesApi();
     renderApp('/expenses/new');
-    await screen.findByLabelText('Amount');
-    const radios = screen.getAllByRole('radio').map((radio) => radio.labels[0].textContent);
-    expect(radios).toEqual(['Personal', 'Jha Household', 'Trip Crew']);
+    const shareWith = await screen.findByLabelText('Share with');
+    const options = [...shareWith.options].map((option) => option.textContent);
+    expect(options).toEqual(['Personal', 'Jha Household', 'Trip Crew']);
   });
 
   it('offers only Personal when I have no families', async () => {
     mockExpensesApi({ families: [] });
     renderApp('/expenses/new');
-    await screen.findByLabelText('Amount');
-    expect(screen.getAllByRole('radio')).toHaveLength(1);
+    const shareWith = await screen.findByLabelText('Share with');
+    expect([...shareWith.options].map((option) => option.textContent)).toEqual(['Personal']);
   });
 
   it('keeps Save disabled until the required fields are filled', async () => {
@@ -119,7 +120,7 @@ describe('Add expense', () => {
     await user.clear(screen.getByLabelText('Currency'));
     await user.type(screen.getByLabelText('Currency'), 'inr');
     await user.type(screen.getByLabelText('Description (optional)'), '  Weekly shop ');
-    await user.click(screen.getByRole('radio', { name: 'Trip Crew' }));
+    await user.selectOptions(screen.getByLabelText('Share with'), 'Trip Crew');
     await user.click(save());
     expect(await screen.findByRole('status')).toHaveTextContent(
       'Expense saved: 1999.9 INR for Grocery.',
@@ -157,13 +158,25 @@ describe('Add expense', () => {
     expect(save()).toBeEnabled();
   });
 
+  it('asks to check the form when a server error matches no field', async () => {
+    mockExpensesApi({
+      response: () => HttpResponse.json(
+        { detail: [{ loc: ['body'], msg: 'Invalid body' }] }, { status: 422 },
+      ),
+    });
+    const { user } = renderApp('/expenses/new');
+    await fillRequired(user);
+    await user.click(save());
+    expect(await screen.findByRole('alert')).toHaveTextContent('Please check the form and try again.');
+  });
+
   it('explains when the family is no longer available', async () => {
     mockExpensesApi({
       response: () => HttpResponse.json({ detail: 'Family not found' }, { status: 404 }),
     });
     const { user } = renderApp('/expenses/new');
     await fillRequired(user);
-    await user.click(screen.getByRole('radio', { name: 'Jha Household' }));
+    await user.selectOptions(screen.getByLabelText('Share with'), 'Jha Household');
     await user.click(save());
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Family not found. Choose Personal or one of your families.',

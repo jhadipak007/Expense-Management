@@ -63,7 +63,7 @@ for (const width of WIDTHS) {
       await expectTouchTarget(page.getByLabel('Amount'));
       await expectTouchTarget(page.getByLabel('Category'));
       await expectTouchTarget(page.getByLabel('Date'));
-      await expectTouchTarget(page.getByRole('radio', { name: 'Personal' }).locator('..'));
+      await expectTouchTarget(page.getByLabel('Share with'));
       await expectTouchTarget(page.getByRole('button', { name: 'Save' }));
       await expectNoHorizontalScroll(page);
       await page.screenshot({ path: `test-results/screens/add-expense-${width}.png`, fullPage: true });
