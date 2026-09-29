@@ -15,6 +15,16 @@ export function PageTitle({ className, ...props }) {
   return <h1 className={cn('text-2xl font-bold wrap-anywhere text-foreground md:text-3xl', className)} {...props} />;
 }
 
+/** The page's h1 with a short description under it. */
+export function PageHeader({ title, description }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <PageTitle>{title}</PageTitle>
+      <p className="text-sm">{description}</p>
+    </div>
+  );
+}
+
 /** Heading of a card. */
 export function CardHeading({ className, ...props }) {
   return <h2 className={cn('text-xl font-bold wrap-anywhere text-foreground', className)} {...props} />;

@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { inviteUser, searchUsers } from '@/api/families.js';
 import FormField from '@/components/FormField.jsx';
-import ItemRow, { ItemActions, ItemDetails, ItemList } from '@/components/ItemRow.jsx';
+import ItemRow, { ItemActions, ItemList, PersonDetails } from '@/components/ItemRow.jsx';
 import Notice from '@/components/Notice.jsx';
 import OptionGroup, { Option } from '@/components/OptionGroup.jsx';
 import SectionCard, { CardIntro } from '@/components/SectionCard.jsx';
-import UserAvatar from '@/components/UserAvatar.jsx';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
@@ -106,10 +105,7 @@ function SearchResults({ search, invitedIds, busy, onInvite }) {
       <ItemList aria-label="Search results">
         {search.results.map((person) => (
           <ItemRow key={person.user_id}>
-            <div className="flex min-w-0 items-center gap-3">
-              <UserAvatar name={person.display_name} />
-              <ItemDetails title={person.display_name}>{person.email}</ItemDetails>
-            </div>
+            <PersonDetails name={person.display_name}>{person.email}</PersonDetails>
             <ItemActions>
               {invitedIds.includes(person.user_id) ? (
                 <span className="text-sm">Invited</span>

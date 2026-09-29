@@ -3,11 +3,10 @@ import { useParams } from 'react-router';
 import { getFamily } from '@/api/families.js';
 import { useAsyncList } from '@/hooks/useAsyncList.js';
 import BackLink from '@/components/BackLink.jsx';
-import ItemRow, { ItemDetails, ItemList } from '@/components/ItemRow.jsx';
+import ItemRow, { ItemList, PersonDetails } from '@/components/ItemRow.jsx';
 import ListSkeleton from '@/components/ListSkeleton.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { CardHeading, PageTitle } from '@/components/SectionCard.jsx';
-import UserAvatar from '@/components/UserAvatar.jsx';
 import InviteMembers from './InviteMembers.jsx';
 import RoleBadge from './RoleBadge.jsx';
 
@@ -36,10 +35,7 @@ export default function FamilyDetail() {
         <ItemList>
           {family.members.map((member) => (
             <ItemRow key={member.user_id}>
-              <div className="flex min-w-0 items-center gap-3">
-                <UserAvatar name={member.display_name} />
-                <ItemDetails title={member.display_name}>{member.email}</ItemDetails>
-              </div>
+              <PersonDetails name={member.display_name}>{member.email}</PersonDetails>
               <RoleBadge role={member.role} />
             </ItemRow>
           ))}

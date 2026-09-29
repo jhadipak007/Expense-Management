@@ -4,10 +4,9 @@ import { toast } from 'sonner';
 import { acceptInvitation, declineInvitation, listMyInvitations } from '@/api/invitations.js';
 import { useAsyncList } from '@/hooks/useAsyncList.js';
 import ConfirmButton from '@/components/ConfirmButton.jsx';
-import ItemRow, { ItemActions, ItemDetails, ItemList } from '@/components/ItemRow.jsx';
+import ItemRow, { ItemActions, ItemList, PersonDetails } from '@/components/ItemRow.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { CardIntro } from '@/components/SectionCard.jsx';
-import UserAvatar from '@/components/UserAvatar.jsx';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/utils/format.js';
 
@@ -53,12 +52,9 @@ export default function PendingInvitations({ onJoined }) {
         <ItemList>
           {invitations.map((invitation) => (
             <ItemRow key={invitation.id}>
-              <div className="flex min-w-0 items-center gap-3">
-                <UserAvatar name={invitation.inviter_name} />
-                <ItemDetails title={invitation.family_name}>
-                  Invited by {invitation.inviter_name} · Expires {formatDate(invitation.expires_at)}
-                </ItemDetails>
-              </div>
+              <PersonDetails name={invitation.inviter_name} title={invitation.family_name}>
+                Invited by {invitation.inviter_name} · Expires {formatDate(invitation.expires_at)}
+              </PersonDetails>
               <ItemActions>
                 <Button
                   disabled={busyId === invitation.id}

@@ -4,11 +4,10 @@ import { toast } from 'sonner';
 import { cancelInvitation } from '@/api/families.js';
 import ConfirmButton from '@/components/ConfirmButton.jsx';
 import EmptyState from '@/components/EmptyState.jsx';
-import ItemRow, { ItemActions, ItemDetails, ItemList } from '@/components/ItemRow.jsx';
+import ItemRow, { ItemActions, ItemList, PersonDetails } from '@/components/ItemRow.jsx';
 import ListSkeleton from '@/components/ListSkeleton.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { CardIntro } from '@/components/SectionCard.jsx';
-import UserAvatar from '@/components/UserAvatar.jsx';
 import { formatDate } from '@/utils/format.js';
 
 /** The owner's list of pending invitations, each with a Cancel button that asks first. */
@@ -46,12 +45,9 @@ export default function FamilyInvitations({ familyId, data: invitations, error, 
         <ItemList>
           {invitations.map((invitation) => (
             <ItemRow key={invitation.id}>
-              <div className="flex min-w-0 items-center gap-3">
-                <UserAvatar name={invitation.invitee_name} />
-                <ItemDetails title={invitation.invitee_name}>
-                  Sent {formatDate(invitation.created_at)} · Expires {formatDate(invitation.expires_at)}
-                </ItemDetails>
-              </div>
+              <PersonDetails name={invitation.invitee_name}>
+                Sent {formatDate(invitation.created_at)} · Expires {formatDate(invitation.expires_at)}
+              </PersonDetails>
               <ItemActions>
                 <ConfirmButton
                   variant="outline" disabled={busyId === invitation.id}

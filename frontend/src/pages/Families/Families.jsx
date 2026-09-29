@@ -5,7 +5,7 @@ import EmptyState from '@/components/EmptyState.jsx';
 import ItemRow, { ItemList } from '@/components/ItemRow.jsx';
 import ListSkeleton from '@/components/ListSkeleton.jsx';
 import Notice from '@/components/Notice.jsx';
-import SectionCard, { PageTitle } from '@/components/SectionCard.jsx';
+import SectionCard, { PageHeader } from '@/components/SectionCard.jsx';
 import TextLink from '@/components/TextLink.jsx';
 import CreateFamilyForm from './CreateFamilyForm.jsx';
 import RoleBadge from './RoleBadge.jsx';
@@ -16,10 +16,7 @@ export default function Families() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
-      <div className="flex flex-col gap-1">
-        <PageTitle>Families</PageTitle>
-        <p className="text-sm">Share expenses and reports with the people you live or travel with.</p>
-      </div>
+      <PageHeader title="Families" description="Share expenses and reports with the people you live or travel with." />
       <SectionCard aria-label="Your families">
         {loading && !families && <ListSkeleton />}
         {error && <Notice>Could not load your families.</Notice>}

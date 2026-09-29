@@ -18,7 +18,10 @@ export default function CategoryChart({ currency }) {
         config={CONFIG} className="aspect-auto w-full text-sm" style={{ height: data.length * ROW_HEIGHT }}
         aria-hidden="true"
       >
-        <BarChart data={data} layout="vertical" margin={{ top: 0, bottom: 0, left: 0, right: 88 }} barSize={12}>
+        <BarChart
+          data={data} layout="vertical" margin={{ top: 0, bottom: 0, left: 0, right: 88 }} barSize={12}
+          accessibilityLayer={false}
+        >
           <XAxis type="number" hide domain={[0, 'dataMax']} />
           <YAxis
             type="category" dataKey="name" width={88} tickLine={false} axisLine={false}

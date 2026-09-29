@@ -5,7 +5,7 @@ import { listCategoriesAndFamilies } from '@/api/expenses.js';
 import { useAsyncList } from '@/hooks/useAsyncList.js';
 import { useAuth } from '@/auth/useAuth.js';
 import Notice from '@/components/Notice.jsx';
-import SectionCard, { PageTitle } from '@/components/SectionCard.jsx';
+import SectionCard, { PageHeader } from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import DashboardFilters from './DashboardFilters.jsx';
@@ -25,10 +25,9 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col gap-4 md:gap-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div className="flex flex-col gap-1">
-          <PageTitle>Welcome, {user.display_name}</PageTitle>
-          <p className="text-sm">Your personal and family spending at a glance.</p>
-        </div>
+        <PageHeader
+          title={`Welcome, ${user.display_name}`} description="Your personal and family spending at a glance."
+        />
         <Button asChild className="w-full md:w-auto">
           <Link to={addExpense}><PlusIcon />Add expense</Link>
         </Button>

@@ -4,7 +4,7 @@ import { createExpense, listExpenseFormOptions } from '@/api/expenses.js';
 import { useAsyncList } from '@/hooks/useAsyncList.js';
 import BackLink from '@/components/BackLink.jsx';
 import Notice from '@/components/Notice.jsx';
-import SectionCard, { PageTitle } from '@/components/SectionCard.jsx';
+import SectionCard, { PageHeader } from '@/components/SectionCard.jsx';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatMoney } from '@/utils/format.js';
 import ExpenseForm from './ExpenseForm.jsx';
@@ -29,10 +29,7 @@ export default function NewExpense() {
   return (
     <SectionCard className="max-w-2xl">
       <BackLink to={dashboard}>Back to dashboard</BackLink>
-      <div className="flex flex-col gap-1">
-        <PageTitle>Add expense</PageTitle>
-        <p className="text-sm">Record what you spent, and share it with a family if you like.</p>
-      </div>
+      <PageHeader title="Add expense" description="Record what you spent, and share it with a family if you like." />
       {loading && <FormSkeleton />}
       {error && <Notice>Could not load the form. Please try again.</Notice>}
       {data && (
