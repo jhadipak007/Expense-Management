@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Outlet } from 'react-router';
-import { useAuth } from '../auth/useAuth.js';
-import { useIdleLogout } from '../auth/useIdleLogout.js';
-import Nav from '../components/Nav/Nav.jsx';
-import TopBar from '../components/TopBar/TopBar.jsx';
-import styles from './AppLayout.module.css';
+import { useAuth } from '@/auth/useAuth.js';
+import { useIdleLogout } from '@/auth/useIdleLogout.js';
+import Nav from '@/components/Nav/Nav.jsx';
+import TopBar from '@/components/TopBar/TopBar.jsx';
+import { Sheet } from '@/components/ui/sheet';
 
 /** Shell for logged-in pages: top bar, navigation, page content and the idle logout timer. */
 export default function AppLayout() {
@@ -12,22 +12,15 @@ export default function AppLayout() {
   const [navOpen, setNavOpen] = useState(false);
   useIdleLogout(logout);
 
-  useEffect(() => {
-    if (!navOpen) return undefined;
-    const onKeyDown = (event) => event.key === 'Escape' && setNavOpen(false);
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [navOpen]);
-
   return (
-    <>
-      <TopBar navOpen={navOpen} onToggleNav={() => setNavOpen(!navOpen)} onLogout={logout} />
-      <div className={styles.shell}>
-        <Nav open={navOpen} onClose={() => setNavOpen(false)} />
-        <main className={styles.content}>
+    <Sheet open={navOpen} onOpenChange={setNavOpen}>
+      <TopBar onLogout={logout} />
+      <div className="lg:mx-auto lg:grid lg:max-w-7xl lg:grid-cols-[14rem_minmax(0,1fr)]">
+        <Nav onNavigate={() => setNavOpen(false)} />
+        <main className="min-w-0 p-4 md:px-6 md:py-8">
           <Outlet />
         </main>
       </div>
-    </>
+    </Sheet>
   );
 }

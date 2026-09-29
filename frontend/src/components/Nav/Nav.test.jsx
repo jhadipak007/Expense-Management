@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { validRefresh } from '../../test/handlers.js';
 import { server } from '../../test/setup.js';
@@ -18,14 +18,15 @@ describe('Main navigation', () => {
     expect(screen.getByRole('link', { name: 'Dashboard' })).not.toHaveAttribute('aria-current');
   });
 
-  it('opens and closes the drawer with the Menu button', async () => {
+  it('opens the drawer with the Menu button and closes it with Close', async () => {
     const { user } = await renderLoggedIn();
     const menu = screen.getByRole('button', { name: 'Menu' });
     expect(menu).toHaveAttribute('aria-expanded', 'false');
     await user.click(menu);
     expect(menu).toHaveAttribute('aria-expanded', 'true');
-    await user.click(menu);
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Close' }));
     expect(menu).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('closes the drawer on Escape', async () => {
