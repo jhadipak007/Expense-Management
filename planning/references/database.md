@@ -60,7 +60,7 @@ Every relationship is declared on both sides with `back_populates`.
 - `render_as_batch=True`, so ALTER operations work on SQLite.
 - Create migrations with `uv run alembic revision --autogenerate -m "<message>"`. Review every generated file before committing.
 - Every migration has a working `downgrade()`.
-- A data migration seeds the categories: Grocery, Eating Out and Trips, with their colors.
+- Data migrations seed the lookup tables: the categories (Grocery, Eating Out and Trips, with their colors) and the currencies (ISO 4217 codes and names, written as literal rows so a migration never changes with a library).
 - Local: the container runs `alembic upgrade head` before starting uvicorn.
 - Production: migrations run as a one-off ECS Fargate task during each release (see [aws_deployment.md](aws_deployment.md), section 7).
 - Tests build the schema with `alembic upgrade head`, so migrations are tested too.

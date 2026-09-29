@@ -76,7 +76,7 @@ Browser-side checks mirror the API limits for fast feedback. The server remains 
 | Field | Check |
 |---|---|
 | Amount | Text input with `inputMode="decimal"`, so a non-numeric entry can show a message; greater than 0, at most 2 decimals |
-| Currency | 3 letters, upper-cased as typed; defaults to AUD |
+| Currency | Dropdown of `GET /api/currencies`, shown as "AUD - Australian Dollar" and sorted by code (typing a code jumps to it); defaults to AUD |
 | Date | `type="date"`, defaults to and is capped at the local today |
 | Text fields | `maxLength` matching the API |
 | Password | 8 characters minimum, 72 bytes maximum |
