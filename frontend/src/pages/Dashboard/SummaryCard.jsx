@@ -1,9 +1,10 @@
 import { useCallback, useId } from 'react';
-import { getSummary } from '../../api/reports.js';
-import { useAsyncList } from '../../hooks/useAsyncList.js';
-import page from '../../styles/page.module.css';
-import { formatMoney } from '../../utils/format.js';
-import styles from './SummaryCard.module.css';
+import { getSummary } from '@/api/reports.js';
+import { useAsyncList } from '@/hooks/useAsyncList.js';
+import Notice from '@/components/Notice.jsx';
+import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
+import { Button } from '@/components/ui/button';
+import { formatMoney } from '@/utils/format.js';
 
 /**
  * Spending for one scope (personal when `familyId` is null) under the dashboard
@@ -19,40 +20,40 @@ export default function SummaryCard({ title, familyId, filters }) {
   const headingId = useId();
 
   return (
-    <section className={page.card} aria-labelledby={headingId} aria-busy={loading}>
-      <h2 id={headingId} className={page.heading}>{title}</h2>
-      {loading && <p className={page.muted} role="status">Loading...</p>}
+    <SectionCard aria-labelledby={headingId} aria-busy={loading}>
+      <CardHeading id={headingId}>{title}</CardHeading>
+      {loading && <p className="text-sm" role="status">Loading...</p>}
       {error && (
         <>
-          <p className={page.error} role="alert">Could not load this summary.</p>
-          <button className={page.secondary} type="button" onClick={reload}>Retry</button>
+          <Notice>Could not load this summary.</Notice>
+          <Button variant="outline" className="self-start" onClick={reload}>Retry</Button>
         </>
       )}
       {data?.currencies.length === 0 && (
-        <p className={page.muted}>No expenses match these filters.</p>
+        <p className="text-sm">No expenses match these filters.</p>
       )}
       {data?.currencies.map((currency) => (
         <CurrencyTotal key={currency.currency} currency={currency} />
       ))}
-    </section>
+    </SectionCard>
   );
 }
 
 /** One currency's total and its breakdown, with a bar per category sized by its share. */
 function CurrencyTotal({ currency }) {
   return (
-    <div className={styles.currency}>
-      <p className={styles.total}>{formatMoney(currency.total, currency.currency)}</p>
-      <ul className={styles.breakdown} aria-label={`${currency.currency} by category`}>
+    <div className="flex flex-col gap-2">
+      <p className="text-xl font-bold wrap-anywhere text-foreground">{formatMoney(currency.total, currency.currency)}</p>
+      <ul className="flex flex-col gap-2" aria-label={`${currency.currency} by category`}>
         {currency.categories.map((category) => (
           <li key={category.category_id}>
-            <div className={styles.row}>
+            <div className="flex flex-wrap justify-between gap-2 text-sm">
               <span>{category.name}</span>
               <span>{formatMoney(category.total, currency.currency)}</span>
             </div>
-            <div className={styles.track} aria-hidden="true">
+            <div className="h-2 rounded-md bg-muted" aria-hidden="true">
               <div
-                className={styles.bar}
+                className="h-full rounded-md"
                 style={{
                   width: `${(100 * category.total) / currency.total}%`,
                   background: category.color,

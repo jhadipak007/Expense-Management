@@ -1,8 +1,8 @@
 import { screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { server } from '../../test/setup.js';
-import { renderApp } from '../../test/renderApp.jsx';
+import { server } from '@/test/setup.js';
+import { renderApp } from '@/test/renderApp.jsx';
 
 async function fillAndSubmit(user, { email = '', password = '' } = {}) {
   if (email) await user.type(screen.getByLabelText('Email'), email);

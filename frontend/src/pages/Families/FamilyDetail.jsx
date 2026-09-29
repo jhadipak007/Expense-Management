@@ -1,10 +1,13 @@
 import { useCallback } from 'react';
-import { Link, useParams } from 'react-router';
-import { getFamily } from '../../api/families.js';
-import { useAsyncList } from '../../hooks/useAsyncList.js';
-import page from '../../styles/page.module.css';
-import { ROLE_LABELS } from '../../utils/format.js';
+import { useParams } from 'react-router';
+import { getFamily } from '@/api/families.js';
+import { useAsyncList } from '@/hooks/useAsyncList.js';
+import BackLink from '@/components/BackLink.jsx';
+import ItemRow, { ItemDetails, ItemList } from '@/components/ItemRow.jsx';
+import Notice from '@/components/Notice.jsx';
+import SectionCard, { CardHeading, PageTitle } from '@/components/SectionCard.jsx';
 import InviteMembers from './InviteMembers.jsx';
+import RoleBadge from './RoleBadge.jsx';
 
 /** One family: its members, and for the owner, search, invite and pending invitations. */
 export default function FamilyDetail() {
@@ -12,36 +15,31 @@ export default function FamilyDetail() {
   const load = useCallback(() => getFamily(familyId), [familyId]);
   const { data: family, error, loading } = useAsyncList(load);
 
-  if (loading) return <p className={page.muted}>Loading...</p>;
+  if (loading) return <p className="text-sm">Loading...</p>;
   if (error) {
     return (
-      <section className={page.card}>
-        <p className={page.error} role="alert">
-          {error.status === 404 ? 'Family not found.' : 'Could not load this family.'}
-        </p>
-        <Link className={page.back} to="/families">Back to families</Link>
-      </section>
+      <SectionCard>
+        <Notice>{error.status === 404 ? 'Family not found.' : 'Could not load this family.'}</Notice>
+        <BackLink to="/families">Back to families</BackLink>
+      </SectionCard>
     );
   }
 
   return (
-    <div className={page.stack}>
-      <section className={page.card}>
-        <Link className={page.back} to="/families">Back to families</Link>
-        <h1 className={page.title}>{family.name}</h1>
-        <h2 className={page.heading}>Members</h2>
-        <ul className={page.list}>
+    <div className="flex flex-col gap-4">
+      <SectionCard>
+        <BackLink to="/families">Back to families</BackLink>
+        <PageTitle>{family.name}</PageTitle>
+        <CardHeading>Members</CardHeading>
+        <ItemList>
           {family.members.map((member) => (
-            <li key={member.user_id} className={page.item}>
-              <div className={page.details}>
-                <span className={page.name}>{member.display_name}</span>
-                <span className={page.muted}>{member.email}</span>
-              </div>
-              <span className={page.badge}>{ROLE_LABELS[member.role]}</span>
-            </li>
+            <ItemRow key={member.user_id}>
+              <ItemDetails title={member.display_name}>{member.email}</ItemDetails>
+              <RoleBadge role={member.role} />
+            </ItemRow>
           ))}
-        </ul>
-      </section>
+        </ItemList>
+      </SectionCard>
       {family.role === 'owner' && <InviteMembers familyId={family.id} />}
     </div>
   );

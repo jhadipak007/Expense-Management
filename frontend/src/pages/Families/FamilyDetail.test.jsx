@@ -1,9 +1,9 @@
 import { screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { validRefresh } from '../../test/handlers.js';
-import { server } from '../../test/setup.js';
-import { renderApp } from '../../test/renderApp.jsx';
+import { validRefresh } from '@/test/handlers.js';
+import { server } from '@/test/setup.js';
+import { renderApp } from '@/test/renderApp.jsx';
 
 const PRIYA = { user_id: 1, display_name: 'Priya', email: 'priya@example.com', role: 'owner' };
 const RAVI = { user_id: 2, display_name: 'Ravi', email: 'ravi@example.com' };

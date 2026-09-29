@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import Field from '../../components/AuthForm/Field.jsx';
-import page from '../../styles/page.module.css';
+import FormField from '@/components/FormField.jsx';
+import OptionGroup, { Option } from '@/components/OptionGroup.jsx';
+import SectionCard from '@/components/SectionCard.jsx';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { describeFilters, matchingPreset, presetRange, PRESETS } from './dashboardFilters.js';
-import styles from './DashboardFilters.module.css';
 
 const RANGE_ERROR = 'The From date must be on or before the To date.';
 
@@ -64,54 +67,50 @@ export default function DashboardFilters({ filters, categories, onChange, onRese
   }
 
   return (
-    <section className={`${page.card} ${styles.filters}`} aria-label="Filters">
-      <fieldset className={page.options}>
-        <legend>Period</legend>
-        {[...PRESETS, { key: 'custom', label: 'Custom' }].map(({ key, label }) => (
-          <label key={key}>
-            <input
-              type="radio" name="period" value={key}
-              checked={period === key} onChange={() => choosePeriod(key)}
-            />
-            {label}
-          </label>
-        ))}
-      </fieldset>
+    <SectionCard className="gap-3" aria-label="Filters">
+      <OptionGroup legend="Period">
+        <RadioGroup value={period} onValueChange={choosePeriod} className="flex flex-wrap gap-x-4 gap-y-0">
+          {[...PRESETS, { key: 'custom', label: 'Custom' }].map(({ key, label }) => (
+            <Option key={key} label={label}>
+              <RadioGroupItem value={key} />
+            </Option>
+          ))}
+        </RadioGroup>
+      </OptionGroup>
       {period === 'custom' && (
-        <div className={styles.range}>
-          <Field
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-3">
+          <FormField
             id="filter-from" label="From" type="date" value={draft.from}
             onChange={(value) => changeDate('from', value)} error={rangeError}
           />
-          <Field
+          <FormField
             id="filter-to" label="To" type="date" value={draft.to}
             onChange={(value) => changeDate('to', value)}
           />
         </div>
       )}
-      <fieldset className={page.options}>
-        <legend>Categories</legend>
-        <label>
-          <input
-            type="checkbox" checked={filters.categoryIds.length === 0}
-            onChange={() => onChange({ ...filters, categoryIds: [] })}
-          />
-          All categories
-        </label>
-        {categories.map((category) => (
-          <label key={category.id}>
-            <input
-              type="checkbox" checked={filters.categoryIds.includes(category.id)}
-              onChange={() => toggleCategory(category.id)}
+      <OptionGroup legend="Categories">
+        <div className="flex flex-wrap gap-x-4">
+          <Option label="All categories">
+            <Checkbox
+              checked={filters.categoryIds.length === 0}
+              onCheckedChange={() => onChange({ ...filters, categoryIds: [] })}
             />
-            {category.name}
-          </label>
-        ))}
-      </fieldset>
-      <div className={styles.footer}>
-        <p className={page.muted}>{describeFilters(filters, categories)}</p>
-        <button className={page.secondary} type="button" onClick={reset}>Reset</button>
+          </Option>
+          {categories.map((category) => (
+            <Option key={category.id} label={category.name}>
+              <Checkbox
+                checked={filters.categoryIds.includes(category.id)}
+                onCheckedChange={() => toggleCategory(category.id)}
+              />
+            </Option>
+          ))}
+        </div>
+      </OptionGroup>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm">{describeFilters(filters, categories)}</p>
+        <Button variant="outline" onClick={reset}>Reset</Button>
       </div>
-    </section>
+    </SectionCard>
   );
 }

@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import fieldStyles from '../../components/AuthForm/AuthForm.module.css';
-import Field from '../../components/AuthForm/Field.jsx';
-import SubmitButton from '../../components/AuthForm/SubmitButton.jsx';
-import page from '../../styles/page.module.css';
-import { todayIso } from '../../utils/format.js';
+import FormField, { SelectField } from '@/components/FormField.jsx';
+import Notice from '@/components/Notice.jsx';
+import SubmitButton from '@/components/SubmitButton.jsx';
+import { NativeSelectOption } from '@/components/ui/native-select';
+import { todayIso } from '@/utils/format.js';
 
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
 const UNAVAILABLE = 'Something went wrong. Please try again.';
@@ -87,43 +87,42 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
   }
 
   return (
-    <form className={page.form} onSubmit={handleSubmit} noValidate>
-      {formError && <p className={page.error} role="alert">{formError}</p>}
-      <Field
+    <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
+      {formError && <Notice>{formError}</Notice>}
+      <FormField
         id="amount" label="Amount" inputMode="decimal" autoComplete="off" placeholder="0.00"
         value={form.amount} onChange={set('amount')} error={errors.amount}
       />
       <SelectField
         id="currency" label="Currency" value={form.currency} onChange={set('currency')}
         error={errors.currency}
-        options={currencies.map((c) => (
-          <option key={c.code} value={c.code}>{`${c.code} - ${c.name}`}</option>
+      >
+        {currencies.map((c) => (
+          <NativeSelectOption key={c.code} value={c.code}>{`${c.code} - ${c.name}`}</NativeSelectOption>
         ))}
-      />
+      </SelectField>
       <SelectField
         id="category" label="Category" value={form.category_id} onChange={set('category_id')}
         error={errors.category_id}
-        options={[
-          <option key="" value="" disabled>Choose a category</option>,
-          ...categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>),
-        ]}
-      />
-      <Field
+      >
+        <NativeSelectOption value="" disabled>Choose a category</NativeSelectOption>
+        {categories.map((c) => <NativeSelectOption key={c.id} value={c.id}>{c.name}</NativeSelectOption>)}
+      </SelectField>
+      <FormField
         id="spent-on" label="Date" type="date" max={todayIso()}
         value={form.spent_on} onChange={set('spent_on')} error={errors.spent_on}
       />
-      <Field
+      <FormField
         id="description" label="Description (optional)" maxLength={500}
         value={form.description} onChange={set('description')} error={errors.description}
       />
       <SelectField
         id="share-with" label="Share with" value={form.family_id} onChange={set('family_id')}
         error={errors.family_id}
-        options={[
-          <option key="" value="">Personal</option>,
-          ...families.map((f) => <option key={f.id} value={f.id}>{f.name}</option>),
-        ]}
-      />
+      >
+        <NativeSelectOption value="">Personal</NativeSelectOption>
+        {families.map((f) => <NativeSelectOption key={f.id} value={f.id}>{f.name}</NativeSelectOption>)}
+      </SelectField>
       <SubmitButton pending={submitting} pendingLabel="Saving..." disabled={!complete}>
         Save
       </SubmitButton>
@@ -131,20 +130,3 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
   );
 }
 
-/** Labelled select whose error is linked with aria-describedby, like `Field`. */
-function SelectField({ id, label, options, value, onChange, error }) {
-  const errorId = `${id}-error`;
-  return (
-    <div className={fieldStyles.field}>
-      <label htmlFor={id}>{label}</label>
-      <select
-        id={id} className={fieldStyles.input} value={value}
-        onChange={(event) => onChange(event.target.value)}
-        aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined}
-      >
-        {options}
-      </select>
-      {error && <span id={errorId} className={fieldStyles.fieldError}>{error}</span>}
-    </div>
-  );
-}

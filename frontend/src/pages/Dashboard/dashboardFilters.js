@@ -2,7 +2,7 @@
  * Dashboard filters live in the URL: `from` and `to` ("YYYY-MM-DD", inclusive)
  * and repeated `category` ids. No categories means all of them.
  */
-import { formatIsoDate } from '../../utils/format.js';
+import { formatIsoDate } from '@/utils/format.js';
 
 export const PRESETS = [
   { key: 'this-month', label: 'This month' },

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
-import AuthLayout from '../../components/AuthLayout/AuthLayout.jsx';
+import AuthLayout from '@/components/AuthLayout/AuthLayout.jsx';
+import TextLink from '@/components/TextLink.jsx';
 import DetailsForm from './DetailsForm.jsx';
 import OtpForm from './OtpForm.jsx';
 
@@ -38,7 +38,7 @@ export default function Register() {
             setNotice('');
             setRegistrationId(id);
           }}
-          loginLink={<Link to="/login">Log in</Link>}
+          loginLink={<TextLink to="/login">Log in</TextLink>}
         />
       )}
     </AuthLayout>

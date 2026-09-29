@@ -83,6 +83,8 @@ Detailed deployment architecture: see `planning/deployment_architecture.md`.
 
 ## Key learnings
 Record important lessons here as you discover them, one short bullet each. Add only points worth remembering for future work.
+- The shadcn registry's components import `cn` from shadcn's `cn` npm package (no `src/lib/utils.js`) and don't declare `class-variance-authority`, which must stay installed.
+- Radix modal parts (Sheet, Dialog scroll lock) inject an inline `<style>` that the strict CSP blocks; check the browser console with the real CSP before adding one.
 
 ## Personal progress tracking
 

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { listFamilyInvitations } from '../../api/families.js';
-import { useAsyncList } from '../../hooks/useAsyncList.js';
+import { listFamilyInvitations } from '@/api/families.js';
+import { useAsyncList } from '@/hooks/useAsyncList.js';
 import FamilyInvitations from './FamilyInvitations.jsx';
 import UserSearch from './UserSearch.jsx';
 

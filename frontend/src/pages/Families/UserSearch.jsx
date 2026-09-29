@@ -1,7 +1,12 @@
 import { useState } from 'react';
-import { inviteUser, searchUsers } from '../../api/families.js';
-import Field from '../../components/AuthForm/Field.jsx';
-import page from '../../styles/page.module.css';
+import { inviteUser, searchUsers } from '@/api/families.js';
+import FormField from '@/components/FormField.jsx';
+import ItemRow, { ItemActions, ItemDetails, ItemList } from '@/components/ItemRow.jsx';
+import Notice from '@/components/Notice.jsx';
+import OptionGroup, { Option } from '@/components/OptionGroup.jsx';
+import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
+import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const UNAVAILABLE = 'Something went wrong. Please try again.';
 const MODES = { email: 'Email', name: 'Name' };
@@ -61,67 +66,61 @@ export default function UserSearch({ familyId, invitedIds, onInvited }) {
   }
 
   return (
-    <section className={page.card}>
-      <h2 className={page.heading}>Invite people</h2>
-      <form className={page.form} onSubmit={handleSubmit} noValidate>
-        <fieldset className={page.options}>
-          <legend>Find people by</legend>
-          {Object.entries(MODES).map(([value, label]) => (
-            <label key={value}>
-              <input
-                type="radio" name="search-mode" value={value}
-                checked={mode === value} onChange={() => changeMode(value)}
-              />
-              {label}
-            </label>
-          ))}
-        </fieldset>
-        <Field
+    <SectionCard>
+      <CardHeading>Invite people</CardHeading>
+      <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
+        <OptionGroup legend="Find people by">
+          <RadioGroup value={mode} onValueChange={changeMode} className="flex flex-wrap gap-x-4 gap-y-0">
+            {Object.entries(MODES).map(([value, label]) => (
+              <Option key={value} label={label}>
+                <RadioGroupItem value={value} />
+              </Option>
+            ))}
+          </RadioGroup>
+        </OptionGroup>
+        <FormField
           id="search-query" label={MODES[mode]} type={mode === 'email' ? 'email' : 'text'}
           maxLength={mode === 'email' ? 320 : 100} value={query} onChange={setQuery}
           error={fieldError}
         />
-        <button className="button" type="submit" disabled={busy}>Search</button>
+        <Button type="submit" className="md:self-start" disabled={busy}>Search</Button>
       </form>
 
-      {message?.error && <p className={page.error} role="alert">{message.error}</p>}
-      {message?.success && <p className={page.success} role="status">{message.success}</p>}
+      {message?.error && <Notice>{message.error}</Notice>}
+      {message?.success && <Notice kind="success">{message.success}</Notice>}
       {search && <SearchResults search={search} invitedIds={invitedIds} busy={busy} onInvite={invite} />}
-    </section>
+    </SectionCard>
   );
 }
 
 function SearchResults({ search, invitedIds, busy, onInvite }) {
-  if (search.results.length === 0) return <p className={page.muted}>No user found.</p>;
+  if (search.results.length === 0) return <p className="text-sm">No user found.</p>;
   return (
     <>
       {search.has_more && (
-        <p className={page.muted}>
+        <p className="text-sm">
           Showing the first 10 matches. Narrow your search to find others.
         </p>
       )}
-      <ul className={page.list} aria-label="Search results">
+      <ItemList aria-label="Search results">
         {search.results.map((person) => (
-          <li key={person.user_id} className={page.item}>
-            <div className={page.details}>
-              <span className={page.name}>{person.display_name}</span>
-              <span className={page.muted}>{person.email}</span>
-            </div>
-            <div className={page.actions}>
+          <ItemRow key={person.user_id}>
+            <ItemDetails title={person.display_name}>{person.email}</ItemDetails>
+            <ItemActions>
               {invitedIds.includes(person.user_id) ? (
-                <span className={page.muted}>Invited</span>
+                <span className="text-sm">Invited</span>
               ) : (
-                <button
-                  className="button" type="button" disabled={busy}
+                <Button
+                  disabled={busy}
                   aria-label={`Invite ${person.display_name}`} onClick={() => onInvite(person)}
                 >
                   Invite
-                </button>
+                </Button>
               )}
-            </div>
-          </li>
+            </ItemActions>
+          </ItemRow>
         ))}
-      </ul>
+      </ItemList>
     </>
   );
 }

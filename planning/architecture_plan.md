@@ -63,10 +63,9 @@ Expense Tracker/
         ├── App.jsx
         ├── api/               # fetch wrappers for /api
         ├── pages/             # Login, Expenses, Family, Reports
-        ├── components/        # app components
+        ├── components/        # app building blocks (FormField, SectionCard, ItemRow...)
         │   └── ui/            # shadcn/ui components (generated, committed)
-        ├── lib/utils.js       # cn() class name helper
-        └── styles/            # global.css: Tailwind entry and theme tokens
+        └── styles/            # global.css: Tailwind entry, theme and base styles
 ```
 
 - `backend/app` is split by layer: routers call services, and services use models.

@@ -207,7 +207,7 @@ In **VPC -> Security groups -> Create security group**, create four groups in th
    - Strict-Transport-Security: max-age `63072000`, include subdomains, override.
    - X-Content-Type-Options: on. X-Frame-Options: `DENY`. Referrer-Policy: `no-referrer`.
    - Content-Security-Policy: `default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`.
-   - Some shadcn/Radix parts (scroll lock in `Sheet`/`Dialog`, `Select`) inject `<style>` tags. Before a release, open those screens with this CSP applied and check the browser console for CSP violations. If one appears, allow only what is needed rather than adding `'unsafe-inline'` to the whole policy.
+   - The nav Sheet's scroll lock (also used by `Dialog`) injects a `<style>` tag that this CSP blocks. This is accepted (EM-11): the drawer works and only the page behind it stays scrollable, and the browser logs one CSP error per open. No other screen injects styles (checked with Playwright in EM-11). Before adding Radix `Select`, `Dialog` or similar, open the screen with this CSP applied and check the console; allow only what is needed rather than adding `'unsafe-inline'` to the whole policy.
 3. **Distributions -> Create distribution**.
 4. Origin 1: choose the S3 bucket. Origin access: **Origin access control settings** -> **Create new OAC** (sign requests). Name the origin `web`.
 5. Default cache behavior: viewer protocol **Redirect HTTP to HTTPS**, allowed methods **GET, HEAD**, cache policy **CachingOptimized**, response headers policy `expense-sarathi-security-headers`, function association **Viewer request** -> CloudFront Function `expense-sarathi-spa-rewrite`.
