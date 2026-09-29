@@ -39,7 +39,7 @@ Every page and component adapts to screen size.
 |---|---|---|
 | `/login` | Login: "Welcome back", show/hide password, a "Forgot password?" placeholder (says reset is coming soon), link to sign-up | public; logged-in users go to `/` |
 | `/register` | Register: details, then the OTP screen with Back (details kept). Links to login. After 5 wrong codes, returns to the details step | public; logged-in users go to `/` |
-| `/` | Dashboard: welcome message, Add expense link, and a confirmation after an expense is saved (redirect target after login). Becomes the expenses list in a later ticket | logged in |
+| `/` | Dashboard: welcome message, Add expense link, a confirmation after an expense is saved, then filters and summary cards (see below) (redirect target after login) | logged in |
 | `/expenses/new`, `/expenses/:id` | Add / edit expense (`pages/Expenses/ExpenseForm`). Save stays disabled until amount, currency, category and date are filled, and shows a spinner while saving | logged in |
 | `/families` | The user's families with their role, and a Create family form | logged in |
 | `/families/:familyId` | Members (name, email, role). Owner only: search by email or name, invite, pending invitations with Cancel | logged in; non-members see "Family not found" |
@@ -54,7 +54,9 @@ Navigation (`components/Nav`): links to Dashboard and Families. Below 1024px it 
 
 Auth screens (`components/AuthLayout`): login, sign-up and OTP share a brand block with the logo, tagline and, from 1024px, feature highlights. Below 1024px it is a band above the form; from 1024px it is a left panel. `AuthForm/Field` takes `icon` and `revealable` (password show/hide), and `AuthForm/SubmitButton` shows a spinner while pending. Logos live in `public/` (`logo-*` light for white backgrounds, dark for the brand colour); `logo-icon-light.svg` is the favicon.
 
-Lists load with `hooks/useAsyncList` (`data`, `error`, `loading`, `reload`); shared card and list styles live in `styles/page.module.css`.
+Dashboard summaries (`pages/Dashboard`): `DashboardFilters` offers a period (This month, Last month, This year from the browser's local calendar, or a Custom From-To range, inclusive, applied once both dates are set and in order) and category checkboxes ("All categories", or any mix). The filters live in the URL (`?from=YYYY-MM-DD&to=YYYY-MM-DD&category=1&category=3`), so Add expense, reload and links keep them; Reset clears them to This month and All categories. Below them, a `SummaryCard` for Personal and one per family each load `GET /api/reports/summary` on their own, with a loading line, "No expenses match these filters." when empty, and an error with Retry. Each card shows a total per currency (never added across currencies, e.g. "INR 12,450.00") and a bar per category in the category's colour, next to its name. Cards stack on phones and sit side by side from 768px.
+
+Lists load with `hooks/useAsyncList` (`data`, `error`, `loading`, `reload`). It passes an abort signal to the load, shows `loading` on every reload while keeping the previous data, and aborts a load when a newer one starts or the page unmounts, so only the newest result is kept. Shared card and list styles live in `styles/page.module.css`.
 
 Deep links: every non-`/api` path must return `index.html`. FastAPI does this locally with a catch-all route. CloudFront does it in production with a CloudFront Function on the S3 behavior that rewrites paths without a file extension to `/index.html`. Distribution-wide custom error pages are not used, because they would also turn API 404s into `index.html`.
 

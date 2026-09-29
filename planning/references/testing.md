@@ -97,6 +97,12 @@ Tests never depend on each other or on execution order.
 - Dashboard invitations: accept shows the joined family, decline removes it, a cancelled invitation shows "no longer available".
 - Navigation: Menu toggles the drawer, Escape and choosing a link close it, the current page is marked.
 
+**Dashboard summaries**
+- Personal card first, then one card per family; no families shows only Personal.
+- Filters start on This month and All categories; presets, category checkboxes, a custom range and Reset change every card's request; a From date after the To date shows a message and keeps the results.
+- Totals per currency with a category breakdown; empty, loading, and error with Retry per card.
+- Filters survive Add expense and reload (they are in the URL).
+
 **Reports**
 - Totals are grouped by currency; different currencies are never summed.
 - Switching group by category / month updates the view.
@@ -107,7 +113,11 @@ Tests never depend on each other or on execution order.
 - All actions can be reached and triggered with the keyboard.
 
 **End to end (Playwright)**
+
+Rules for the suite: it runs with one worker (`workers: 1`), because every test shares the seeded test user and one SQLite database. Tests reuse named families (`ensureFamily` in `e2e/helpers.js`) instead of creating one per run, so the test user's data does not grow. Checks that depend on exact dashboard contents sign up a fresh user (`e2e/dashboard-helpers.js`). Filters are controlled by the URL, so click them and wait for `toBeChecked()` rather than using `check()`.
+
 - Register, log in, add an expense, see it in the list, log out.
+- Dashboard: adding personal and family expenses updates the right card only; category, preset and Reset change the cards; filters survive Add expense and reload.
 - Two users: owner creates a family and invites a newly registered user, who accepts from the dashboard and sees the family's members; a cancelled invitation disappears from the invitee's dashboard.
 - Later (family expenses): both see a shared family expense; the second user's personal expense stays hidden from the owner.
 - Session survives a page reload (refresh cookie); access token expiry is handled without logging the user out.
