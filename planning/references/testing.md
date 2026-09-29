@@ -67,6 +67,8 @@ Tests never depend on each other or on execution order.
 - MSW handlers in `src/test/handlers.js`; setup in `src/test/setup.js`.
 - End-to-end tests in `frontend/e2e/`.
 - Query by role and label (`getByRole`, `getByLabelText`), not by CSS class or test id, so tests also check accessibility.
+- shadcn/ui components use Radix, which needs browser APIs jsdom lacks. `src/test/setup.js` stubs `Element.prototype.hasPointerCapture`, `releasePointerCapture`, `scrollIntoView` and `ResizeObserver`.
+- A shadcn `Select` is not a native `<select>`: click the `combobox` trigger with `user-event`, then click the `option`. Do not use `selectOptions`.
 
 ### Test cases
 
