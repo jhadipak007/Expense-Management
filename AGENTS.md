@@ -77,6 +77,9 @@ Detailed deployment architecture: see `planning/deployment_architecture.md`.
 - Move it to "In Progress" when starting
 - After the PR is merged, move the Jira issue to "Done" and add the PR link as a comment.
 
+## Implementation Updates:
+- After finishing each Jira issue, always add a detailed document to `dataflow/` that describes the implementation changes and the resulting data flow.
+
 ## Key learnings
 Record important lessons here as you discover them, one short bullet each. Add only points worth remembering for future work.
 
