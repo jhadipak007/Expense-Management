@@ -48,4 +48,18 @@ describe('useAsyncList', () => {
     await act(async () => pending.resolve('ok'));
     expect(result.current).toMatchObject({ data: 'ok', error: null, loading: false });
   });
+
+  it('aborts the running load when the component unmounts or the load changes', async () => {
+    const signals = [];
+    const load = (signal) => { signals.push(signal); return new Promise(() => {}); };
+    const other = (signal) => { signals.push(signal); return new Promise(() => {}); };
+    const { rerender, unmount } = renderHook(({ fn }) => useAsyncList(fn), {
+      initialProps: { fn: load },
+    });
+    rerender({ fn: other });
+    expect(signals[0].aborted).toBe(true);
+    expect(signals[1].aborted).toBe(false);
+    unmount();
+    expect(signals[1].aborted).toBe(true);
+  });
 });

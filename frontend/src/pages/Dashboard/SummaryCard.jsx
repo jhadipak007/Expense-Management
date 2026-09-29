@@ -12,9 +12,9 @@ import styles from './SummaryCard.module.css';
 export default function SummaryCard({ title, familyId, filters }) {
   const { from, to, categoryIds } = filters;
   const categoryKey = categoryIds.join(',');
-  const load = useCallback(() => {
+  const load = useCallback((signal) => {
     const ids = categoryKey ? categoryKey.split(',') : [];
-    return getSummary({ familyId, from, to, categoryIds: ids });
+    return getSummary({ familyId, from, to, categoryIds: ids }, signal);
   }, [familyId, from, to, categoryKey]);
   const { data, error, loading, reload } = useAsyncList(load);
   const headingId = useId();

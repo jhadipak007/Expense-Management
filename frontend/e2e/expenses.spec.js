@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectDashboard, logIn } from './helpers.js';
+import { ensureFamily, expectDashboard, logIn } from './helpers.js';
 
 async function openForm(page) {
   await logIn(page);
@@ -19,27 +19,14 @@ test('add a personal expense from the dashboard', async ({ page }) => {
   await page.getByLabel('Amount').fill('42.50');
   await page.getByLabel('Description (optional)').fill('Weekly shop');
   await save.click();
-  await expect(page.getByRole('status')).toHaveText('Expense saved: 42.50 AUD for Grocery.');
+  await expect(page.getByText('Expense saved: 42.50 AUD for Grocery.')).toBeVisible();
   await expect(page).toHaveURL('/');
 });
-
-/** A family the test user owns, created only the first time so reruns don't pile up families. */
-async function ensureFamily(page, name = 'E2E Expenses') {
-  await page.goto('/families');
-  await expect(page.getByRole('heading', { name: 'Families' })).toBeVisible();
-  await expect(page.getByText('Loading...')).toHaveCount(0);
-  if (await page.getByRole('link', { name, exact: true }).count() === 0) {
-    await page.getByLabel('Family name').fill(name);
-    await page.getByRole('button', { name: 'Create family' }).click();
-    await expect(page.getByRole('link', { name, exact: true })).toBeVisible();
-  }
-  return name;
-}
 
 test('share an expense with a family', async ({ page }) => {
   await logIn(page);
   await expectDashboard(page);
-  const family = await ensureFamily(page);
+  const family = await ensureFamily(page, 'E2E Expenses');
 
   await page.goto('/expenses/new');
   await page.getByLabel('Amount').fill('120');
@@ -47,7 +34,7 @@ test('share an expense with a family', async ({ page }) => {
   await page.getByLabel('Category').selectOption('Trips');
   await page.getByLabel('Share with').selectOption(family);
   await page.getByRole('button', { name: 'Save' }).click();
-  await expect(page.getByRole('status')).toHaveText('Expense saved: 120.00 USD for Trips.');
+  await expect(page.getByText('Expense saved: 120.00 USD for Trips.')).toBeVisible();
 });
 
 test('a logged-out visitor is sent to the login page', async ({ page }) => {

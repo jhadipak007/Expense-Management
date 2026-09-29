@@ -22,3 +22,16 @@ export async function logOut(page) {
   await page.getByRole('button', { name: 'Logout' }).click();
   await loggedOut;
 }
+
+/** A family the test user owns, created only the first time so reruns don't pile up families. */
+export async function ensureFamily(page, name) {
+  await page.goto('/families');
+  await expect(page.getByRole('heading', { name: 'Families' })).toBeVisible();
+  await expect(page.getByText('Loading...')).toHaveCount(0);
+  if (await page.getByRole('link', { name, exact: true }).count() === 0) {
+    await page.getByLabel('Family name').fill(name);
+    await page.getByRole('button', { name: 'Create family' }).click();
+    await expect(page.getByRole('link', { name, exact: true })).toBeVisible();
+  }
+  return name;
+}

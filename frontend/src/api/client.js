@@ -23,7 +23,7 @@ export function setSessionExpiredHandler(handler) {
   onSessionExpired = handler;
 }
 
-async function send(path, { method = 'GET', body } = {}) {
+async function send(path, { method = 'GET', body, signal } = {}) {
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
@@ -32,6 +32,7 @@ async function send(path, { method = 'GET', body } = {}) {
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
     credentials: 'same-origin',
+    signal,
   });
 }
 
@@ -59,7 +60,10 @@ export function refreshSession() {
   return refreshInFlight;
 }
 
-/** Call an authenticated endpoint; on 401 refresh once and retry. */
+/**
+ * Call an authenticated endpoint; on 401 refresh once and retry.
+ * `options.signal` cancels the request, e.g. when the page that asked leaves.
+ */
 export async function request(path, options) {
   const response = await send(path, options);
   if (response.status !== 401) return parse(response);
