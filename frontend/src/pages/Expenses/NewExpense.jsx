@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router';
-import { createExpense, listCategoriesAndFamilies } from '../../api/expenses.js';
+import { createExpense, listExpenseFormOptions } from '../../api/expenses.js';
 import { useAsyncList } from '../../hooks/useAsyncList.js';
 import page from '../../styles/page.module.css';
 import ExpenseForm from './ExpenseForm.jsx';
@@ -12,7 +12,7 @@ import styles from './NewExpense.module.css';
 export default function NewExpense() {
   const navigate = useNavigate();
   const dashboard = { pathname: '/', search: useLocation().search };
-  const { data, error, loading } = useAsyncList(listCategoriesAndFamilies);
+  const { data, error, loading } = useAsyncList(listExpenseFormOptions);
 
   async function save(payload) {
     const expense = await createExpense(payload);
@@ -25,7 +25,12 @@ export default function NewExpense() {
       <h1 className={page.title}>Add expense</h1>
       {loading && <p className={page.muted}>Loading...</p>}
       {error && <p className={page.error} role="alert">Could not load the form. Please try again.</p>}
-      {data && <ExpenseForm categories={data.categories} families={data.families} onSubmit={save} />}
+      {data && (
+        <ExpenseForm
+          categories={data.categories} currencies={data.currencies} families={data.families}
+          onSubmit={save}
+        />
+      )}
     </section>
   );
 }

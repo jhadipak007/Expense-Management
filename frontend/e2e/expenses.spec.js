@@ -30,11 +30,25 @@ test('share an expense with a family', async ({ page }) => {
 
   await page.goto('/expenses/new');
   await page.getByLabel('Amount').fill('120');
-  await page.getByLabel('Currency').fill('usd');
+  await page.getByLabel('Currency').selectOption('USD');
   await page.getByLabel('Category').selectOption('Trips');
   await page.getByLabel('Share with').selectOption(family);
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByText('Expense saved: 120.00 USD for Trips.')).toBeVisible();
+});
+
+test('pick a currency with the keyboard and save in it', async ({ page }) => {
+  await openForm(page);
+  const currency = page.getByLabel('Currency');
+  await expect(currency).toHaveValue('AUD');
+  await expect(currency.locator('option')).toHaveCount(155);
+  await currency.focus();
+  await page.keyboard.type('US');
+  await expect(currency).toHaveValue('USD');
+  await page.getByLabel('Amount').fill('7.25');
+  await page.getByLabel('Category').selectOption('Eating Out');
+  await page.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Expense saved: 7.25 USD for Eating Out.')).toBeVisible();
 });
 
 test('a logged-out visitor is sent to the login page', async ({ page }) => {

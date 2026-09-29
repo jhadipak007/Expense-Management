@@ -84,8 +84,6 @@ describe('Add expense', () => {
     expect(save()).toBeDisabled();
     await user.selectOptions(screen.getByLabelText('Category'), 'Trips');
     expect(save()).toBeEnabled();
-    await user.clear(screen.getByLabelText('Currency'));
-    expect(save()).toBeDisabled();
   });
 
   it.each(['0', '-5', 'abc', '1.234'])('rejects the amount %s without saving', async (amount) => {
@@ -99,26 +97,38 @@ describe('Add expense', () => {
     expect(posted).toHaveLength(0);
   });
 
-  it('upper-cases the currency and rejects codes that are not 3 letters', async () => {
-    const posted = mockExpensesApi();
+  it('offers currencies from the server as code and name, with AUD chosen', async () => {
+    mockExpensesApi();
+    renderApp('/expenses/new');
+    const currency = await screen.findByLabelText('Currency');
+    expect([...currency.options].map((option) => option.textContent)).toEqual([
+      'AUD - Australian Dollar', 'EUR - Euro', 'INR - Indian Rupee', 'USD - US Dollar',
+    ]);
+    expect(currency).toHaveDisplayValue('AUD - Australian Dollar');
+  });
+
+  it('shows an unknown currency from the server next to Currency and keeps the input', async () => {
+    mockExpensesApi({
+      response: () => HttpResponse.json(
+        { detail: [{ loc: ['body', 'currency'], msg: 'Unknown currency' }] }, { status: 422 },
+      ),
+    });
     const { user } = renderApp('/expenses/new');
-    await fillRequired(user);
-    await user.clear(screen.getByLabelText('Currency'));
-    await user.type(screen.getByLabelText('Currency'), 'us');
-    expect(screen.getByLabelText('Currency')).toHaveValue('US');
+    await fillRequired(user, '42');
+    await user.selectOptions(screen.getByLabelText('Currency'), 'EUR');
     await user.click(save());
-    expect(screen.getByLabelText('Currency')).toHaveAccessibleDescription(
-      'Enter a 3-letter currency code, such as AUD',
+    expect(await screen.findByLabelText('Currency')).toHaveAccessibleDescription(
+      'Choose a currency from the list',
     );
-    expect(posted).toHaveLength(0);
+    expect(screen.getByLabelText('Currency')).toHaveValue('EUR');
+    expect(screen.getByLabelText('Amount')).toHaveValue('42');
   });
 
   it('saves a family expense and confirms it on the dashboard', async () => {
     const posted = mockExpensesApi();
     const { user, router } = renderApp('/expenses/new');
     await fillRequired(user, '1999.9');
-    await user.clear(screen.getByLabelText('Currency'));
-    await user.type(screen.getByLabelText('Currency'), 'inr');
+    await user.selectOptions(screen.getByLabelText('Currency'), 'INR');
     await user.type(screen.getByLabelText('Description (optional)'), '  Weekly shop ');
     await user.selectOptions(screen.getByLabelText('Share with'), 'Trip Crew');
     await user.click(save());
