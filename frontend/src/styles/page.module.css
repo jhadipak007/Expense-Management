@@ -133,7 +133,8 @@ a.name {
 
 .options {
   display: flex;
-  gap: var(--space-4);
+  flex-wrap: wrap;
+  column-gap: var(--space-4);
   margin: 0;
   padding: 0;
   border: 0;
