@@ -98,11 +98,11 @@ def make_family(db):
 def make_expense(db):
     """Record an expense for `user`: personal unless `family` is given."""
     def _make_expense(user: User, family: Family | None = None, category="Grocery",
-                      amount="12.50", currency="AUD") -> Expense:
+                      amount="12.50", currency="AUD", spent_on=date(2026, 9, 1)) -> Expense:
         expense = Expense(
             user_id=user.id, family_id=family.id if family else None,
             category_id=db.scalar(select(Category.id).where(Category.name == category)),
-            amount=Decimal(amount), currency=currency, spent_on=date(2026, 9, 1),
+            amount=Decimal(amount), currency=currency, spent_on=spent_on,
         )
         db.add(expense)
         db.commit()
