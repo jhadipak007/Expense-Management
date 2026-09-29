@@ -22,6 +22,18 @@ def test_categories_are_seeded_with_colors(client, make_user, auth_headers):
     ]
 
 
+def test_currencies_are_seeded_and_sorted_by_code(client, make_user, auth_headers):
+    response = client.get("/api/currencies", headers=auth_headers(make_user()))
+    assert response.status_code == 200
+    body = response.json()
+    codes = [c["code"] for c in body]
+    assert len(codes) == 155
+    assert codes == sorted(codes)
+    assert {"code": "AUD", "name": "Australian Dollar"} in body
+    assert {"code": "INR", "name": "Indian Rupee"} in body
+    assert not {"XAU", "XTS", "XXX", "USN"} & set(codes)
+
+
 def test_create_personal_expense(client, make_user, auth_headers):
     user = make_user()
     response = client.post("/api/expenses", json=NEW_EXPENSE, headers=auth_headers(user))
@@ -74,6 +86,14 @@ def test_unknown_category_is_a_field_error(client, db, make_user, auth_headers):
                            headers=auth_headers(make_user()))
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "category_id"]
+    assert expense_count(db) == 0
+
+
+def test_unknown_currency_is_a_field_error(client, db, make_user, auth_headers):
+    response = client.post("/api/expenses", json=NEW_EXPENSE | {"currency": "XYZ"},
+                           headers=auth_headers(make_user()))
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["body", "currency"]
     assert expense_count(db) == 0
 
 

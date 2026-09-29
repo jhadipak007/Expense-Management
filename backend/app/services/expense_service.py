@@ -1,4 +1,4 @@
-"""Expenses: categories, recording an expense, and who may see one.
+"""Expenses: categories, currencies, recording an expense, and who may see one.
 
 An expense is visible to its recorder while personal, and to every member of
 the family it is shared with.
@@ -7,7 +7,7 @@ the family it is shared with.
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
-from app.models import Category, Expense, FamilyMember
+from app.models import Category, Currency, Expense, FamilyMember
 from app.schemas.expense import ExpenseIn
 from app.services.family_access import require_member
 
@@ -16,12 +16,20 @@ class UnknownCategory(Exception):
     """The category id does not exist."""
 
 
+class UnknownCurrency(Exception):
+    """The currency code is not in the currencies table."""
+
+
 class ExpenseNotFound(Exception):
     """No such expense, or the user may not see it."""
 
 
 def list_categories(db: Session) -> list[Category]:
     return list(db.scalars(select(Category).order_by(Category.id)))
+
+
+def list_currencies(db: Session) -> list[Currency]:
+    return list(db.scalars(select(Currency).order_by(Currency.code)))
 
 
 def visible_to(user_id: int):
@@ -37,6 +45,8 @@ def create_expense(db: Session, user_id: int, data: ExpenseIn) -> Expense:
     """Record the expense for the user; a family must be one they belong to."""
     if db.get(Category, data.category_id) is None:
         raise UnknownCategory
+    if db.get(Currency, data.currency) is None:
+        raise UnknownCurrency
     if data.family_id is not None:
         require_member(db, data.family_id, user_id)
     expense = Expense(user_id=user_id, **data.model_dump())

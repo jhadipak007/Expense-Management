@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, status
 from app.deps import CurrentUser, DbSession, get_current_user
 from app.schemas.expense import ExpenseIn, ExpenseOut
 from app.services import expense_service
-from app.services.expense_service import ExpenseNotFound, UnknownCategory
+from app.services.expense_service import ExpenseNotFound, UnknownCategory, UnknownCurrency
 from app.services.family_access import FamilyNotFound
 
 router = APIRouter(prefix="/api/expenses", tags=["expenses"],
@@ -20,12 +20,16 @@ ExpenseId = Annotated[int, Path(gt=0)]
 
 @contextmanager
 def expense_errors() -> Iterator[None]:
-    """Map service failures; an unknown category is reported like any invalid field."""
+    """Map service failures; an unknown category or currency is reported like any invalid field."""
     try:
         yield
     except UnknownCategory:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, [
             {"loc": ["body", "category_id"], "msg": "Unknown category", "type": "value_error"},
+        ])
+    except UnknownCurrency:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, [
+            {"loc": ["body", "currency"], "msg": "Unknown currency", "type": "value_error"},
         ])
     except FamilyNotFound:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Family not found")

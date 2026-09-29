@@ -15,6 +15,13 @@ class CategoryOut(BaseModel):
     color: str
 
 
+class CurrencyOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    code: str
+    name: str
+
+
 class ExpenseIn(InputModel):
     """A new expense. The recorder comes from the access token, never the body."""
 
