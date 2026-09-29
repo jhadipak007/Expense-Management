@@ -25,7 +25,7 @@ export default function Families() {
             {families.map((family) => (
               <ItemRow key={family.id}>
                 <Link
-                  className="flex min-h-11 items-center self-start font-semibold wrap-anywhere text-primary"
+                  className="flex min-h-11 items-center self-start font-semibold wrap-anywhere text-primary underline"
                   to={`/families/${family.id}`}
                 >
                   {family.name}
