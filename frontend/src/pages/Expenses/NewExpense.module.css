@@ -1,5 +1,0 @@
-/* Keep the form at a readable width on large screens. */
-.card {
-  width: 100%;
-  max-width: 40rem;
-}

@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import fieldStyles from '../../components/AuthForm/AuthForm.module.css';
-import FormField from '@/components/FormField.jsx';
+import FormField, { FieldError, FieldLabel } from '@/components/FormField.jsx';
+import Notice from '@/components/Notice.jsx';
 import SubmitButton from '@/components/SubmitButton.jsx';
-import page from '../../styles/page.module.css';
+import { NativeSelect, NativeSelectOption as Option } from '@/components/ui/native-select';
 import { todayIso } from '../../utils/format.js';
 
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
@@ -87,8 +87,8 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
   }
 
   return (
-    <form className={page.form} onSubmit={handleSubmit} noValidate>
-      {formError && <p className={page.error} role="alert">{formError}</p>}
+    <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
+      {formError && <Notice>{formError}</Notice>}
       <FormField
         id="amount" label="Amount" inputMode="decimal" autoComplete="off" placeholder="0.00"
         value={form.amount} onChange={set('amount')} error={errors.amount}
@@ -97,15 +97,15 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
         id="currency" label="Currency" value={form.currency} onChange={set('currency')}
         error={errors.currency}
         options={currencies.map((c) => (
-          <option key={c.code} value={c.code}>{`${c.code} - ${c.name}`}</option>
+          <Option key={c.code} value={c.code}>{`${c.code} - ${c.name}`}</Option>
         ))}
       />
       <SelectField
         id="category" label="Category" value={form.category_id} onChange={set('category_id')}
         error={errors.category_id}
         options={[
-          <option key="" value="" disabled>Choose a category</option>,
-          ...categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>),
+          <Option key="" value="" disabled>Choose a category</Option>,
+          ...categories.map((c) => <Option key={c.id} value={c.id}>{c.name}</Option>),
         ]}
       />
       <FormField
@@ -120,8 +120,8 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
         id="share-with" label="Share with" value={form.family_id} onChange={set('family_id')}
         error={errors.family_id}
         options={[
-          <option key="" value="">Personal</option>,
-          ...families.map((f) => <option key={f.id} value={f.id}>{f.name}</option>),
+          <Option key="" value="">Personal</Option>,
+          ...families.map((f) => <Option key={f.id} value={f.id}>{f.name}</Option>),
         ]}
       />
       <SubmitButton pending={submitting} pendingLabel="Saving..." disabled={!complete}>
@@ -131,20 +131,20 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
   );
 }
 
-/** Labelled select whose error is linked with aria-describedby, like `Field`. */
+/** Labelled native select whose error is linked with aria-describedby, like `FormField`. */
 function SelectField({ id, label, options, value, onChange, error }) {
   const errorId = `${id}-error`;
   return (
-    <div className={fieldStyles.field}>
-      <label htmlFor={id}>{label}</label>
-      <select
-        id={id} className={fieldStyles.input} value={value}
+    <div className="grid gap-1.5">
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <NativeSelect
+        id={id} className="bg-card text-foreground" value={value}
         onChange={(event) => onChange(event.target.value)}
         aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined}
       >
         {options}
-      </select>
-      {error && <span id={errorId} className={fieldStyles.fieldError}>{error}</span>}
+      </NativeSelect>
+      {error && <FieldError id={errorId}>{error}</FieldError>}
     </div>
   );
 }
