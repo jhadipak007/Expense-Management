@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
-import { useAuth } from '../../auth/useAuth.js';
+import { useLocation, useNavigate } from 'react-router';
 import { LockIcon, MailIcon } from 'lucide-react';
+import { useAuth } from '@/auth/useAuth.js';
 import AuthCard from '@/components/AuthLayout/AuthCard.jsx';
 import AuthLayout from '@/components/AuthLayout/AuthLayout.jsx';
 import FormField from '@/components/FormField.jsx';
 import Notice from '@/components/Notice.jsx';
 import SubmitButton from '@/components/SubmitButton.jsx';
+import TextLink from '@/components/TextLink.jsx';
 import { Button } from '@/components/ui/button';
 
 const INCORRECT = 'Incorrect email or password';
@@ -74,7 +75,7 @@ export default function Login() {
         <SubmitButton pending={submitting} pendingLabel="Logging in...">Log in</SubmitButton>
 
         <p className="text-center">
-          New to Expense Sarathi? <Link to="/register" className="text-primary underline">Create an account</Link>
+          New to Expense Sarathi? <TextLink to="/register">Create an account</TextLink>
         </p>
       </AuthCard>
     </AuthLayout>

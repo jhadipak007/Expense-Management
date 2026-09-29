@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router';
 import { useAuth } from '@/auth/useAuth.js';
 import { useIdleLogout } from '@/auth/useIdleLogout.js';
@@ -11,6 +11,14 @@ export default function AppLayout() {
   const { logout } = useAuth();
   const [navOpen, setNavOpen] = useState(false);
   useIdleLogout(logout);
+
+  // The drawer only exists below 1024px; close it if the window grows past that.
+  useEffect(() => {
+    const wide = window.matchMedia('(min-width: 1024px)');
+    const close = (event) => event.matches && setNavOpen(false);
+    wide.addEventListener('change', close);
+    return () => wide.removeEventListener('change', close);
+  }, []);
 
   return (
     <Sheet open={navOpen} onOpenChange={setNavOpen}>

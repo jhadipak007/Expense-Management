@@ -1,9 +1,9 @@
 import { screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { server } from '../../test/setup.js';
-import { validRefresh } from '../../test/handlers.js';
-import { renderApp } from '../../test/renderApp.jsx';
+import { server } from '@/test/setup.js';
+import { validRefresh } from '@/test/handlers.js';
+import { renderApp } from '@/test/renderApp.jsx';
 
 const VALID = { name: 'Priya', email: 'priya@example.com', password: 'P@ssw0rd', confirm: 'P@ssw0rd' };
 

@@ -4,19 +4,26 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 
-/** Field label in the app's heading style. */
-export function FieldLabel({ className, ...props }) {
-  return <Label className={cn('text-base font-semibold text-foreground', className)} {...props} />;
+/** Label, control and error; the control's aria-describedby points at `${id}-error`. */
+function Field({ id, label, error, children }) {
+  return (
+    <div className="grid gap-1.5">
+      <Label htmlFor={id} className="text-base font-semibold text-foreground">{label}</Label>
+      {children}
+      {error && (
+        <p id={`${id}-error`} className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+    </div>
+  );
 }
 
-/** Error text under a control; its id is what the control's aria-describedby points at. */
-export function FieldError({ id, children }) {
-  return (
-    <p id={id} className="text-sm text-destructive">
-      {children}
-    </p>
-  );
+/** Props that link a control to its label and error. */
+function controlProps(id, error) {
+  return { id, 'aria-invalid': Boolean(error), 'aria-describedby': error ? `${id}-error` : undefined };
 }
 
 /**
@@ -26,10 +33,8 @@ export function FieldError({ id, children }) {
  */
 export default function FormField({ id, label, error, onChange, icon, revealable, type, ...inputProps }) {
   const [visible, setVisible] = useState(false);
-  const errorId = `${id}-error`;
   return (
-    <div className="grid gap-1.5">
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+    <Field id={id} label={label} error={error}>
       <div className="relative flex items-center">
         {icon && (
           <span className="pointer-events-none absolute left-3 flex text-muted-foreground [&_svg]:size-5">
@@ -37,12 +42,10 @@ export default function FormField({ id, label, error, onChange, icon, revealable
           </span>
         )}
         <Input
-          id={id}
+          {...controlProps(id, error)}
           type={revealable ? (visible ? 'text' : 'password') : type}
           className={cn('bg-card text-foreground', icon && 'pl-11', revealable && 'pr-11')}
           onChange={(event) => onChange(event.target.value)}
-          aria-invalid={Boolean(error)}
-          aria-describedby={error ? errorId : undefined}
           {...inputProps}
         />
         {revealable && (
@@ -58,7 +61,22 @@ export default function FormField({ id, label, error, onChange, icon, revealable
           </Button>
         )}
       </div>
-      {error && <FieldError id={errorId}>{error}</FieldError>}
-    </div>
+    </Field>
+  );
+}
+
+/** Labelled native select (`children` are its options), linked to its error like `FormField`. */
+export function SelectField({ id, label, error, value, onChange, children }) {
+  return (
+    <Field id={id} label={label} error={error}>
+      <NativeSelect
+        {...controlProps(id, error)}
+        className="bg-card text-foreground"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {children}
+      </NativeSelect>
+    </Field>
   );
 }

@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router';
-import { createExpense, listExpenseFormOptions } from '../../api/expenses.js';
-import { useAsyncList } from '../../hooks/useAsyncList.js';
+import { createExpense, listExpenseFormOptions } from '@/api/expenses.js';
+import { useAsyncList } from '@/hooks/useAsyncList.js';
 import BackLink from '@/components/BackLink.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { PageTitle } from '@/components/SectionCard.jsx';

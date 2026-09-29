@@ -1,9 +1,9 @@
 import { screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { validRefresh } from '../../test/handlers.js';
-import { server } from '../../test/setup.js';
-import { renderApp } from '../../test/renderApp.jsx';
+import { validRefresh } from '@/test/handlers.js';
+import { server } from '@/test/setup.js';
+import { renderApp } from '@/test/renderApp.jsx';
 
 function mockFamiliesApi(families = []) {
   let created = null;

@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
-import { acceptInvitation, declineInvitation, listMyInvitations } from '../../api/invitations.js';
-import { useAsyncList } from '../../hooks/useAsyncList.js';
-import ItemRow, { ItemActions, ItemDetails } from '@/components/ItemRow.jsx';
+import { acceptInvitation, declineInvitation, listMyInvitations } from '@/api/invitations.js';
+import { useAsyncList } from '@/hooks/useAsyncList.js';
+import ItemRow, { ItemActions, ItemDetails, ItemList } from '@/components/ItemRow.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
+import TextLink from '@/components/TextLink.jsx';
 import { Button } from '@/components/ui/button';
-import { formatDate } from '../../utils/format.js';
+import { formatDate } from '@/utils/format.js';
 
 const NO_LONGER_AVAILABLE = 'This invitation is no longer available.';
 const UNAVAILABLE = 'Something went wrong. Please try again.';
@@ -44,18 +44,15 @@ export default function PendingInvitations() {
       {message?.joined && (
         <Notice kind="success">
           You joined {message.joined.name}.{' '}
-          <Link to={`/families/${message.joined.id}`} className="text-primary underline">View family</Link>
+          <TextLink to={`/families/${message.joined.id}`}>View family</TextLink>
         </Notice>
       )}
       {invitations?.length > 0 && (
-        <ul className="flex flex-col gap-2">
+        <ItemList>
           {invitations.map((invitation) => (
             <ItemRow key={invitation.id}>
-              <ItemDetails>
-                <span className="font-semibold text-foreground">{invitation.family_name}</span>
-                <span className="text-sm">
-                  Invited by {invitation.inviter_name} · Expires {formatDate(invitation.expires_at)}
-                </span>
+              <ItemDetails title={invitation.family_name}>
+                Invited by {invitation.inviter_name} · Expires {formatDate(invitation.expires_at)}
               </ItemDetails>
               <ItemActions>
                 <Button
@@ -75,7 +72,7 @@ export default function PendingInvitations() {
               </ItemActions>
             </ItemRow>
           ))}
-        </ul>
+        </ItemList>
       )}
     </SectionCard>
   );

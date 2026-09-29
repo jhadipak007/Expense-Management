@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { register } from '../../api/auth.js';
 import { LockIcon, MailIcon } from 'lucide-react';
+import { register } from '@/api/auth.js';
 import AuthCard from '@/components/AuthLayout/AuthCard.jsx';
 import FormField from '@/components/FormField.jsx';
 import Notice from '@/components/Notice.jsx';

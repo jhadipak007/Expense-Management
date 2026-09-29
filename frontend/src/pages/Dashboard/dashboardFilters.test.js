@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CATEGORIES } from '../../test/handlers.js';
+import { CATEGORIES } from '@/test/handlers.js';
 import {
   describeFilters, matchingPreset, parseFilters, presetRange, toSearchParams,
 } from './dashboardFilters.js';

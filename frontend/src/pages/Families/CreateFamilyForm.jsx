@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createFamily } from '../../api/families.js';
+import { createFamily } from '@/api/families.js';
 import FormField from '@/components/FormField.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';

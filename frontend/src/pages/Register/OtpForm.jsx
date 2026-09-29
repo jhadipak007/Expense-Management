@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useAuth } from '../../auth/useAuth.js';
+import { useAuth } from '@/auth/useAuth.js';
 import AuthCard from '@/components/AuthLayout/AuthCard.jsx';
 import FormField from '@/components/FormField.jsx';
 import Notice from '@/components/Notice.jsx';

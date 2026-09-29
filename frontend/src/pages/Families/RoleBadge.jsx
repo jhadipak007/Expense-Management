@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { ROLE_LABELS } from '../../utils/format.js';
+import { ROLE_LABELS } from '@/utils/format.js';
 
 /** The member's role in a family, as an amber badge. */
 export default function RoleBadge({ role }) {

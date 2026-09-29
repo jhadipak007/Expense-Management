@@ -11,14 +11,12 @@ export default function OptionGroup({ legend, children }) {
   );
 }
 
-/** One radio or checkbox (`children`) with its label, in a row at least 44px tall. */
-export function Option({ id, label, children }) {
+/** One radio or checkbox (`children`) and its text, in a label that is a 44px tap target. */
+export function Option({ label, children }) {
   return (
-    <div className="flex min-h-11 items-center gap-2">
+    <Label className="min-h-11 cursor-pointer text-base font-normal">
       {children}
-      <Label htmlFor={id} className="text-base font-normal">
-        {label}
-      </Label>
-    </div>
+      {label}
+    </Label>
   );
 }

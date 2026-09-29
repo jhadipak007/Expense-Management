@@ -71,8 +71,8 @@ export default function DashboardFilters({ filters, categories, onChange, onRese
       <OptionGroup legend="Period">
         <RadioGroup value={period} onValueChange={choosePeriod} className="flex flex-wrap gap-x-4 gap-y-0">
           {[...PRESETS, { key: 'custom', label: 'Custom' }].map(({ key, label }) => (
-            <Option key={key} id={`period-${key}`} label={label}>
-              <RadioGroupItem id={`period-${key}`} value={key} />
+            <Option key={key} label={label}>
+              <RadioGroupItem value={key} />
             </Option>
           ))}
         </RadioGroup>
@@ -91,16 +91,16 @@ export default function DashboardFilters({ filters, categories, onChange, onRese
       )}
       <OptionGroup legend="Categories">
         <div className="flex flex-wrap gap-x-4">
-          <Option id="category-all" label="All categories">
+          <Option label="All categories">
             <Checkbox
-              id="category-all" checked={filters.categoryIds.length === 0}
+              checked={filters.categoryIds.length === 0}
               onCheckedChange={() => onChange({ ...filters, categoryIds: [] })}
             />
           </Option>
           {categories.map((category) => (
-            <Option key={category.id} id={`category-${category.id}`} label={category.name}>
+            <Option key={category.id} label={category.name}>
               <Checkbox
-                id={`category-${category.id}`} checked={filters.categoryIds.includes(category.id)}
+                checked={filters.categoryIds.includes(category.id)}
                 onCheckedChange={() => toggleCategory(category.id)}
               />
             </Option>

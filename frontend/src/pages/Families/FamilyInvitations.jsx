@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { cancelInvitation } from '../../api/families.js';
-import ItemRow, { ItemActions, ItemDetails } from '@/components/ItemRow.jsx';
+import { cancelInvitation } from '@/api/families.js';
+import ItemRow, { ItemActions, ItemDetails, ItemList } from '@/components/ItemRow.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
-import { formatDate } from '../../utils/format.js';
+import { formatDate } from '@/utils/format.js';
 
 /** The owner's list of pending invitations, each with a Cancel button. */
 export default function FamilyInvitations({ familyId, data: invitations, error, loading, reload }) {
@@ -32,14 +32,11 @@ export default function FamilyInvitations({ familyId, data: invitations, error, 
       {error && <Notice>Could not load invitations.</Notice>}
       {invitations?.length === 0 && <p className="text-sm">No pending invitations.</p>}
       {invitations?.length > 0 && (
-        <ul className="flex flex-col gap-2">
+        <ItemList>
           {invitations.map((invitation) => (
             <ItemRow key={invitation.id}>
-              <ItemDetails>
-                <span className="font-semibold text-foreground">{invitation.invitee_name}</span>
-                <span className="text-sm">
-                  Sent {formatDate(invitation.created_at)} · Expires {formatDate(invitation.expires_at)}
-                </span>
+              <ItemDetails title={invitation.invitee_name}>
+                Sent {formatDate(invitation.created_at)} · Expires {formatDate(invitation.expires_at)}
               </ItemDetails>
               <ItemActions>
                 <Button
@@ -52,7 +49,7 @@ export default function FamilyInvitations({ familyId, data: invitations, error, 
               </ItemActions>
             </ItemRow>
           ))}
-        </ul>
+        </ItemList>
       )}
     </SectionCard>
   );

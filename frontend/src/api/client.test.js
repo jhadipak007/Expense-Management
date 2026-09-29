@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
-import { server } from '../test/setup.js';
+import { server } from '@/test/setup.js';
 import { refreshSession, request, setAccessToken, setSessionExpiredHandler } from './client.js';
 
 function countRefreshes(response) {

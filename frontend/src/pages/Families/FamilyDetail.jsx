@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import { useParams } from 'react-router';
-import { getFamily } from '../../api/families.js';
-import { useAsyncList } from '../../hooks/useAsyncList.js';
+import { getFamily } from '@/api/families.js';
+import { useAsyncList } from '@/hooks/useAsyncList.js';
 import BackLink from '@/components/BackLink.jsx';
-import ItemRow, { ItemDetails } from '@/components/ItemRow.jsx';
+import ItemRow, { ItemDetails, ItemList } from '@/components/ItemRow.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { CardHeading, PageTitle } from '@/components/SectionCard.jsx';
 import InviteMembers from './InviteMembers.jsx';
@@ -31,17 +31,14 @@ export default function FamilyDetail() {
         <BackLink to="/families">Back to families</BackLink>
         <PageTitle>{family.name}</PageTitle>
         <CardHeading>Members</CardHeading>
-        <ul className="flex flex-col gap-2">
+        <ItemList>
           {family.members.map((member) => (
             <ItemRow key={member.user_id}>
-              <ItemDetails>
-                <span className="font-semibold text-foreground">{member.display_name}</span>
-                <span className="text-sm">{member.email}</span>
-              </ItemDetails>
+              <ItemDetails title={member.display_name}>{member.email}</ItemDetails>
               <RoleBadge role={member.role} />
             </ItemRow>
           ))}
-        </ul>
+        </ItemList>
       </SectionCard>
       {family.role === 'owner' && <InviteMembers familyId={family.id} />}
     </div>

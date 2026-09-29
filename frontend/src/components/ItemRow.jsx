@@ -1,3 +1,8 @@
+/** A list of item rows; pass aria-label to name it. */
+export function ItemList(props) {
+  return <ul className="flex flex-col gap-2" {...props} />;
+}
+
 /** A bordered list row; its details stack on phones and sit beside the actions from 768px. */
 export default function ItemRow({ children }) {
   return (
@@ -7,9 +12,14 @@ export default function ItemRow({ children }) {
   );
 }
 
-/** The text side of a row. */
-export function ItemDetails({ children }) {
-  return <div className="flex min-w-0 flex-col gap-1 wrap-anywhere">{children}</div>;
+/** The text side of a row: a bold title over smaller details. */
+export function ItemDetails({ title, children }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1 wrap-anywhere">
+      <span className="font-semibold text-foreground">{title}</span>
+      <span className="text-sm">{children}</span>
+    </div>
+  );
 }
 
 /** Row buttons: equal width on phones, natural width from 768px. */

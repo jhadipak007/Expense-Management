@@ -1,9 +1,9 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { CATEGORIES, validRefresh } from '../../test/handlers.js';
-import { server } from '../../test/setup.js';
-import { renderApp } from '../../test/renderApp.jsx';
+import { CATEGORIES, validRefresh } from '@/test/handlers.js';
+import { server } from '@/test/setup.js';
+import { renderApp } from '@/test/renderApp.jsx';
 import { describeFilters, presetRange } from './dashboardFilters.js';
 
 const FAMILIES = [{ id: 3, name: 'Jha Household', role: 'owner' }];

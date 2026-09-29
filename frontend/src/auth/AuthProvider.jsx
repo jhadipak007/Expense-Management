@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Outlet } from 'react-router';
-import * as authApi from '../api/auth.js';
-import { setSessionExpiredHandler } from '../api/client.js';
+import * as authApi from '@/api/auth.js';
+import { setSessionExpiredHandler } from '@/api/client.js';
 import { AuthContext } from './useAuth.js';
 
 const LOGGED_OUT = { status: 'unauthenticated', user: null };

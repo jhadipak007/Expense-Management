@@ -1,9 +1,9 @@
 import { act, screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { server } from '../test/setup.js';
-import { validRefresh } from '../test/handlers.js';
-import { renderApp } from '../test/renderApp.jsx';
+import { server } from '@/test/setup.js';
+import { validRefresh } from '@/test/handlers.js';
+import { renderApp } from '@/test/renderApp.jsx';
 import { IDLE_MINUTES } from './useIdleLogout.js';
 
 describe('session and route guards', () => {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { inviteUser, searchUsers } from '../../api/families.js';
+import { inviteUser, searchUsers } from '@/api/families.js';
 import FormField from '@/components/FormField.jsx';
-import ItemRow, { ItemActions, ItemDetails } from '@/components/ItemRow.jsx';
+import ItemRow, { ItemActions, ItemDetails, ItemList } from '@/components/ItemRow.jsx';
 import Notice from '@/components/Notice.jsx';
 import OptionGroup, { Option } from '@/components/OptionGroup.jsx';
 import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
@@ -72,8 +72,8 @@ export default function UserSearch({ familyId, invitedIds, onInvited }) {
         <OptionGroup legend="Find people by">
           <RadioGroup value={mode} onValueChange={changeMode} className="flex flex-wrap gap-x-4 gap-y-0">
             {Object.entries(MODES).map(([value, label]) => (
-              <Option key={value} id={`search-mode-${value}`} label={label}>
-                <RadioGroupItem id={`search-mode-${value}`} value={value} />
+              <Option key={value} label={label}>
+                <RadioGroupItem value={value} />
               </Option>
             ))}
           </RadioGroup>
@@ -102,13 +102,10 @@ function SearchResults({ search, invitedIds, busy, onInvite }) {
           Showing the first 10 matches. Narrow your search to find others.
         </p>
       )}
-      <ul className="flex flex-col gap-2" aria-label="Search results">
+      <ItemList aria-label="Search results">
         {search.results.map((person) => (
           <ItemRow key={person.user_id}>
-            <ItemDetails>
-              <span className="font-semibold text-foreground">{person.display_name}</span>
-              <span className="text-sm">{person.email}</span>
-            </ItemDetails>
+            <ItemDetails title={person.display_name}>{person.email}</ItemDetails>
             <ItemActions>
               {invitedIds.includes(person.user_id) ? (
                 <span className="text-sm">Invited</span>
@@ -123,7 +120,7 @@ function SearchResults({ search, invitedIds, busy, onInvite }) {
             </ItemActions>
           </ItemRow>
         ))}
-      </ul>
+      </ItemList>
     </>
   );
 }

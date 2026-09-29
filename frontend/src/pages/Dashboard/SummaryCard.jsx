@@ -1,10 +1,10 @@
 import { useCallback, useId } from 'react';
-import { getSummary } from '../../api/reports.js';
-import { useAsyncList } from '../../hooks/useAsyncList.js';
+import { getSummary } from '@/api/reports.js';
+import { useAsyncList } from '@/hooks/useAsyncList.js';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
-import { formatMoney } from '../../utils/format.js';
+import { formatMoney } from '@/utils/format.js';
 
 /**
  * Spending for one scope (personal when `familyId` is null) under the dashboard
