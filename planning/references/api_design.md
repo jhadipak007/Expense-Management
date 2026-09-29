@@ -83,6 +83,8 @@ Invitee-side actions; an invitation belonging to someone else returns 404.
 | PATCH | `/{expense_id}` | `ExpenseUpdateIn` | recorder | `ExpenseOut` |
 | DELETE | `/{expense_id}` | none | recorder | 204 |
 
+`POST /` takes the recorder from the access token (`user_id` in the body is rejected by `extra="forbid"`). A `family_id` the user is not a member of returns 404 and saves nothing. An unknown `category_id` returns 422 on `category_id`, because categories are not access-controlled.
+
 ### Reports (`/api/reports`)
 | Method | Path | Input | Returns |
 |---|---|---|---|
@@ -110,7 +112,7 @@ Field rules:
 | description | `str | None`, max 500 chars |
 | amount | `Decimal`, `gt=0`, `max_digits=12`, `decimal_places=2` |
 | currency | `str`, pattern `^[A-Z]{3}$` |
-| spent_on, date_from, date_to | `date`; `date_from <= date_to` (model validator) |
+| spent_on, date_from, date_to | `date`; `date_from <= date_to` (model validator); `spent_on` no later than UTC tomorrow, since no time zone is a full day ahead of UTC |
 | category_id, family_id | `int`, `gt=0` |
 | user search `name` | `str`, 3 to 100 chars |
 | role, status, scope, group_by, sort | `Literal[...]` or `StrEnum` |

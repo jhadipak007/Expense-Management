@@ -22,3 +22,4 @@ class Family(Base):
     invitations: Mapped[list["FamilyInvitation"]] = relationship(  # noqa: F821
         back_populates="family", cascade="all, delete-orphan"
     )
+    expenses: Mapped[list["Expense"]] = relationship(back_populates="family")  # noqa: F821

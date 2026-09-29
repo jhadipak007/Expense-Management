@@ -2,6 +2,8 @@
 
 import os
 import tempfile
+from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 TEST_DB_DIR = Path(tempfile.mkdtemp(prefix="expense_sarathi_test_"))
@@ -22,12 +24,13 @@ import pytest  # noqa: E402
 from alembic import command  # noqa: E402
 from alembic.config import Config  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import select  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.db import engine as app_engine  # noqa: E402
 from app.db import get_db  # noqa: E402
 from app.main import app  # noqa: E402
-from app.models import Family, FamilyMember, FamilyRole, User  # noqa: E402
+from app.models import Category, Expense, Family, FamilyMember, FamilyRole, User  # noqa: E402
 from app.security import create_access_token, hash_password  # noqa: E402
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
@@ -89,6 +92,22 @@ def make_family(db):
         db.commit()
         return family
     return _make_family
+
+
+@pytest.fixture
+def make_expense(db):
+    """Record an expense for `user`: personal unless `family` is given."""
+    def _make_expense(user: User, family: Family | None = None, category="Grocery",
+                      amount="12.50", currency="AUD") -> Expense:
+        expense = Expense(
+            user_id=user.id, family_id=family.id if family else None,
+            category_id=db.scalar(select(Category.id).where(Category.name == category)),
+            amount=Decimal(amount), currency=currency, spent_on=date(2026, 9, 1),
+        )
+        db.add(expense)
+        db.commit()
+        return expense
+    return _make_expense
 
 
 @pytest.fixture

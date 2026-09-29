@@ -10,3 +10,16 @@
   font-size: var(--font-size-xl);
   overflow-wrap: anywhere;
 }
+
+.add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .add {
+    display: inline-flex;
+  }
+}

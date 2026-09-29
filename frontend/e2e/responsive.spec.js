@@ -56,6 +56,19 @@ for (const width of WIDTHS) {
       await page.screenshot({ path: `test-results/screens/dashboard-${width}.png`, fullPage: true });
     });
 
+    test('add expense form fits and has large touch targets', async ({ page }) => {
+      await logIn(page);
+      await expectDashboard(page);
+      await page.getByRole('link', { name: 'Add expense' }).click();
+      await expectTouchTarget(page.getByLabel('Amount'));
+      await expectTouchTarget(page.getByLabel('Category'));
+      await expectTouchTarget(page.getByLabel('Date'));
+      await expectTouchTarget(page.getByLabel('Share with'));
+      await expectTouchTarget(page.getByRole('button', { name: 'Save' }));
+      await expectNoHorizontalScroll(page);
+      await page.screenshot({ path: `test-results/screens/add-expense-${width}.png`, fullPage: true });
+    });
+
     test('navigation is a drawer below 1024px and a sidebar above', async ({ page }) => {
       await logIn(page);
       await expectDashboard(page);

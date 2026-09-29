@@ -1,10 +1,16 @@
 /**
  * Default MSW handlers: a logged-out visitor whose login or sign-up (OTP 2211) as Priya
- * succeeds, with no families and no invitations yet.
+ * succeeds, with no families and no invitations yet, and the three seeded categories.
  */
 import { http, HttpResponse } from 'msw';
 
 export const USER = { id: 1, email: 'priya@example.com', display_name: 'Priya' };
+
+export const CATEGORIES = [
+  { id: 1, name: 'Grocery', color: '#8aa84a' },
+  { id: 2, name: 'Eating Out', color: '#e08e5a' },
+  { id: 3, name: 'Trips', color: '#3a9e84' },
+];
 
 export const handlers = [
   http.post('/api/auth/refresh', () =>
@@ -27,6 +33,7 @@ export const handlers = [
   http.get('/api/users/me', () => HttpResponse.json(USER)),
   http.get('/api/invitations', () => HttpResponse.json([])),
   http.get('/api/families', () => HttpResponse.json([])),
+  http.get('/api/categories', () => HttpResponse.json(CATEGORIES)),
 ];
 
 /** Handler that makes the refresh cookie valid, i.e. the visitor is logged in. */

@@ -39,8 +39,8 @@ Every page and component adapts to screen size.
 |---|---|---|
 | `/login` | Login: "Welcome back", show/hide password, a "Forgot password?" placeholder (says reset is coming soon), link to sign-up | public; logged-in users go to `/` |
 | `/register` | Register: details, then the OTP screen with Back (details kept). Links to login. After 5 wrong codes, returns to the details step | public; logged-in users go to `/` |
-| `/` | Dashboard: welcome message and Logout (redirect target after login). Becomes the expenses list in a later ticket | logged in |
-| `/expenses/new`, `/expenses/:id` | Add / edit expense | logged in |
+| `/` | Dashboard: welcome message, Add expense link, and a confirmation after an expense is saved (redirect target after login). Becomes the expenses list in a later ticket | logged in |
+| `/expenses/new`, `/expenses/:id` | Add / edit expense (`pages/Expenses/ExpenseForm`). Save stays disabled until amount, currency, category and date are filled, and shows a spinner while saving | logged in |
 | `/families` | The user's families with their role, and a Create family form | logged in |
 | `/families/:familyId` | Members (name, email, role). Owner only: search by email or name, invite, pending invitations with Cancel | logged in; non-members see "Family not found" |
 | `/reports` | Totals by currency, then by category or month | logged in |
@@ -73,13 +73,13 @@ Browser-side checks mirror the API limits for fast feedback. The server remains 
 
 | Field | Check |
 |---|---|
-| Amount | `type="number"`, `min="0.01"`, `step="0.01"` |
-| Currency | 3 uppercase letters; default to the user's last used currency |
-| Date | `type="date"`, defaults to today |
+| Amount | Text input with `inputMode="decimal"`, so a non-numeric entry can show a message; greater than 0, at most 2 decimals |
+| Currency | 3 letters, upper-cased as typed; defaults to AUD |
+| Date | `type="date"`, defaults to and is capped at the local today |
 | Text fields | `maxLength` matching the API |
 | Password | 8 characters minimum, 72 bytes maximum |
 
-When adding an expense, the user chooses **Personal** or one of their families.
+When adding an expense, the user chooses **Personal** (the default) or one of their families from a **Share with** dropdown, which stays compact however many families they have.
 
 ## Styling
 
