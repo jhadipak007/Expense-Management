@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { expectDashboard, logIn } from './helpers.js';
+import { addExpense, createFamily, signUpFresh } from './dashboard-helpers.js';
+import { ensureFamily, expectDashboard, logIn } from './helpers.js';
 import { fillSignUp } from './register-helpers.js';
 
 const WIDTHS = [360, 768, 1440];
@@ -56,6 +57,26 @@ for (const width of WIDTHS) {
       await page.screenshot({ path: `test-results/screens/dashboard-${width}.png`, fullPage: true });
     });
 
+    test('dashboard summaries stack on phones and sit side by side from 768px', async ({ page }) => {
+      await signUpFresh(page);
+      await createFamily(page, 'Asha Home');
+      await addExpense(page, { amount: '12450', currency: 'INR', category: 'Grocery' });
+      await addExpense(page, { amount: '85', currency: 'USD', category: 'Trips' });
+      const personal = page.getByRole('region', { name: 'Personal' });
+      const family = page.getByRole('region', { name: 'Asha Home' });
+      await expect(personal.getByText('INR 12,450.00').first()).toBeVisible();
+      await expect(family.getByText('No expenses match these filters.')).toBeVisible();
+      const [a, b] = [await personal.boundingBox(), await family.boundingBox()];
+      expect(Math.abs(a.y - b.y) < 1).toBe(width >= 768);
+      await expectTouchTarget(page.getByRole('radio', { name: 'This month' }).locator('..'));
+      await expectTouchTarget(page.getByRole('checkbox', { name: 'Grocery' }).locator('..'));
+      await expectTouchTarget(page.getByRole('button', { name: 'Reset' }));
+      await page.getByRole('radio', { name: 'Custom' }).click();
+      await expectTouchTarget(page.getByLabel('From'));
+      await expectNoHorizontalScroll(page);
+      await page.screenshot({ path: `test-results/screens/summary-${width}.png`, fullPage: true });
+    });
+
     test('add expense form fits and has large touch targets', async ({ page }) => {
       await logIn(page);
       await expectDashboard(page);
@@ -93,15 +114,12 @@ for (const width of WIDTHS) {
     test('families pages fit and have large touch targets', async ({ page }) => {
       await logIn(page);
       await expectDashboard(page);
-      await page.goto('/families');
-      const name = `Responsive ${width} ${Date.now()}`;
-      await page.getByLabel('Family name').fill(name);
-      await page.getByRole('button', { name: 'Create family' }).click();
+      const name = await ensureFamily(page, 'E2E Responsive');
       await expectNoHorizontalScroll(page);
       await expectTouchTarget(page.getByRole('button', { name: 'Create family' }));
-      await expectTouchTarget(page.getByRole('link', { name }));
+      await expectTouchTarget(page.getByRole('link', { name, exact: true }));
       await page.screenshot({ path: `test-results/screens/families-${width}.png`, fullPage: true });
-      await page.getByRole('link', { name }).click();
+      await page.getByRole('link', { name, exact: true }).click();
       await page.getByRole('textbox', { name: 'Email' }).fill('nobody-here@example.com');
       await page.getByRole('button', { name: 'Search' }).click();
       await expect(page.getByText('No user found.')).toBeVisible();

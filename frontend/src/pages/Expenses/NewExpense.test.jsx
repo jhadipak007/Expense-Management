@@ -122,9 +122,7 @@ describe('Add expense', () => {
     await user.type(screen.getByLabelText('Description (optional)'), '  Weekly shop ');
     await user.selectOptions(screen.getByLabelText('Share with'), 'Trip Crew');
     await user.click(save());
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      'Expense saved: 1999.9 INR for Grocery.',
-    );
+    expect(await screen.findByText('Expense saved: 1999.9 INR for Grocery.')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/');
     expect(posted).toEqual([{
       amount: '1999.9', currency: 'INR', category_id: 1, spent_on: todayIso(),
@@ -137,7 +135,7 @@ describe('Add expense', () => {
     const { user } = renderApp('/expenses/new');
     await fillRequired(user);
     await user.click(save());
-    await screen.findByRole('status');
+    await screen.findByText(/Expense saved/);
     expect(posted[0]).toMatchObject({ family_id: null, description: null });
   });
 

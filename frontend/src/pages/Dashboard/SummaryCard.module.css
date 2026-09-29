@@ -1,0 +1,41 @@
+.currency {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.total {
+  margin: 0;
+  color: var(--color-heading);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.track {
+  height: 0.5rem;
+  border-radius: var(--radius);
+  background: var(--color-border);
+}
+
+.bar {
+  height: 100%;
+  border-radius: var(--radius);
+}

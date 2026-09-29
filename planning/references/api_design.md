@@ -88,7 +88,7 @@ Invitee-side actions; an invitation belonging to someone else returns 404.
 ### Reports (`/api/reports`)
 | Method | Path | Input | Returns |
 |---|---|---|---|
-| GET | `/summary` | `ReportFilter` query | totals grouped by currency, then by category or month |
+| GET | `/summary` | `ReportFilter` query | `ReportSummaryOut`: `currencies` list, each with `currency`, `total` and `categories` (`category_id`, `name`, `color`, `total`); categories with no spending are left out |
 
 ## Validation (Pydantic v2)
 
@@ -119,7 +119,7 @@ Field rules:
 
 Query models (FastAPI `Annotated[Model, Query()]`):
 - `ExpenseFilter`: `scope` (`personal` / `family` / `all`), `family_id`, `category_id`, `date_from`, `date_to`, `sort` (`spent_on` / `-spent_on` / `amount` / `-amount`), `limit` (1 to 100, default 50), `offset` (>= 0).
-- `ReportFilter`: `family_id` (omit to report only the authenticated user's personal expenses; provide a family ID to report that family's expenses, if the user is a member), `date_from`, `date_to`, `group_by` (`category` / `month`). Reports do not combine personal and family expenses.
+- `ReportFilter`: `family_id` (omit to report only the authenticated user's personal expenses; provide a family ID to report that family's expenses, if the user is a member, else 404), `date_from`, `date_to` (both required, inclusive), `category_id` (repeatable; omit for all categories). Reports do not combine personal and family expenses. The dashboard (EM-6) calls it once per card. Grouping by month (`group_by`) is planned for the Reports page and not implemented yet.
 
 Invalid input returns FastAPI's standard **422** response.
 
