@@ -83,6 +83,15 @@ Expiry is not stored as a status. An invitation is **open** while it is `pending
 | name | string, unique | |
 | color | string | hex color from the [color scheme](frontend.md#color-scheme) |
 
+**currencies**: lookup table, seeded with the 155 national currencies of ISO 4217 List One (published 2026-09-17). Metals, bond units, the testing and "no currency" codes, and fund codes are left out.
+
+| Column | Type | Notes |
+|---|---|---|
+| code | string(3) PK | ISO 4217 code, e.g. `AUD` |
+| name | string | ISO name, e.g. "Australian Dollar" |
+
+Changes to the ISO list are applied by a new migration. Removing a code fails while expenses still use it.
+
 **expenses**
 
 | Column | Type | Notes |
@@ -92,7 +101,7 @@ Expiry is not stored as a status. An invitation is **open** while it is `pending
 | family_id | FK families.id, nullable | null = personal; set = shared with that family |
 | category_id | FK categories.id | |
 | amount | Numeric(12, 2) | positive |
-| currency | string(3) | ISO 4217 code, e.g. `INR`, `USD` |
+| currency | FK currencies.code | e.g. `INR`, `USD`; `RESTRICT` |
 | spent_on | date | date of the expense |
 | description | string, nullable | |
 | created_at, updated_at | datetime | UTC |

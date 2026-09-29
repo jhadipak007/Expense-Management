@@ -89,7 +89,7 @@ Tests never depend on each other or on execution order.
 - List renders amount, currency, date, category name and category badge.
 - Empty state is shown when there are no expenses.
 - Filters (category, family, date range) update the request query.
-- Form: amount must be > 0 with at most 2 decimals; currency must be 3 letters; date defaults to today; Personal or a family must be chosen.
+- Form: amount must be > 0 with at most 2 decimals; currency is chosen from the server's list, defaulting to AUD, and an unknown currency from the server shows next to it; date defaults to today; Personal or a family must be chosen.
 - 422 field errors from the API appear next to the matching inputs.
 - Edit and delete are shown only for the recorder's own expenses.
 

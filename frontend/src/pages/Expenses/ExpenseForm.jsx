@@ -10,7 +10,7 @@ const UNAVAILABLE = 'Something went wrong. Please try again.';
 const CHECK_FORM = 'Please check the form and try again.';
 const MESSAGES = {
   amount: 'Enter an amount greater than 0, with at most 2 decimal places',
-  currency: 'Enter a 3-letter currency code, such as AUD',
+  currency: 'Choose a currency from the list',
   category_id: 'Choose a category',
   spent_on: 'Enter a date that is not in the future',
   description: 'Description must be at most 500 characters',
@@ -27,7 +27,6 @@ function validate(form) {
   const errors = {};
   const amount = form.amount.trim();
   if (!AMOUNT_PATTERN.test(amount) || Number(amount) <= 0) errors.amount = MESSAGES.amount;
-  if (!/^[A-Z]{3}$/.test(form.currency)) errors.currency = MESSAGES.currency;
   if (form.spent_on > todayIso()) errors.spent_on = MESSAGES.spent_on;
   return errors;
 }
@@ -54,9 +53,10 @@ function toPayload(form) {
 
 /**
  * Amount, currency, category, date, description and who to share with.
+ * Categories, currencies and families come from the server.
  * `onSubmit(payload)` saves it; if it throws, the error is shown and the input kept.
  */
-export default function ExpenseForm({ categories, families, onSubmit }) {
+export default function ExpenseForm({ categories, currencies, families, onSubmit }) {
   const [form, setForm] = useState(() => ({ ...EMPTY, spent_on: todayIso() }));
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
@@ -93,10 +93,12 @@ export default function ExpenseForm({ categories, families, onSubmit }) {
         id="amount" label="Amount" inputMode="decimal" autoComplete="off" placeholder="0.00"
         value={form.amount} onChange={set('amount')} error={errors.amount}
       />
-      <Field
-        id="currency" label="Currency" maxLength={3} autoComplete="off"
-        value={form.currency} onChange={(value) => set('currency')(value.toUpperCase())}
+      <SelectField
+        id="currency" label="Currency" value={form.currency} onChange={set('currency')}
         error={errors.currency}
+        options={currencies.map((c) => (
+          <option key={c.code} value={c.code}>{`${c.code} - ${c.name}`}</option>
+        ))}
       />
       <SelectField
         id="category" label="Category" value={form.category_id} onChange={set('category_id')}

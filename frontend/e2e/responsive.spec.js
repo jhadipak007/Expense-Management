@@ -82,6 +82,7 @@ for (const width of WIDTHS) {
       await expectDashboard(page);
       await page.getByRole('link', { name: 'Add expense' }).click();
       await expectTouchTarget(page.getByLabel('Amount'));
+      await expectTouchTarget(page.getByLabel('Currency'));
       await expectTouchTarget(page.getByLabel('Category'));
       await expectTouchTarget(page.getByLabel('Date'));
       await expectTouchTarget(page.getByLabel('Share with'));

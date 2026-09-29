@@ -2,6 +2,7 @@
 
 from app.models.base import Base
 from app.models.category import Category
+from app.models.currency import Currency
 from app.models.expense import Expense
 from app.models.family import Family
 from app.models.family_invitation import FamilyInvitation, InvitationStatus
@@ -11,6 +12,6 @@ from app.models.refresh_token import RefreshToken
 from app.models.user import User
 
 __all__ = [
-    "Base", "Category", "Expense", "Family", "FamilyInvitation", "FamilyMember", "FamilyRole",
-    "InvitationStatus", "PendingRegistration", "RefreshToken", "User",
+    "Base", "Category", "Currency", "Expense", "Family", "FamilyInvitation", "FamilyMember",
+    "FamilyRole", "InvitationStatus", "PendingRegistration", "RefreshToken", "User",
 ]

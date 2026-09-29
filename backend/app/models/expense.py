@@ -23,7 +23,9 @@ class Expense(Base):
     family_id: Mapped[int | None] = mapped_column(ForeignKey("families.id", ondelete="RESTRICT"))
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="RESTRICT"))
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
-    currency: Mapped[str] = mapped_column(String(3))
+    currency: Mapped[str] = mapped_column(
+        String(3), ForeignKey("currencies.code", ondelete="RESTRICT")
+    )
     spent_on: Mapped[date]
     description: Mapped[str | None] = mapped_column(String(500))
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)

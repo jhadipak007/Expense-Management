@@ -11,7 +11,7 @@ export async function signUpFresh(page) {
 export async function addExpense(page, { amount, currency = 'AUD', category, shareWith }) {
   await page.getByRole('link', { name: 'Add expense' }).click();
   await page.getByLabel('Amount').fill(amount);
-  await page.getByLabel('Currency').fill(currency);
+  await page.getByLabel('Currency').selectOption(currency);
   await page.getByLabel('Category').selectOption(category);
   if (shareWith) await page.getByLabel('Share with').selectOption(shareWith);
   await page.getByRole('button', { name: 'Save' }).click();

@@ -1,6 +1,6 @@
 /**
  * Default MSW handlers: a logged-out visitor whose login or sign-up (OTP 2211) as Priya
- * succeeds, with no families, invitations or expenses yet, and the three seeded categories.
+ * succeeds, with no families, invitations or expenses yet, the three seeded categories and a few currencies.
  */
 import { http, HttpResponse } from 'msw';
 
@@ -10,6 +10,13 @@ export const CATEGORIES = [
   { id: 1, name: 'Grocery', color: '#8aa84a' },
   { id: 2, name: 'Eating Out', color: '#e08e5a' },
   { id: 3, name: 'Trips', color: '#3a9e84' },
+];
+
+export const CURRENCIES = [
+  { code: 'AUD', name: 'Australian Dollar' },
+  { code: 'EUR', name: 'Euro' },
+  { code: 'INR', name: 'Indian Rupee' },
+  { code: 'USD', name: 'US Dollar' },
 ];
 
 export const handlers = [
@@ -34,6 +41,7 @@ export const handlers = [
   http.get('/api/invitations', () => HttpResponse.json([])),
   http.get('/api/families', () => HttpResponse.json([])),
   http.get('/api/categories', () => HttpResponse.json(CATEGORIES)),
+  http.get('/api/currencies', () => HttpResponse.json(CURRENCIES)),
   http.get('/api/reports/summary', () => HttpResponse.json({ currencies: [] })),
 ];
 
