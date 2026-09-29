@@ -8,3 +8,8 @@ export function formatDate(iso) {
 }
 
 export const ROLE_LABELS = { owner: 'Owner', member: 'Member' };
+
+/** Today's local date as "YYYY-MM-DD", the value format of a date input. */
+export function todayIso() {
+  return new Date().toLocaleDateString('en-CA');
+}
