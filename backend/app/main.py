@@ -8,7 +8,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import FileResponse
 
 from app.config import get_settings
-from app.routers import auth, families, health, invitations, users
+from app.routers import auth, categories, expenses, families, health, invitations, users
 
 SECURITY_HEADERS = {
     "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
@@ -32,7 +32,7 @@ def create_app() -> FastAPI:
     # The last middleware added runs first: headers wrap every response, including host rejections.
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
     app.middleware("http")(add_security_headers)
-    for module in (health, auth, users, families, invitations):
+    for module in (health, auth, users, families, invitations, categories, expenses):
         app.include_router(module.router)
     dist = Path(settings.frontend_dist_dir)
     if dist.is_dir():

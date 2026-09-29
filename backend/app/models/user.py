@@ -25,3 +25,4 @@ class User(Base):
     memberships: Mapped[list["FamilyMember"]] = relationship(  # noqa: F821
         back_populates="user", cascade="all, delete-orphan"
     )
+    expenses: Mapped[list["Expense"]] = relationship(back_populates="user")  # noqa: F821
