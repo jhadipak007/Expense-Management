@@ -9,7 +9,7 @@ async function signUpAndLogOut(page) {
   await fillSignUp(page, person);
   await submitCode(page, '2211');
   await expect(page.getByRole('heading', { name: `Welcome, ${person.name}` })).toBeVisible();
-  await logOut(page);
+  await logOut(page, person.name);
   return person;
 }
 
@@ -46,8 +46,10 @@ test('owner invites a user who accepts and joins the family', async ({ page }) =
   await logIn(page, asha);
   await expect(page.getByText(`Invited by ${TEST_USER.name}`)).toBeVisible();
   await page.getByRole('button', { name: `Accept invitation to ${family}` }).click();
-  await expect(page.getByRole('status').filter({ hasText: `You joined ${family}` })).toBeVisible();
-  await page.getByRole('link', { name: 'View family' }).click();
+  await expect(page.getByText(`You joined ${family}`)).toBeVisible();
+  await expect(page.getByRole('region', { name: family })).toBeVisible();
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Families' }).click();
+  await page.getByRole('link', { name: family, exact: true }).click();
   await expect(page.getByRole('heading', { name: family })).toBeVisible();
   await expect(page.getByText(TEST_USER.email)).toBeVisible();
   await expect(page.getByText(asha.email)).toBeVisible();

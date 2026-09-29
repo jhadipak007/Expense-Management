@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { validRefresh } from '@/test/handlers.js';
@@ -10,9 +10,13 @@ const INVITATION = {
   expires_at: '2026-10-05T10:00:00Z',
 };
 
-/** Fake invitations API; `acceptStatus` 409 simulates an invitation cancelled meanwhile. */
+/**
+ * Fake invitations API; `acceptStatus` 409 simulates an invitation cancelled meanwhile.
+ * Returns the ids of declined invitations.
+ */
 function mockInvitationsApi({ acceptStatus = 200 } = {}) {
   let invitations = [INVITATION];
+  const declined = [];
   server.use(
     validRefresh,
     http.get('/api/invitations', () => HttpResponse.json(invitations)),
@@ -26,10 +30,14 @@ function mockInvitationsApi({ acceptStatus = 200 } = {}) {
     }),
     http.post('/api/invitations/5/decline', () => {
       invitations = [];
+      declined.push(5);
       return new HttpResponse(null, { status: 204 });
     }),
   );
+  return declined;
 }
+
+const decline = () => screen.findByRole('button', { name: 'Decline invitation to Jha Household' });
 
 describe('Dashboard invitations', () => {
   it('shows each pending invitation with family, inviter and expiry', async () => {
@@ -52,20 +60,38 @@ describe('Dashboard invitations', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not load your invitations.');
   });
 
-  it('accepts an invitation and links to the family', async () => {
+  it('accepts an invitation, confirms it with a toast and shows the family card', async () => {
     mockInvitationsApi();
+    let families = [];
+    server.use(http.get('/api/families', () => HttpResponse.json(families)));
     const { user } = renderApp('/');
+    await screen.findByRole('region', { name: 'Personal' });
+    families = [{ id: 3, name: 'Jha Household', role: 'member' }];
     await user.click(await screen.findByRole('button', { name: 'Accept invitation to Jha Household' }));
-    expect(await screen.findByRole('status')).toHaveTextContent('You joined Jha Household.');
-    expect(screen.getByRole('link', { name: 'View family' })).toHaveAttribute('href', '/families/3');
+    expect(await screen.findByText('You joined Jha Household')).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Jha Household' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Accept/ })).not.toBeInTheDocument();
   });
 
-  it('declines an invitation and removes it', async () => {
-    mockInvitationsApi();
+  it('declines an invitation after confirming and removes it', async () => {
+    const declined = mockInvitationsApi();
     const { user } = renderApp('/');
-    await user.click(await screen.findByRole('button', { name: 'Decline invitation to Jha Household' }));
+    await user.click(await decline());
+    const dialog = screen.getByRole('alertdialog', { name: 'Decline the invitation to Jha Household?' });
+    await user.click(within(dialog).getByRole('button', { name: 'Decline' }));
+    expect(await screen.findByText('Invitation to Jha Household declined')).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByText('Jha Household')).not.toBeInTheDocument());
+    expect(declined).toEqual([5]);
+  });
+
+  it('keeps the invitation when the decline is not confirmed', async () => {
+    const declined = mockInvitationsApi();
+    const { user } = renderApp('/');
+    await user.click(await decline());
+    await user.click(screen.getByRole('button', { name: 'Keep invitation' }));
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.getByText('Jha Household')).toBeInTheDocument();
+    expect(declined).toEqual([]);
   });
 
   it('says a cancelled invitation is no longer available', async () => {

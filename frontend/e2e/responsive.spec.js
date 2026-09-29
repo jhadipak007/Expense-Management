@@ -72,11 +72,11 @@ for (const width of WIDTHS) {
       const personal = page.getByRole('region', { name: 'Personal' });
       const family = page.getByRole('region', { name: 'Asha Home' });
       await expect(personal.getByText('INR 12,450.00').first()).toBeVisible();
-      await expect(family.getByText('No expenses match these filters.')).toBeVisible();
+      await expect(family.getByText('No expenses match these filters')).toBeVisible();
       const [a, b] = [await personal.boundingBox(), await family.boundingBox()];
       expect(Math.abs(a.y - b.y) < 1).toBe(width >= 768);
-      await expectTouchTarget(page.getByRole('radio', { name: 'This month' }).locator('..'));
-      await expectTouchTarget(page.getByRole('checkbox', { name: 'Grocery' }).locator('..'));
+      await expectTouchTarget(page.getByRole('radio', { name: 'This month' }));
+      await expectTouchTarget(page.getByRole('button', { name: 'Grocery', exact: true }));
       await expectTouchTarget(page.getByRole('button', { name: 'Reset' }));
       await page.getByRole('radio', { name: 'Custom' }).click();
       await expectTouchTarget(page.getByLabel('From'));

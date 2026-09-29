@@ -19,7 +19,7 @@ test('add a personal expense from the dashboard', async ({ page }) => {
   await page.getByLabel('Amount').fill('42.50');
   await page.getByLabel('Description (optional)').fill('Weekly shop');
   await save.click();
-  await expect(page.getByText('Expense saved: 42.50 AUD for Grocery.')).toBeVisible();
+  await expect(page.getByText('AUD 42.50 for Grocery')).toBeVisible();
   await expect(page).toHaveURL('/');
 });
 
@@ -34,7 +34,7 @@ test('share an expense with a family', async ({ page }) => {
   await page.getByLabel('Category').selectOption('Trips');
   await page.getByLabel('Share with').selectOption(family);
   await page.getByRole('button', { name: 'Save' }).click();
-  await expect(page.getByText('Expense saved: 120.00 USD for Trips.')).toBeVisible();
+  await expect(page.getByText('USD 120.00 for Trips')).toBeVisible();
 });
 
 test('pick a currency with the keyboard and save in it', async ({ page }) => {
@@ -48,7 +48,7 @@ test('pick a currency with the keyboard and save in it', async ({ page }) => {
   await page.getByLabel('Amount').fill('7.25');
   await page.getByLabel('Category').selectOption('Eating Out');
   await page.getByRole('button', { name: 'Save' }).click();
-  await expect(page.getByText('Expense saved: 7.25 USD for Eating Out.')).toBeVisible();
+  await expect(page.getByText('USD 7.25 for Eating Out')).toBeVisible();
 });
 
 test('a logged-out visitor is sent to the login page', async ({ page }) => {
