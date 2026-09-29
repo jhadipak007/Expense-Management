@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { inviteUser, searchUsers } from '../../api/families.js';
-import Field from '../../components/AuthForm/Field.jsx';
+import FormField from '@/components/FormField.jsx';
 import page from '../../styles/page.module.css';
 
 const UNAVAILABLE = 'Something went wrong. Please try again.';
@@ -76,7 +76,7 @@ export default function UserSearch({ familyId, invitedIds, onInvited }) {
             </label>
           ))}
         </fieldset>
-        <Field
+        <FormField
           id="search-query" label={MODES[mode]} type={mode === 'email' ? 'email' : 'text'}
           maxLength={mode === 'email' ? 320 : 100} value={query} onChange={setQuery}
           error={fieldError}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Field from '../../components/AuthForm/Field.jsx';
+import FormField from '@/components/FormField.jsx';
 import page from '../../styles/page.module.css';
 import { describeFilters, matchingPreset, presetRange, PRESETS } from './dashboardFilters.js';
 import styles from './DashboardFilters.module.css';
@@ -79,11 +79,11 @@ export default function DashboardFilters({ filters, categories, onChange, onRese
       </fieldset>
       {period === 'custom' && (
         <div className={styles.range}>
-          <Field
+          <FormField
             id="filter-from" label="From" type="date" value={draft.from}
             onChange={(value) => changeDate('from', value)} error={rangeError}
           />
-          <Field
+          <FormField
             id="filter-to" label="To" type="date" value={draft.to}
             onChange={(value) => changeDate('to', value)}
           />

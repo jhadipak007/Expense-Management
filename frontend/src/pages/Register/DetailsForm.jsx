@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { register } from '../../api/auth.js';
-import styles from '../../components/AuthForm/AuthForm.module.css';
-import Field from '../../components/AuthForm/Field.jsx';
-import SubmitButton from '../../components/AuthForm/SubmitButton.jsx';
-import { LockIcon, MailIcon } from '../../components/AuthForm/icons.jsx';
+import { LockIcon, MailIcon } from 'lucide-react';
+import AuthCard from '@/components/AuthLayout/AuthCard.jsx';
+import FormField from '@/components/FormField.jsx';
+import Notice from '@/components/Notice.jsx';
+import SubmitButton from '@/components/SubmitButton.jsx';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UNAVAILABLE = 'Something went wrong. Please try again.';
@@ -66,37 +67,30 @@ export default function DetailsForm({ details, onChange, notice, onRegistered, l
   }
 
   return (
-    <form className={styles.card} onSubmit={handleSubmit} noValidate>
-      <h1 className={styles.title}>Create your account</h1>
-      <p className={styles.subtitle}>Start tracking your expenses in minutes.</p>
+    <AuthCard title="Create your account" subtitle="Start tracking your expenses in minutes." onSubmit={handleSubmit}>
+      {(formError || notice) && <Notice>{formError || notice}</Notice>}
 
-      {(formError || notice) && (
-        <p className={styles.formError} role="alert">
-          {formError || notice}
-        </p>
-      )}
-
-      <Field
+      <FormField
         id="displayName" label="Name" autoComplete="name" maxLength={100} placeholder="Your name"
         value={details.displayName} onChange={set('displayName')} error={errors.displayName}
       />
-      <Field
+      <FormField
         id="email" label="Email" type="email" autoComplete="email"
         placeholder="you@example.com" icon={<MailIcon />}
         value={details.email} onChange={set('email')} error={errors.email}
       />
-      <Field
+      <FormField
         id="password" label="Password" autoComplete="new-password" icon={<LockIcon />} revealable
         placeholder="At least 8 characters" value={details.password} onChange={set('password')} error={errors.password}
       />
-      <Field
+      <FormField
         id="confirm" label="Confirm password" autoComplete="new-password" icon={<LockIcon />} revealable
         placeholder="Repeat your password" value={details.confirm} onChange={set('confirm')} error={errors.confirm}
       />
 
       <SubmitButton pending={submitting} pendingLabel="Signing up...">Sign up</SubmitButton>
 
-      <p className={styles.switch}>Already have an account? {loginLink}</p>
-    </form>
+      <p className="text-center">Already have an account? {loginLink}</p>
+    </AuthCard>
   );
 }

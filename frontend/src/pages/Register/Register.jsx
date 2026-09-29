@@ -38,7 +38,7 @@ export default function Register() {
             setNotice('');
             setRegistrationId(id);
           }}
-          loginLink={<Link to="/login">Log in</Link>}
+          loginLink={<Link to="/login" className="text-primary underline">Log in</Link>}
         />
       )}
     </AuthLayout>

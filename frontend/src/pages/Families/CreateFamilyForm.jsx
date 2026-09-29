@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createFamily } from '../../api/families.js';
-import Field from '../../components/AuthForm/Field.jsx';
+import FormField from '@/components/FormField.jsx';
 import page from '../../styles/page.module.css';
 
 const UNAVAILABLE = 'Something went wrong. Please try again.';
@@ -34,7 +34,7 @@ export default function CreateFamilyForm({ onCreated }) {
     <form className={`${page.card} ${page.form}`} onSubmit={handleSubmit} noValidate>
       <h2 className={page.heading}>Create a family</h2>
       {formError && <p className={page.error} role="alert">{formError}</p>}
-      <Field
+      <FormField
         id="family-name" label="Family name" maxLength={100}
         value={name} onChange={setName} error={error}
       />

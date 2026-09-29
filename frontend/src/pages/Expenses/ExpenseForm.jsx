@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import fieldStyles from '../../components/AuthForm/AuthForm.module.css';
-import Field from '../../components/AuthForm/Field.jsx';
-import SubmitButton from '../../components/AuthForm/SubmitButton.jsx';
+import FormField from '@/components/FormField.jsx';
+import SubmitButton from '@/components/SubmitButton.jsx';
 import page from '../../styles/page.module.css';
 import { todayIso } from '../../utils/format.js';
 
@@ -89,7 +89,7 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
   return (
     <form className={page.form} onSubmit={handleSubmit} noValidate>
       {formError && <p className={page.error} role="alert">{formError}</p>}
-      <Field
+      <FormField
         id="amount" label="Amount" inputMode="decimal" autoComplete="off" placeholder="0.00"
         value={form.amount} onChange={set('amount')} error={errors.amount}
       />
@@ -108,11 +108,11 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
           ...categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>),
         ]}
       />
-      <Field
+      <FormField
         id="spent-on" label="Date" type="date" max={todayIso()}
         value={form.spent_on} onChange={set('spent_on')} error={errors.spent_on}
       />
-      <Field
+      <FormField
         id="description" label="Description (optional)" maxLength={500}
         value={form.description} onChange={set('description')} error={errors.description}
       />

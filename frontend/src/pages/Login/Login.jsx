@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../auth/useAuth.js';
-import styles from '../../components/AuthForm/AuthForm.module.css';
-import Field from '../../components/AuthForm/Field.jsx';
-import SubmitButton from '../../components/AuthForm/SubmitButton.jsx';
-import { LockIcon, MailIcon } from '../../components/AuthForm/icons.jsx';
-import AuthLayout from '../../components/AuthLayout/AuthLayout.jsx';
+import { LockIcon, MailIcon } from 'lucide-react';
+import AuthCard from '@/components/AuthLayout/AuthCard.jsx';
+import AuthLayout from '@/components/AuthLayout/AuthLayout.jsx';
+import FormField from '@/components/FormField.jsx';
+import Notice from '@/components/Notice.jsx';
+import SubmitButton from '@/components/SubmitButton.jsx';
+import { Button } from '@/components/ui/button';
 
 const INCORRECT = 'Incorrect email or password';
 const UNAVAILABLE = 'Something went wrong. Please try again.';
@@ -47,41 +49,34 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <form className={styles.card} onSubmit={handleSubmit} noValidate>
-        <h1 className={styles.title}>Welcome back</h1>
-        <p className={styles.subtitle}>Log in to keep track of your expenses.</p>
+      <AuthCard title="Welcome back" subtitle="Log in to keep track of your expenses." onSubmit={handleSubmit}>
+        {formError && <Notice>{formError}</Notice>}
 
-        {formError && (
-          <p className={styles.formError} role="alert">
-            {formError}
-          </p>
-        )}
-
-        <Field
+        <FormField
           id="email" label="Email" type="email" autoComplete="email" placeholder="you@example.com"
           icon={<MailIcon />} value={email} onChange={setEmail} error={errors.email}
         />
-        <Field
+        <FormField
           id="password" label="Password" autoComplete="current-password" placeholder="Your password"
           icon={<LockIcon />} revealable value={password} onChange={setPassword} error={errors.password}
         />
-        <div className={styles.forgotRow}>
-          <button type="button" className={styles.linkButton} onClick={() => setResetAsked(true)}>
+        <div className="-mt-2 flex justify-end">
+          <Button type="button" variant="link" className="px-1 text-sm" onClick={() => setResetAsked(true)}>
             Forgot password?
-          </button>
+          </Button>
         </div>
         {resetAsked && (
-          <p className={styles.status} role="status">
+          <p className="text-sm" role="status">
             {RESET_COMING_SOON}
           </p>
         )}
 
         <SubmitButton pending={submitting} pendingLabel="Logging in...">Log in</SubmitButton>
 
-        <p className={styles.switch}>
-          New to Expense Sarathi? <Link to="/register">Create an account</Link>
+        <p className="text-center">
+          New to Expense Sarathi? <Link to="/register" className="text-primary underline">Create an account</Link>
         </p>
-      </form>
+      </AuthCard>
     </AuthLayout>
   );
 }

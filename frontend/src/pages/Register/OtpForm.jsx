@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../auth/useAuth.js';
-import styles from '../../components/AuthForm/AuthForm.module.css';
-import Field from '../../components/AuthForm/Field.jsx';
-import SubmitButton from '../../components/AuthForm/SubmitButton.jsx';
+import AuthCard from '@/components/AuthLayout/AuthCard.jsx';
+import FormField from '@/components/FormField.jsx';
+import Notice from '@/components/Notice.jsx';
+import SubmitButton from '@/components/SubmitButton.jsx';
+import { Button } from '@/components/ui/button';
 
 const INCORRECT = 'Incorrect code, please try again';
 const UNAVAILABLE = 'Something went wrong. Please try again.';
@@ -36,25 +38,22 @@ export default function OtpForm({ registrationId, onBack, onRestart }) {
   }
 
   return (
-    <form className={styles.card} onSubmit={handleSubmit} noValidate>
-      <h1 className={styles.title}>Confirm your sign-up</h1>
-      <p className={styles.subtitle}>Enter the 4-digit code to finish creating your account.</p>
+    <AuthCard
+      title="Confirm your sign-up"
+      subtitle="Enter the 4-digit code to finish creating your account."
+      onSubmit={handleSubmit}
+    >
+      {formError && <Notice>{formError}</Notice>}
 
-      {formError && (
-        <p className={styles.formError} role="alert">
-          {formError}
-        </p>
-      )}
-
-      <Field
+      <FormField
         id="code" label="Code" inputMode="numeric" autoComplete="one-time-code"
         value={code} onChange={setCode} error={codeError}
       />
 
       <SubmitButton pending={submitting} pendingLabel="Verifying...">Verify</SubmitButton>
-      <button className={styles.secondary} type="button" onClick={onBack} disabled={submitting}>
+      <Button variant="outline" className="w-full" type="button" onClick={onBack} disabled={submitting}>
         Back
-      </button>
-    </form>
+      </Button>
+    </AuthCard>
   );
 }
