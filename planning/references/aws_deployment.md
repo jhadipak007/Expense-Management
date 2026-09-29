@@ -207,6 +207,7 @@ In **VPC -> Security groups -> Create security group**, create four groups in th
    - Strict-Transport-Security: max-age `63072000`, include subdomains, override.
    - X-Content-Type-Options: on. X-Frame-Options: `DENY`. Referrer-Policy: `no-referrer`.
    - Content-Security-Policy: `default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`.
+   - Some shadcn/Radix parts (scroll lock in `Sheet`/`Dialog`, `Select`) inject `<style>` tags. Before a release, open those screens with this CSP applied and check the browser console for CSP violations. If one appears, allow only what is needed rather than adding `'unsafe-inline'` to the whole policy.
 3. **Distributions -> Create distribution**.
 4. Origin 1: choose the S3 bucket. Origin access: **Origin access control settings** -> **Create new OAC** (sign requests). Name the origin `web`.
 5. Default cache behavior: viewer protocol **Redirect HTTP to HTTPS**, allowed methods **GET, HEAD**, cache policy **CachingOptimized**, response headers policy `expense-sarathi-security-headers`, function association **Viewer request** -> CloudFront Function `expense-sarathi-spa-rewrite`.

@@ -47,6 +47,7 @@ These are the intended architecture and implementation constraints for the proje
 
 ### Frontend
 - The frontend lives in `frontend/` and uses React + Vite.
+- Build all UI with shadcn/ui components and Tailwind CSS; do not use CSS Modules. Run the shadcn CLI from `frontend/`.
 - Build the frontend as static assets. Locally, FastAPI serves the built assets; in production, S3 and CloudFront serve them. The API and app share one origin.
 
 ### Local development

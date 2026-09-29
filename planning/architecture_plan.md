@@ -53,7 +53,9 @@ Expense Tracker/
 │       └── integration/
 └── frontend/                  # React + Vite
     ├── package.json
-    ├── vite.config.js
+    ├── vite.config.js         # React + Tailwind plugins, @/ alias
+    ├── components.json        # shadcn/ui config (JavaScript)
+    ├── jsconfig.json          # @/ -> src/ alias for editors and the shadcn CLI
     ├── index.html
     ├── e2e/                   # Playwright end-to-end tests
     └── src/                   # component tests sit next to components (*.test.jsx)
@@ -61,8 +63,10 @@ Expense Tracker/
         ├── App.jsx
         ├── api/               # fetch wrappers for /api
         ├── pages/             # Login, Expenses, Family, Reports
-        ├── components/
-        └── styles/            # color scheme tokens
+        ├── components/        # app components
+        │   └── ui/            # shadcn/ui components (generated, committed)
+        ├── lib/utils.js       # cn() class name helper
+        └── styles/            # global.css: Tailwind entry and theme tokens
 ```
 
 - `backend/app` is split by layer: routers call services, and services use models.
@@ -78,7 +82,7 @@ JWT access tokens (10 minutes) with rotating refresh tokens stored in the databa
 REST API under `/api`, authenticated by default, with Pydantic validation on every input. Read [planning/references/api_design.md](references/api_design.md) before any task that adds or changes an API endpoint.
 
 ## Frontend
-React + Vite (JavaScript), React Router, plain CSS with CSS Modules. Read [planning/references/frontend.md](references/frontend.md), including its responsive UI rules, before any frontend task.
+React + Vite (JavaScript), React Router, shadcn/ui components styled with Tailwind CSS v4. Read [planning/references/frontend.md](references/frontend.md), including its responsive UI rules, before any frontend task.
 
 ## Database and Migrations
 SQLAlchemy 2.0 ORM with typed models, relationships and derived fields; Alembic for all schema changes. Read [planning/references/database.md](references/database.md) before any task that touches models, queries or migrations.
