@@ -1,13 +1,15 @@
 import { useLocation, useNavigate } from 'react-router';
+import { toast } from 'sonner';
 import { createExpense, listExpenseFormOptions } from '@/api/expenses.js';
 import { useAsyncList } from '@/hooks/useAsyncList.js';
 import BackLink from '@/components/BackLink.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { PageTitle } from '@/components/SectionCard.jsx';
+import { formatMoney } from '@/utils/format.js';
 import ExpenseForm from './ExpenseForm.jsx';
 
 /**
- * Add an expense, then return to the dashboard, which confirms it was saved.
+ * Add an expense, then return to the dashboard with a toast confirming it was saved.
  * The dashboard's filters travel in the query string and are kept.
  */
 export default function NewExpense() {
@@ -17,7 +19,10 @@ export default function NewExpense() {
 
   async function save(payload) {
     const expense = await createExpense(payload);
-    navigate(dashboard, { state: { savedExpense: expense } });
+    toast.success('Expense saved', {
+      description: `${formatMoney(expense.amount, expense.currency)} for ${expense.category.name}`,
+    });
+    navigate(dashboard);
   }
 
   return (

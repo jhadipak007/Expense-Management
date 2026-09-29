@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { addExpense, createFamily, signUpFresh } from './dashboard-helpers.js';
-import { ensureFamily, expectDashboard, logIn } from './helpers.js';
+import { TEST_USER, ensureFamily, expectDashboard, logIn } from './helpers.js';
 import { fillSignUp } from './register-helpers.js';
 
 const WIDTHS = [360, 768, 1440];
@@ -49,11 +49,18 @@ for (const width of WIDTHS) {
       await page.screenshot({ path: `test-results/screens/register-${width}.png`, fullPage: true });
     });
 
-    test('dashboard fits and shows Logout', async ({ page }) => {
+    test('dashboard fits and the user menu holds Logout', async ({ page }) => {
       await logIn(page);
       await expectDashboard(page);
       await expectNoHorizontalScroll(page);
-      await expectTouchTarget(page.getByRole('button', { name: 'Logout' }));
+      const userMenu = page.getByRole('button', { name: TEST_USER.name });
+      await expectTouchTarget(userMenu);
+      await userMenu.click();
+      // Measure after the menu's zoom-in animation, which scales it while opening.
+      await page.getByRole('menu').evaluate((menu) => Promise.all(menu.getAnimations().map((a) => a.finished)));
+      await expectTouchTarget(page.getByRole('menuitem', { name: 'Logout' }));
+      await expectNoHorizontalScroll(page);
+      await page.keyboard.press('Escape');
       await page.screenshot({ path: `test-results/screens/dashboard-${width}.png`, fullPage: true });
     });
 

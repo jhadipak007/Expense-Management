@@ -31,3 +31,8 @@ const MONEY = new Intl.NumberFormat('en-US', {
 export function formatMoney(amount, currency) {
   return `${currency} ${MONEY.format(amount)}`;
 }
+
+/** Up to two initials from a display name, e.g. "Priya Sharma" -> "PS". */
+export function initials(name) {
+  return name.trim().split(/\s+/).slice(0, 2).map((word) => word[0].toUpperCase()).join('');
+}

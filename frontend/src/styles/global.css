@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import 'sonner/dist/styles.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Theme: the brand palette as shadcn variables (see planning/references/frontend.md). */
 :root {
@@ -26,6 +29,27 @@
   --eating-out: #e08e5a;
   --trips: #3a9e84;
   --radius: 0.5rem;
+}
+
+/* Dark theme: approved in EM-12; amber, category and success colours are shared with light. */
+.dark {
+  color-scheme: dark;
+  --background: #0f1722;
+  --foreground: #e6ebf1;
+  --card: #172231;
+  --card-foreground: #a3b0bf;
+  --popover: #172231;
+  --popover-foreground: #e6ebf1;
+  --primary: #6aa2dc;
+  --primary-foreground: #0f1722;
+  --secondary: #0f1722;
+  --secondary-foreground: #e6ebf1;
+  --muted: #243244;
+  --muted-foreground: #a3b0bf;
+  --destructive: #e07a70;
+  --border: #2a3747;
+  --input: #2a3747;
+  --ring: #6aa2dc;
 }
 
 @theme inline {
@@ -79,5 +103,14 @@
 
   :focus-visible {
     @apply outline-3 outline-offset-2 outline-primary;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

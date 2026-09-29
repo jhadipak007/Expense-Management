@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { server } from '@/test/setup.js';
 import { validRefresh } from '@/test/handlers.js';
-import { renderApp } from '@/test/renderApp.jsx';
+import { logOut, renderApp } from '@/test/renderApp.jsx';
 import { IDLE_MINUTES } from './useIdleLogout.js';
 
 describe('session and route guards', () => {
@@ -44,7 +44,7 @@ describe('session and route guards', () => {
       }),
     );
     const { user, router } = renderApp('/');
-    await user.click(await screen.findByRole('button', { name: 'Logout' }));
+    await logOut(user);
     expect(await screen.findByRole('button', { name: 'Log in' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/login');
     expect(loggedOut).toBe(true);
@@ -53,7 +53,7 @@ describe('session and route guards', () => {
   it('going back to the dashboard after logout shows login', async () => {
     server.use(validRefresh);
     const { user, router } = renderApp('/');
-    await user.click(await screen.findByRole('button', { name: 'Logout' }));
+    await logOut(user);
     await screen.findByRole('button', { name: 'Log in' });
     await act(() => router.navigate('/'));
     expect(router.state.location.pathname).toBe('/login');

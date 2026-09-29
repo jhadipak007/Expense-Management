@@ -124,7 +124,7 @@ describe('Add expense', () => {
     expect(screen.getByLabelText('Amount')).toHaveValue('42');
   });
 
-  it('saves a family expense and confirms it on the dashboard', async () => {
+  it('saves a family expense and confirms it with a toast on the dashboard', async () => {
     const posted = mockExpensesApi();
     const { user, router } = renderApp('/expenses/new');
     await fillRequired(user, '1999.9');
@@ -132,7 +132,8 @@ describe('Add expense', () => {
     await user.type(screen.getByLabelText('Description (optional)'), '  Weekly shop ');
     await user.selectOptions(screen.getByLabelText('Share with'), 'Trip Crew');
     await user.click(save());
-    expect(await screen.findByText('Expense saved: 1999.9 INR for Grocery.')).toBeInTheDocument();
+    expect(await screen.findByText('Expense saved')).toBeInTheDocument();
+    expect(screen.getByText('INR 1,999.90 for Grocery')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/');
     expect(posted).toEqual([{
       amount: '1999.9', currency: 'INR', category_id: 1, spent_on: todayIso(),

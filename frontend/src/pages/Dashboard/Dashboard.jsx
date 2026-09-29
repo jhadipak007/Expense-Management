@@ -14,7 +14,6 @@ import SummaryCard from './SummaryCard.jsx';
 export default function Dashboard() {
   const { user } = useAuth();
   const location = useLocation();
-  const saved = location.state?.savedExpense;
   const [searchParams, setSearchParams] = useSearchParams();
   // Same object until the URL changes, so cards reload only when a filter changes.
   const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
@@ -22,11 +21,6 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-4">
-      {saved && (
-        <Notice kind="success">
-          Expense saved: {saved.amount} {saved.currency} for {saved.category.name}.
-        </Notice>
-      )}
       <SectionCard className="gap-2 p-6">
         <PageTitle>Welcome, {user.display_name}</PageTitle>
         <Button asChild className="w-full md:w-auto md:self-start">

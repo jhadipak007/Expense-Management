@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { TEST_USER, logIn } from './helpers.js';
+import { TEST_USER, logIn, logOut } from './helpers.js';
 import { fillSignUp, newEmail, submitCode } from './register-helpers.js';
 
 test('sign up with the OTP, log out, and log back in', async ({ page }) => {
@@ -9,10 +9,7 @@ test('sign up with the OTP, log out, and log back in', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Welcome, Asha' })).toBeVisible();
   await expect(page).toHaveURL('/');
 
-  // Wait for logout to reach the server; navigating first would abort it and keep the session.
-  const loggedOut = page.waitForResponse((r) => r.url().endsWith('/api/auth/logout'));
-  await page.getByRole('button', { name: 'Logout' }).click();
-  await loggedOut;
+  await logOut(page, 'Asha');
   await logIn(page, { email, password: 'longenough' });
   await expect(page.getByRole('heading', { name: 'Welcome, Asha' })).toBeVisible();
 });
