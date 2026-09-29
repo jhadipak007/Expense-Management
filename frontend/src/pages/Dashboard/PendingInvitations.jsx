@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { acceptInvitation, declineInvitation, listMyInvitations } from '../../api/invitations.js';
 import { useAsyncList } from '../../hooks/useAsyncList.js';
-import page from '../../styles/page.module.css';
+import ItemRow, { ItemActions, ItemDetails } from '@/components/ItemRow.jsx';
+import Notice from '@/components/Notice.jsx';
+import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
+import { Button } from '@/components/ui/button';
 import { formatDate } from '../../utils/format.js';
 
 const NO_LONGER_AVAILABLE = 'This invitation is no longer available.';
@@ -34,46 +37,46 @@ export default function PendingInvitations() {
   if (!invitations?.length && !message && !loadError) return null;
 
   return (
-    <section className={page.card}>
-      <h2 className={page.heading}>Family invitations</h2>
-      {loadError && <p className={page.error} role="alert">Could not load your invitations.</p>}
-      {message?.error && <p className={page.error} role="alert">{message.error}</p>}
+    <SectionCard>
+      <CardHeading>Family invitations</CardHeading>
+      {loadError && <Notice>Could not load your invitations.</Notice>}
+      {message?.error && <Notice>{message.error}</Notice>}
       {message?.joined && (
-        <p className={page.success} role="status">
+        <Notice kind="success">
           You joined {message.joined.name}.{' '}
-          <Link to={`/families/${message.joined.id}`}>View family</Link>
-        </p>
+          <Link to={`/families/${message.joined.id}`} className="text-primary underline">View family</Link>
+        </Notice>
       )}
       {invitations?.length > 0 && (
-        <ul className={page.list}>
+        <ul className="flex flex-col gap-2">
           {invitations.map((invitation) => (
-            <li key={invitation.id} className={page.item}>
-              <div className={page.details}>
-                <span className={page.name}>{invitation.family_name}</span>
-                <span className={page.muted}>
+            <ItemRow key={invitation.id}>
+              <ItemDetails>
+                <span className="font-semibold text-foreground">{invitation.family_name}</span>
+                <span className="text-sm">
                   Invited by {invitation.inviter_name} · Expires {formatDate(invitation.expires_at)}
                 </span>
-              </div>
-              <div className={page.actions}>
-                <button
-                  className="button" type="button" disabled={busyId === invitation.id}
+              </ItemDetails>
+              <ItemActions>
+                <Button
+                  disabled={busyId === invitation.id}
                   aria-label={`Accept invitation to ${invitation.family_name}`}
                   onClick={() => respond(invitation, true)}
                 >
                   Accept
-                </button>
-                <button
-                  className={page.secondary} type="button" disabled={busyId === invitation.id}
+                </Button>
+                <Button
+                  variant="outline" disabled={busyId === invitation.id}
                   aria-label={`Decline invitation to ${invitation.family_name}`}
                   onClick={() => respond(invitation, false)}
                 >
                   Decline
-                </button>
-              </div>
-            </li>
+                </Button>
+              </ItemActions>
+            </ItemRow>
           ))}
         </ul>
       )}
-    </section>
+    </SectionCard>
   );
 }

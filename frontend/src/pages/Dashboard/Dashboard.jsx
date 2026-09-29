@@ -3,8 +3,9 @@ import { Link, useLocation, useSearchParams } from 'react-router';
 import { listCategoriesAndFamilies } from '../../api/expenses.js';
 import { useAsyncList } from '../../hooks/useAsyncList.js';
 import { useAuth } from '../../auth/useAuth.js';
-import page from '../../styles/page.module.css';
-import styles from './Dashboard.module.css';
+import Notice from '@/components/Notice.jsx';
+import SectionCard from '@/components/SectionCard.jsx';
+import { Button } from '@/components/ui/button';
 import DashboardFilters from './DashboardFilters.jsx';
 import { parseFilters, toSearchParams } from './dashboardFilters.js';
 import PendingInvitations from './PendingInvitations.jsx';
@@ -20,27 +21,24 @@ export default function Dashboard() {
   const options = useAsyncList(listCategoriesAndFamilies);
 
   return (
-    <div className={page.stack}>
+    <div className="flex flex-col gap-4">
       {saved && (
-        <p className={page.success} role="status">
+        <Notice kind="success">
           Expense saved: {saved.amount} {saved.currency} for {saved.category.name}.
-        </p>
+        </Notice>
       )}
-      <section className={styles.card}>
-        <h1 className={styles.greeting}>Welcome, {user.display_name}</h1>
-        <Link
-          className={`button ${styles.add}`}
-          to={{ pathname: '/expenses/new', search: location.search }}
-        >
-          Add expense
-        </Link>
-      </section>
-      {options.loading && !options.data && <p className={page.muted}>Loading...</p>}
+      <SectionCard className="gap-2 p-6 md:p-6">
+        <h1 className="text-2xl font-bold wrap-anywhere text-foreground md:text-3xl">Welcome, {user.display_name}</h1>
+        <Button asChild className="w-full md:w-auto md:self-start">
+          <Link to={{ pathname: '/expenses/new', search: location.search }}>Add expense</Link>
+        </Button>
+      </SectionCard>
+      {options.loading && !options.data && <p className="text-sm">Loading...</p>}
       {options.error && (
-        <section className={page.card}>
-          <p className={page.error} role="alert">Could not load your summaries.</p>
-          <button className={page.secondary} type="button" onClick={options.reload}>Retry</button>
-        </section>
+        <SectionCard>
+          <Notice>Could not load your summaries.</Notice>
+          <Button variant="outline" className="self-start" onClick={options.reload}>Retry</Button>
+        </SectionCard>
       )}
       {options.data && (
         <>
@@ -49,7 +47,7 @@ export default function Dashboard() {
             onChange={(next) => setSearchParams(toSearchParams(next), { replace: true })}
             onReset={() => setSearchParams({}, { replace: true })}
           />
-          <div className={styles.cards}>
+          <div className="grid gap-4 md:grid-cols-[repeat(auto-fill,minmax(18rem,1fr))]">
             <SummaryCard title="Personal" familyId={null} filters={filters} />
             {options.data.families.map((family) => (
               <SummaryCard
