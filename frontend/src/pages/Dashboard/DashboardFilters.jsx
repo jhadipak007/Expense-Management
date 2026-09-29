@@ -14,7 +14,17 @@ export default function DashboardFilters({ filters, categories, onChange, onRese
   const [customOpen, setCustomOpen] = useState(false);
   const [draft, setDraft] = useState({ from: filters.from, to: filters.to });
   const [rangeError, setRangeError] = useState('');
+  const [appliedRange, setAppliedRange] = useState(`${filters.from}/${filters.to}`);
   const period = customOpen ? 'custom' : matchingPreset(filters);
+
+  // The URL can change without these controls (Reset, a link to the dashboard):
+  // show what is applied then, not an earlier edit.
+  if (appliedRange !== `${filters.from}/${filters.to}`) {
+    setAppliedRange(`${filters.from}/${filters.to}`);
+    setDraft({ from: filters.from, to: filters.to });
+    setCustomOpen(false);
+    setRangeError('');
+  }
 
   function choosePeriod(key) {
     setRangeError('');

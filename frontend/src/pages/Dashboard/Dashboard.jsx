@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router';
 import { listCategoriesAndFamilies } from '../../api/expenses.js';
 import { useAsyncList } from '../../hooks/useAsyncList.js';
@@ -14,7 +15,8 @@ export default function Dashboard() {
   const location = useLocation();
   const saved = location.state?.savedExpense;
   const [searchParams, setSearchParams] = useSearchParams();
-  const filters = parseFilters(searchParams);
+  // Same object until the URL changes, so cards reload only when a filter changes.
+  const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
   const options = useAsyncList(listCategoriesAndFamilies);
 
   return (

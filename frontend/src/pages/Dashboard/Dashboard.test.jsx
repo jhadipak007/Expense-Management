@@ -76,6 +76,14 @@ describe('Dashboard summaries', () => {
     expect(familyRequests(requests, '3')).toHaveLength(1);
   });
 
+  it('loads each card once when nothing changes', async () => {
+    const requests = mockDashboard();
+    renderApp('/');
+    expect(await screen.findAllByText('No expenses match these filters.')).toHaveLength(2);
+    await new Promise((resolve) => { setTimeout(resolve, 100); });
+    expect(requests).toHaveLength(2);
+  });
+
   it('starts on This month and All categories and describes the selection', async () => {
     mockDashboard();
     renderApp('/');
@@ -223,5 +231,39 @@ describe('Dashboard summaries', () => {
     const personal = await screen.findByRole('region', { name: 'Personal' });
     expect(await within(personal).findByText('USD 85.00')).toBeInTheDocument();
     expect(requests.at(-1).get('date_from')).toBe('2026-03-01');
+  });
+
+  it('follows the URL when it changes outside the filters', async () => {
+    const requests = mockDashboard({ families: [] });
+    const { user } = renderApp('/?from=2026-03-05&to=2026-03-10');
+    expect(await screen.findByRole('radio', { name: 'Custom' })).toBeChecked();
+    expect(screen.getByLabelText('From')).toHaveValue('2026-03-05');
+    await user.click(screen.getByRole('link', { name: 'Dashboard' }));
+    await waitFor(() => expect(requests.at(-1).get('date_from')).toBe(THIS_MONTH.from));
+    expect(screen.getByRole('radio', { name: 'This month' })).toBeChecked();
+    expect(screen.queryByLabelText('From')).not.toBeInTheDocument();
+  });
+
+  it('keeps Custom open with the applied dates after choosing it', async () => {
+    mockDashboard({ families: [] });
+    const { user } = renderApp('/');
+    await user.click(await screen.findByRole('radio', { name: 'Custom' }));
+    expect(screen.getByLabelText('From')).toHaveValue(THIS_MONTH.from);
+    await user.click(screen.getByRole('link', { name: 'Dashboard' }));
+    expect(screen.getByRole('radio', { name: 'Custom' })).toBeChecked();
+    expect(screen.getByLabelText('To')).toHaveValue(THIS_MONTH.to);
+  });
+
+  it('drops a custom range the user entered when the URL changes elsewhere', async () => {
+    const requests = mockDashboard({ families: [] });
+    const { user } = renderApp('/');
+    await user.click(await screen.findByRole('radio', { name: 'Custom' }));
+    await user.clear(screen.getByLabelText('From'));
+    await user.type(screen.getByLabelText('From'), '2026-03-05');
+    await waitFor(() => expect(requests.at(-1).get('date_from')).toBe('2026-03-05'));
+    await user.click(screen.getByRole('link', { name: 'Dashboard' }));
+    await waitFor(() => expect(requests.at(-1).get('date_from')).toBe(THIS_MONTH.from));
+    expect(screen.getByRole('radio', { name: 'This month' })).toBeChecked();
+    expect(screen.queryByLabelText('From')).not.toBeInTheDocument();
   });
 });
