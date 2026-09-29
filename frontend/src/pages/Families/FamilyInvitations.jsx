@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { cancelInvitation } from '../../api/families.js';
-import page from '../../styles/page.module.css';
+import ItemRow, { ItemActions, ItemDetails } from '@/components/ItemRow.jsx';
+import Notice from '@/components/Notice.jsx';
+import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
+import { Button } from '@/components/ui/button';
 import { formatDate } from '../../utils/format.js';
 
 /** The owner's list of pending invitations, each with a Cancel button. */
@@ -22,35 +25,35 @@ export default function FamilyInvitations({ familyId, data: invitations, error, 
   }
 
   return (
-    <section className={page.card}>
-      <h2 className={page.heading}>Pending invitations</h2>
-      {message && <p className={page.error} role="alert">{message}</p>}
-      {loading && <p className={page.muted}>Loading...</p>}
-      {error && <p className={page.error} role="alert">Could not load invitations.</p>}
-      {invitations?.length === 0 && <p className={page.muted}>No pending invitations.</p>}
+    <SectionCard>
+      <CardHeading>Pending invitations</CardHeading>
+      {message && <Notice>{message}</Notice>}
+      {loading && <p className="text-sm">Loading...</p>}
+      {error && <Notice>Could not load invitations.</Notice>}
+      {invitations?.length === 0 && <p className="text-sm">No pending invitations.</p>}
       {invitations?.length > 0 && (
-        <ul className={page.list}>
+        <ul className="flex flex-col gap-2">
           {invitations.map((invitation) => (
-            <li key={invitation.id} className={page.item}>
-              <div className={page.details}>
-                <span className={page.name}>{invitation.invitee_name}</span>
-                <span className={page.muted}>
+            <ItemRow key={invitation.id}>
+              <ItemDetails>
+                <span className="font-semibold text-foreground">{invitation.invitee_name}</span>
+                <span className="text-sm">
                   Sent {formatDate(invitation.created_at)} · Expires {formatDate(invitation.expires_at)}
                 </span>
-              </div>
-              <div className={page.actions}>
-                <button
-                  className={page.secondary} type="button" disabled={busyId === invitation.id}
+              </ItemDetails>
+              <ItemActions>
+                <Button
+                  variant="outline" disabled={busyId === invitation.id}
                   aria-label={`Cancel invitation for ${invitation.invitee_name}`}
                   onClick={() => cancel(invitation)}
                 >
                   Cancel
-                </button>
-              </div>
-            </li>
+                </Button>
+              </ItemActions>
+            </ItemRow>
           ))}
         </ul>
       )}
-    </section>
+    </SectionCard>
   );
 }

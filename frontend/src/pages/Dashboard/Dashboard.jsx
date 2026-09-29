@@ -4,7 +4,7 @@ import { listCategoriesAndFamilies } from '../../api/expenses.js';
 import { useAsyncList } from '../../hooks/useAsyncList.js';
 import { useAuth } from '../../auth/useAuth.js';
 import Notice from '@/components/Notice.jsx';
-import SectionCard from '@/components/SectionCard.jsx';
+import SectionCard, { PageTitle } from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
 import DashboardFilters from './DashboardFilters.jsx';
 import { parseFilters, toSearchParams } from './dashboardFilters.js';
@@ -28,7 +28,7 @@ export default function Dashboard() {
         </Notice>
       )}
       <SectionCard className="gap-2 p-6 md:p-6">
-        <h1 className="text-2xl font-bold wrap-anywhere text-foreground md:text-3xl">Welcome, {user.display_name}</h1>
+        <PageTitle>Welcome, {user.display_name}</PageTitle>
         <Button asChild className="w-full md:w-auto md:self-start">
           <Link to={{ pathname: '/expenses/new', search: location.search }}>Add expense</Link>
         </Button>

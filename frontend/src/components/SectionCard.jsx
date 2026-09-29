@@ -10,6 +10,11 @@ export default function SectionCard({ className, children, ...sectionProps }) {
   );
 }
 
+/** The page's h1. */
+export function PageTitle({ className, ...props }) {
+  return <h1 className={cn('text-2xl font-bold wrap-anywhere text-foreground md:text-3xl', className)} {...props} />;
+}
+
 /** Heading of a card. */
 export function CardHeading({ className, ...props }) {
   return <h2 className={cn('text-xl font-bold wrap-anywhere text-foreground', className)} {...props} />;
