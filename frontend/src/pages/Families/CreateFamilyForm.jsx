@@ -1,12 +1,14 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { createFamily } from '@/api/families.js';
 import FormField from '@/components/FormField.jsx';
 import Notice from '@/components/Notice.jsx';
-import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
+import SectionCard, { CardIntro } from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
 
 const UNAVAILABLE = 'Something went wrong. Please try again.';
 
+/** Name and create a new family, which the user then owns; confirms with a toast. */
 export default function CreateFamilyForm({ onCreated }) {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
@@ -23,7 +25,8 @@ export default function CreateFamilyForm({ onCreated }) {
     setError('');
     setSubmitting(true);
     try {
-      await createFamily(name.trim());
+      const family = await createFamily(name.trim());
+      toast.success(`${family.name} created`);
       setName('');
       onCreated();
     } catch {
@@ -35,7 +38,7 @@ export default function CreateFamilyForm({ onCreated }) {
   return (
     <SectionCard>
       <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
-        <CardHeading>Create a family</CardHeading>
+        <CardIntro title="Create a family" description="You become its owner and can invite others." />
         {formError && <Notice>{formError}</Notice>}
         <FormField
           id="family-name" label="Family name" maxLength={100}

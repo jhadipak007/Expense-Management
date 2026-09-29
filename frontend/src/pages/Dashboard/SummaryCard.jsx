@@ -1,16 +1,22 @@
 import { useCallback, useId } from 'react';
+import { Link } from 'react-router';
+import { PlusIcon, ReceiptTextIcon, UserIcon, UsersIcon } from 'lucide-react';
 import { getSummary } from '@/api/reports.js';
 import { useAsyncList } from '@/hooks/useAsyncList.js';
+import EmptyState from '@/components/EmptyState.jsx';
 import Notice from '@/components/Notice.jsx';
-import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
+import SectionCard, { CardIntro } from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatMoney } from '@/utils/format.js';
+import CategoryChart from './CategoryChart.jsx';
 
 /**
  * Spending for one scope (personal when `familyId` is null) under the dashboard
  * filters. Loads on its own, so one failing card does not affect the others.
+ * `addExpense` is the Add expense link target offered when nothing matches.
  */
-export default function SummaryCard({ title, familyId, filters }) {
+export default function SummaryCard({ title, familyId, filters, addExpense }) {
   const { from, to, categoryIds } = filters;
   const load = useCallback(
     (signal) => getSummary({ familyId, from, to, categoryIds }, signal),
@@ -18,11 +24,17 @@ export default function SummaryCard({ title, familyId, filters }) {
   );
   const { data, error, loading, reload } = useAsyncList(load);
   const headingId = useId();
+  const personal = familyId === null;
 
   return (
     <SectionCard aria-labelledby={headingId} aria-busy={loading}>
-      <CardHeading id={headingId}>{title}</CardHeading>
-      {loading && <p className="text-sm" role="status">Loading...</p>}
+      <CardIntro
+        id={headingId} title={title}
+        description={personal ? 'Only you can see these' : 'Shared with your family'}
+        icon={personal ? UserIcon : UsersIcon} iconClassName={personal ? undefined : 'bg-accent/25 text-foreground'}
+      />
+      {loading && <p className="sr-only" role="status">Loading...</p>}
+      {loading && !data && !error && <SummarySkeleton />}
       {error && (
         <>
           <Notice>Could not load this summary.</Notice>
@@ -30,39 +42,39 @@ export default function SummaryCard({ title, familyId, filters }) {
         </>
       )}
       {data?.currencies.length === 0 && (
-        <p className="text-sm">No expenses match these filters.</p>
+        <EmptyState
+          icon={ReceiptTextIcon} title="No expenses match these filters"
+          description="Try another period or category."
+        >
+          <Button asChild variant="outline">
+            <Link to={addExpense}><PlusIcon />Add an expense</Link>
+          </Button>
+        </EmptyState>
       )}
-      {data?.currencies.map((currency) => (
-        <CurrencyTotal key={currency.currency} currency={currency} />
-      ))}
+      {data?.currencies.length > 0 && (
+        <div className="flex flex-col divide-y">
+          {data.currencies.map((currency) => (
+            <div key={currency.currency} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
+              <p className="text-3xl font-bold wrap-anywhere text-foreground">
+                {formatMoney(currency.total, currency.currency)}
+              </p>
+              <CategoryChart currency={currency} />
+            </div>
+          ))}
+        </div>
+      )}
     </SectionCard>
   );
 }
 
-/** One currency's total and its breakdown, with a bar per category sized by its share. */
-function CurrencyTotal({ currency }) {
+/** Placeholder shaped like a total and its category bars. */
+function SummarySkeleton() {
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-xl font-bold wrap-anywhere text-foreground">{formatMoney(currency.total, currency.currency)}</p>
-      <ul className="flex flex-col gap-2" aria-label={`${currency.currency} by category`}>
-        {currency.categories.map((category) => (
-          <li key={category.category_id}>
-            <div className="flex flex-wrap justify-between gap-2 text-sm">
-              <span>{category.name}</span>
-              <span>{formatMoney(category.total, currency.currency)}</span>
-            </div>
-            <div className="h-2 rounded-md bg-muted" aria-hidden="true">
-              <div
-                className="h-full rounded-md"
-                style={{
-                  width: `${(100 * category.total) / currency.total}%`,
-                  background: category.color,
-                }}
-              />
-            </div>
-          </li>
-        ))}
-      </ul>
+    <div className="flex flex-col gap-3" aria-hidden="true">
+      <Skeleton className="h-9 w-44" />
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-4/5" />
+      <Skeleton className="h-3 w-3/5" />
     </div>
   );
 }

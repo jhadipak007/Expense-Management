@@ -27,7 +27,17 @@ const MONEY = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 });
 
+/** Show an amount with two decimals and thousands separators, e.g. "12,450.00". */
+export function formatAmount(amount) {
+  return MONEY.format(amount);
+}
+
 /** Show an API amount string with its currency code, e.g. "INR 12,450.00". */
 export function formatMoney(amount, currency) {
-  return `${currency} ${MONEY.format(amount)}`;
+  return `${currency} ${formatAmount(amount)}`;
+}
+
+/** Up to two initials from a display name, e.g. "Priya Sharma" -> "PS". */
+export function initials(name) {
+  return name.trim().split(/\s+/).slice(0, 2).map((word) => word[0].toUpperCase()).join('');
 }

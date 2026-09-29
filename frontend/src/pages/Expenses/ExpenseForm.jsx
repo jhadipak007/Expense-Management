@@ -2,6 +2,7 @@ import { useState } from 'react';
 import FormField, { SelectField } from '@/components/FormField.jsx';
 import Notice from '@/components/Notice.jsx';
 import SubmitButton from '@/components/SubmitButton.jsx';
+import { FieldLegend, FieldSet } from '@/components/ui/field';
 import { NativeSelectOption } from '@/components/ui/native-select';
 import { todayIso } from '@/utils/format.js';
 
@@ -87,46 +88,68 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
   }
 
   return (
-    <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
+    <form className="flex flex-col gap-6" onSubmit={handleSubmit} noValidate>
       {formError && <Notice>{formError}</Notice>}
-      <FormField
-        id="amount" label="Amount" inputMode="decimal" autoComplete="off" placeholder="0.00"
-        value={form.amount} onChange={set('amount')} error={errors.amount}
-      />
-      <SelectField
-        id="currency" label="Currency" value={form.currency} onChange={set('currency')}
-        error={errors.currency}
-      >
-        {currencies.map((c) => (
-          <NativeSelectOption key={c.code} value={c.code}>{`${c.code} - ${c.name}`}</NativeSelectOption>
-        ))}
-      </SelectField>
-      <SelectField
-        id="category" label="Category" value={form.category_id} onChange={set('category_id')}
-        error={errors.category_id}
-      >
-        <NativeSelectOption value="" disabled>Choose a category</NativeSelectOption>
-        {categories.map((c) => <NativeSelectOption key={c.id} value={c.id}>{c.name}</NativeSelectOption>)}
-      </SelectField>
-      <FormField
-        id="spent-on" label="Date" type="date" max={todayIso()}
-        value={form.spent_on} onChange={set('spent_on')} error={errors.spent_on}
-      />
-      <FormField
-        id="description" label="Description (optional)" maxLength={500}
-        value={form.description} onChange={set('description')} error={errors.description}
-      />
-      <SelectField
-        id="share-with" label="Share with" value={form.family_id} onChange={set('family_id')}
-        error={errors.family_id}
-      >
-        <NativeSelectOption value="">Personal</NativeSelectOption>
-        {families.map((f) => <NativeSelectOption key={f.id} value={f.id}>{f.name}</NativeSelectOption>)}
-      </SelectField>
-      <SubmitButton pending={submitting} pendingLabel="Saving..." disabled={!complete}>
+      <FormSection legend="How much">
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            id="amount" label="Amount" inputMode="decimal" autoComplete="off" placeholder="0.00"
+            hint="Up to 2 decimal places" value={form.amount} onChange={set('amount')} error={errors.amount}
+          />
+          <SelectField
+            id="currency" label="Currency" value={form.currency} onChange={set('currency')}
+            hint="Type a code to jump to it" error={errors.currency}
+          >
+            {currencies.map((c) => (
+              <NativeSelectOption key={c.code} value={c.code}>{`${c.code} - ${c.name}`}</NativeSelectOption>
+            ))}
+          </SelectField>
+        </div>
+      </FormSection>
+      <FormSection legend="What and when">
+        <div className="grid gap-4 md:grid-cols-2">
+          <SelectField
+            id="category" label="Category" value={form.category_id} onChange={set('category_id')}
+            error={errors.category_id}
+          >
+            <NativeSelectOption value="" disabled>Choose a category</NativeSelectOption>
+            {categories.map((c) => <NativeSelectOption key={c.id} value={c.id}>{c.name}</NativeSelectOption>)}
+          </SelectField>
+          <FormField
+            id="spent-on" label="Date" type="date" max={todayIso()}
+            value={form.spent_on} onChange={set('spent_on')} error={errors.spent_on}
+          />
+        </div>
+        <FormField
+          id="description" label="Description (optional)" maxLength={500}
+          value={form.description} onChange={set('description')} error={errors.description}
+        />
+      </FormSection>
+      <FormSection legend="Who can see it">
+        <SelectField
+          id="share-with" label="Share with" value={form.family_id} onChange={set('family_id')}
+          hint="Personal expenses are only yours. A family's members all see its expenses."
+          error={errors.family_id}
+        >
+          <NativeSelectOption value="">Personal</NativeSelectOption>
+          {families.map((f) => <NativeSelectOption key={f.id} value={f.id}>{f.name}</NativeSelectOption>)}
+        </SelectField>
+      </FormSection>
+      <SubmitButton pending={submitting} pendingLabel="Saving..." disabled={!complete} className="md:w-auto md:self-end md:px-10">
         Save
       </SubmitButton>
     </form>
   );
 }
 
+/** A titled group of related fields, separated from the next by a rule. */
+function FormSection({ legend, children }) {
+  return (
+    <FieldSet className="gap-4 border-b pb-6">
+      <FieldLegend className="mb-0 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+        {legend}
+      </FieldLegend>
+      {children}
+    </FieldSet>
+  );
+}

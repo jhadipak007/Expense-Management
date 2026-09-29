@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { setupServer } from 'msw/node';
+import { toast } from 'sonner';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 import { setAccessToken } from '@/api/client.js';
 import { handlers } from './handlers.js';
@@ -20,6 +21,8 @@ export const server = setupServer(...handlers);
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
   cleanup();
+  // Sonner keeps toasts in module state and replays undismissed ones to the next Toaster.
+  toast.dismiss();
   server.resetHandlers();
   setAccessToken(null);
 });

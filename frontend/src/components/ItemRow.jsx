@@ -1,3 +1,5 @@
+import UserAvatar from '@/components/UserAvatar.jsx';
+
 /** A list of item rows; pass aria-label to name it. */
 export function ItemList(props) {
   return <ul className="flex flex-col gap-2" {...props} />;
@@ -18,6 +20,16 @@ export function ItemDetails({ title, children }) {
     <div className="flex min-w-0 flex-col gap-1 wrap-anywhere">
       <span className="font-semibold text-foreground">{title}</span>
       <span className="text-sm">{children}</span>
+    </div>
+  );
+}
+
+/** A person's initials avatar beside the row's title and details; `name` gives the initials. */
+export function PersonDetails({ name, title = name, children }) {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <UserAvatar name={name} />
+      <ItemDetails title={title}>{children}</ItemDetails>
     </div>
   );
 }

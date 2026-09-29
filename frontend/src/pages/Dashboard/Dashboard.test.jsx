@@ -46,6 +46,7 @@ function mockDashboard({
 }
 
 const card = (name) => screen.getByRole('region', { name });
+const chip = (name) => screen.getByRole('button', { name });
 const familyRequests = (requests, id) => requests.filter((p) => p.get('family_id') === id);
 
 describe('Dashboard summaries', () => {
@@ -79,7 +80,7 @@ describe('Dashboard summaries', () => {
   it('loads each card once when nothing changes', async () => {
     const requests = mockDashboard();
     renderApp('/');
-    expect(await screen.findAllByText('No expenses match these filters.')).toHaveLength(2);
+    expect(await screen.findAllByText('No expenses match these filters')).toHaveLength(2);
     await new Promise((resolve) => { setTimeout(resolve, 100); });
     expect(requests).toHaveLength(2);
   });
@@ -88,7 +89,7 @@ describe('Dashboard summaries', () => {
     mockDashboard();
     renderApp('/');
     expect(await screen.findByRole('radio', { name: 'This month' })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'All categories' })).toBeChecked();
+    expect(chip('All categories')).toHaveAttribute('aria-pressed', 'true');
     const summary = describeFilters({ ...THIS_MONTH, categoryIds: [] }, CATEGORIES);
     expect(screen.getByText(summary)).toBeInTheDocument();
   });
@@ -108,7 +109,17 @@ describe('Dashboard summaries', () => {
   it('says when no expenses match', async () => {
     mockDashboard({ families: [] });
     renderApp('/');
-    expect(await screen.findByText('No expenses match these filters.')).toBeInTheDocument();
+    expect(await screen.findByText('No expenses match these filters')).toBeInTheDocument();
+  });
+
+  it('offers to add an expense from an empty card, keeping the filters', async () => {
+    mockDashboard({ families: [] });
+    const search = '?from=2026-03-01&to=2026-03-31';
+    const { user, router } = renderApp(`/${search}`);
+    const personal = await screen.findByRole('region', { name: 'Personal' });
+    await user.click(await within(personal).findByRole('link', { name: 'Add an expense' }));
+    expect(router.state.location.pathname).toBe('/expenses/new');
+    expect(router.state.location.search).toBe(search);
   });
 
   it('shows a loading indicator while a card loads', async () => {
@@ -124,7 +135,7 @@ describe('Dashboard summaries', () => {
     expect(within(personal).getByRole('status')).toHaveTextContent('Loading...');
     await waitFor(() => expect(release).toBeDefined());
     release();
-    expect(await within(personal).findByText('No expenses match these filters.'))
+    expect(await within(personal).findByText('No expenses match these filters'))
       .toBeInTheDocument();
     expect(within(personal).queryByText('Loading...')).not.toBeInTheDocument();
   });
@@ -162,12 +173,12 @@ describe('Dashboard summaries', () => {
   it('filters by the chosen categories and back to all', async () => {
     const requests = mockDashboard({ families: [] });
     const { user } = renderApp('/');
-    await user.click(await screen.findByRole('checkbox', { name: 'Grocery' }));
-    await user.click(screen.getByRole('checkbox', { name: 'Trips' }));
+    await user.click(await screen.findByRole('button', { name: 'Grocery' }));
+    await user.click(chip('Trips'));
     await waitFor(() => expect(requests.at(-1).getAll('category_id')).toEqual(['1', '3']));
-    expect(screen.getByRole('checkbox', { name: 'All categories' })).not.toBeChecked();
+    expect(chip('All categories')).toHaveAttribute('aria-pressed', 'false');
     expect(screen.getByText(/· Grocery, Trips$/)).toBeInTheDocument();
-    await user.click(screen.getByRole('checkbox', { name: 'All categories' }));
+    await user.click(chip('All categories'));
     await waitFor(() => expect(requests.at(-1).getAll('category_id')).toEqual([]));
   });
 
@@ -199,11 +210,11 @@ describe('Dashboard summaries', () => {
     const requests = mockDashboard({ families: [] });
     const { user, router } = renderApp('/?from=2026-03-05&to=2026-03-10&category=2');
     expect(await screen.findByRole('radio', { name: 'Custom' })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'Eating Out' })).toBeChecked();
+    expect(chip('Eating Out')).toHaveAttribute('aria-pressed', 'true');
     await waitFor(() => expect(requests[0].get('category_id')).toBe('2'));
     await user.click(screen.getByRole('button', { name: 'Reset' }));
     expect(screen.getByRole('radio', { name: 'This month' })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'All categories' })).toBeChecked();
+    expect(chip('All categories')).toHaveAttribute('aria-pressed', 'true');
     expect(router.state.location.search).toBe('');
   });
 

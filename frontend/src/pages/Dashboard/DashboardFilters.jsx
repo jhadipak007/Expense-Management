@@ -1,10 +1,10 @@
 import { useState } from 'react';
+import { CheckIcon, RotateCcwIcon } from 'lucide-react';
 import FormField from '@/components/FormField.jsx';
-import OptionGroup, { Option } from '@/components/OptionGroup.jsx';
 import SectionCard from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Toggle } from '@/components/ui/toggle';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { describeFilters, matchingPreset, presetRange, PRESETS } from './dashboardFilters.js';
 
 const RANGE_ERROR = 'The From date must be on or before the To date.';
@@ -30,6 +30,8 @@ export default function DashboardFilters({ filters, categories, onChange, onRese
   }
 
   function choosePeriod(key) {
+    // Pressing the selected period again would clear it; keep it selected instead.
+    if (!key) return;
     setRangeError('');
     if (key === 'custom') {
       setDraft({ from: filters.from, to: filters.to });
@@ -67,16 +69,20 @@ export default function DashboardFilters({ filters, categories, onChange, onRese
   }
 
   return (
-    <SectionCard className="gap-3" aria-label="Filters">
-      <OptionGroup legend="Period">
-        <RadioGroup value={period} onValueChange={choosePeriod} className="flex flex-wrap gap-x-4 gap-y-0">
-          {[...PRESETS, { key: 'custom', label: 'Custom' }].map(({ key, label }) => (
-            <Option key={key} label={label}>
-              <RadioGroupItem value={key} />
-            </Option>
-          ))}
-        </RadioGroup>
-      </OptionGroup>
+    <SectionCard className="gap-4" aria-label="Filters">
+      <ToggleGroup
+        type="single" value={period} onValueChange={choosePeriod} aria-label="Period"
+        className="grid w-full grid-cols-2 gap-1 rounded-lg bg-muted p-1 sm:inline-grid sm:w-fit sm:grid-cols-4"
+      >
+        {[...PRESETS, { key: 'custom', label: 'Custom' }].map(({ key, label }) => (
+          <ToggleGroupItem
+            key={key} value={key}
+            className="rounded-md! text-muted-foreground data-[state=on]:bg-card data-[state=on]:shadow-sm"
+          >
+            {label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
       {period === 'custom' && (
         <div className="grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-3">
           <FormField
@@ -89,28 +95,37 @@ export default function DashboardFilters({ filters, categories, onChange, onRese
           />
         </div>
       )}
-      <OptionGroup legend="Categories">
-        <div className="flex flex-wrap gap-x-4">
-          <Option label="All categories">
-            <Checkbox
-              checked={filters.categoryIds.length === 0}
-              onCheckedChange={() => onChange({ ...filters, categoryIds: [] })}
-            />
-          </Option>
-          {categories.map((category) => (
-            <Option key={category.id} label={category.name}>
-              <Checkbox
-                checked={filters.categoryIds.includes(category.id)}
-                onCheckedChange={() => toggleCategory(category.id)}
-              />
-            </Option>
-          ))}
-        </div>
-      </OptionGroup>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Categories">
+        <Chip
+          label="All categories" pressed={filters.categoryIds.length === 0}
+          onPressedChange={() => onChange({ ...filters, categoryIds: [] })}
+        />
+        {categories.map((category) => (
+          <Chip
+            key={category.id} label={category.name} color={category.color}
+            pressed={filters.categoryIds.includes(category.id)}
+            onPressedChange={() => toggleCategory(category.id)}
+          />
+        ))}
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
         <p className="text-sm">{describeFilters(filters, categories)}</p>
-        <Button variant="outline" onClick={reset}>Reset</Button>
+        <Button variant="ghost" className="text-foreground" onClick={reset}><RotateCcwIcon />Reset</Button>
       </div>
     </SectionCard>
+  );
+}
+
+/** A pill that toggles one category filter; a check marks it on, a colour dot names the category's colour. */
+function Chip({ label, color, pressed, onPressedChange }) {
+  return (
+    <Toggle
+      variant="outline" pressed={pressed} onPressedChange={onPressedChange}
+      className="rounded-full data-[state=on]:border-primary"
+    >
+      {pressed && <CheckIcon aria-hidden="true" />}
+      {color && <span className="size-2.5 rounded-full" style={{ background: color }} aria-hidden="true" />}
+      {label}
+    </Toggle>
   );
 }
