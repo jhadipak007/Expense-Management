@@ -31,7 +31,7 @@ Every page and component adapts to screen size.
 | Styling | Tailwind CSS v4 via `@tailwindcss/vite`; utility classes in JSX, no CSS Modules |
 | Icons | `lucide-react` |
 | Data fetching | Small `fetch` wrapper in `api/`; no extra data library |
-| Forms | Controlled shadcn `Input`, `Select` and `Label` with HTML validation attributes |
+| Forms | Controlled shadcn `Input`, `NativeSelect` and `Label` with HTML validation attributes |
 | Charts | Bars built from Tailwind utilities; use shadcn `Chart` (Recharts) only if reports need more |
 | Tests | Vitest + React Testing Library; Playwright for responsive checks |
 
@@ -52,24 +52,24 @@ The dashboard also lists the user's open family invitations with Accept and Decl
 
 A route guard sends logged-out users to `/login` and returns them to the page they asked for after login.
 
-Navigation (`components/Nav`): links to Dashboard and Families. Below 1024px it is a drawer (shadcn `Sheet`) under the top bar, opened by the top bar's Menu button and closed by Escape, the backdrop or choosing a link. From 1024px it is a sticky sidebar and the Menu button is hidden. Logout stays in the top bar.
+Navigation (`components/Nav`): links to Dashboard and Families. Below 1024px it is a full-height drawer (shadcn `Sheet`, from the left, over the top bar). The top bar's Menu button is the `SheetTrigger`; Escape, the Close button, the backdrop or choosing a link closes it, and so does the window growing to 1024px. From 1024px it is a sticky sidebar and the Menu button is hidden. Logout stays in the top bar. The drawer's scroll lock injects an inline `<style>` that the strict CSP blocks, so the page behind it can still scroll (as before the Sheet) and the browser logs one CSP error per open; this was accepted to keep `style-src 'self'`.
 
-Auth screens (`components/AuthLayout`): login, sign-up and OTP share a brand block with the logo, tagline and, from 1024px, feature highlights. Below 1024px it is a band above the form; from 1024px it is a left panel. `AuthForm/Field` wraps shadcn `Label` and `Input` and takes a `lucide-react` `icon` and `revealable` (password show/hide), and `AuthForm/SubmitButton` is a shadcn `Button` that shows a spinner while pending. Logos live in `public/` (`logo-*` light for white backgrounds, dark for the brand colour); `logo-icon-light.svg` is the favicon.
+Auth screens (`components/AuthLayout`): login, sign-up and OTP share a brand block with the logo, tagline and, from 1024px, feature highlights. Below 1024px it is a band above the form; from 1024px it is a left panel. Each form sits in `AuthLayout/AuthCard`. Logos live in `public/` (`logo-*` light for white backgrounds, dark for the brand colour); `logo-icon-light.svg` is the favicon.
 
-Dashboard summaries (`pages/Dashboard`): `DashboardFilters` offers a period (This month, Last month, This year from the browser's local calendar, or a Custom From-To range, inclusive, applied once both dates are set and in order) and category checkboxes ("All categories", or any mix). The filters live in the URL (`?from=YYYY-MM-DD&to=YYYY-MM-DD&category=1&category=3`), so Add expense, reload and links keep them; Reset clears them to This month and All categories. Below them, a `SummaryCard` (shadcn `Card`) for Personal and one per family each load `GET /api/reports/summary` on their own, with a loading line, "No expenses match these filters." when empty, and an error with Retry. Each card shows a total per currency (never added across currencies, e.g. "INR 12,450.00") and a bar per category in the category's colour, next to its name. Cards stack on phones and sit side by side from 768px.
+Dashboard summaries (`pages/Dashboard`): `DashboardFilters` offers a period (This month, Last month, This year from the browser's local calendar, or a Custom From-To range, inclusive, applied once both dates are set and in order) and category checkboxes ("All categories", or any mix). The filters live in the URL (`?from=YYYY-MM-DD&to=YYYY-MM-DD&category=1&category=3`), so Add expense, reload and links keep them; Reset clears them to This month and All categories. Below them, a `SummaryCard` for Personal and one per family each load `GET /api/reports/summary` on their own, with a loading line, "No expenses match these filters." when empty, and an error with Retry. Each card shows a total per currency (never added across currencies, e.g. "INR 12,450.00") and a bar per category in the category's colour, next to its name. Cards stack on phones and sit side by side from 768px.
 
-Lists load with `hooks/useAsyncList` (`data`, `error`, `loading`, `reload`). It passes an abort signal to the load, shows `loading` on every reload while keeping the previous data, and aborts a load when a newer one starts or the page unmounts, so only the newest result is kept. Cards and lists use shadcn `Card` plus Tailwind utilities.
+Lists load with `hooks/useAsyncList` (`data`, `error`, `loading`, `reload`). It passes an abort signal to the load, shows `loading` on every reload while keeping the previous data, and aborts a load when a newer one starts or the page unmounts, so only the newest result is kept.
 
 Deep links: every non-`/api` path must return `index.html`. FastAPI does this locally with a catch-all route. CloudFront does it in production with a CloudFront Function on the S3 behavior that rewrites paths without a file extension to `/index.html`. Distribution-wide custom error pages are not used, because they would also turn API 404s into `index.html`.
 
 ## Component library (shadcn/ui)
 
-- `frontend/components.json` configures shadcn with `tsx: false` (JavaScript) and the `@/` alias for `src/`, defined in both `vite.config.js` and `jsconfig.json`.
-- Add components from `frontend/` with `npx shadcn@latest add <name>`, or through the shadcn MCP server. Never run the CLI from the project root.
-- Files in `src/components/ui/` are app code: commit them and edit them only to apply the theme or fix a bug.
-- Reach for a shadcn component before writing a custom one: `Button`, `Input`, `Label`, `Select` (Share with, Currency), `Checkbox` (category filters), `Card`, `Sheet` (mobile nav), `Dialog`, `Sonner` (toasts such as "Expense saved").
-- Merge class names with `cn()` from `src/lib/utils.js`.
-- Existing screens built with CSS Modules are migrated to shadcn and Tailwind in a follow-up issue; all new UI uses shadcn and Tailwind.
+- `frontend/components.json` configures shadcn with `tsx: false` (JavaScript) and the `@/` alias for `src/`, defined in both `vite.config.js` and `jsconfig.json`. Import anything outside the file's own folder with `@/`; siblings with `./`.
+- Add components from `frontend/` with `npx shadcn@latest add <name>`, or through the shadcn MCP server. Never run the CLI from the project root. The registry does not list `class-variance-authority` as a dependency; it is installed already.
+- Files in `src/components/ui/` are app code: commit them and edit them only to apply the theme or fix a bug. Theme edits so far: `Button` default `h-11` and icon `size-11`, `Input` and `NativeSelect` `h-11` (44px touch targets); `outline` and `ghost` buttons use primary tints instead of the amber accent; checkbox and radio borders are slate for 3:1 contrast; the Sheet close button is 44px and its overlay uses `bg-foreground/50`.
+- Installed: `Button`, `Input`, `Label`, `NativeSelect` (Currency, Category, Share with), `Checkbox` (category filters), `RadioGroup` (period, search mode), `Field` (`FieldSet`, `FieldLegend`), `Card`, `Badge`, `Sheet` (mobile nav). Selects are native, not Radix `Select`, to keep type-ahead, phone pickers and no injected styles. Add `Dialog` or `Sonner` when a feature needs them.
+- Merge class names with `cn()` from shadcn's `cn` npm package (`import { cn } from 'cn'`), which the registry's components import; there is no `src/lib/utils.js`.
+- App building blocks in `src/components/`: `FormField` and `SelectField` (label, control and linked error), `SubmitButton` (spinner while pending), `Notice` (error as `role="alert"`, success as `role="status"`), `SectionCard` with `PageTitle` and `CardHeading` (a `Card` inside a `<section>` landmark), `ItemList`, `ItemRow`, `ItemDetails`, `ItemActions`, `OptionGroup` and `Option` (a radio or checkbox inside its 44px label), `TextLink` and `BackLink`. Use them before adding page-level classes.
 
 ## API client (`src/api/`)
 
@@ -96,9 +96,9 @@ When adding an expense, the user chooses **Personal** (the default) or one of th
 
 ## Styling
 
-- `styles/global.css` is the Tailwind entry (`@import "tailwindcss"`) and holds the theme: shadcn variables on `:root` set to the color scheme below, plus the category colors, all exposed to Tailwind with `@theme inline`.
-- Variable mapping: `--primary` Primary Blue, `--accent` Accent Amber, `--foreground` Deep Navy, `--muted-foreground` Slate Gray, `--background` Background, `--card` Cards, `--border` and `--input` Borders, `--destructive` Warm Red, `--color-success` Success, `--color-grocery`, `--color-eating-out`, `--color-trips` category colors.
-- Components use theme classes only (`bg-primary`, `text-destructive`, `bg-grocery`), never hard-coded hex values or arbitrary `[#...]` colors. Spacing and font sizes use Tailwind's scale.
+- `styles/global.css` is the only stylesheet. It imports `tailwindcss` and `tw-animate-css`, sets shadcn variables on `:root` to the color scheme below, exposes them to Tailwind with `@theme inline`, and sets base styles in `@layer base` (body, headings, links, focus outline).
+- Variable mapping: `--primary` Primary Blue, `--accent` Accent Amber, `--foreground` Deep Navy (headings), `--muted-foreground` and `--card-foreground` Slate Gray (body text), `--background` and `--secondary` Background, `--card` Cards, `--border`, `--input` and `--muted` Borders, `--destructive` Warm Red, `--success` Success, `--grocery`, `--eating-out`, `--trips` category colors (classes `bg-success`, `bg-grocery` and so on).
+- Components use theme classes only (`bg-primary`, `text-destructive`, `bg-grocery`), never hard-coded hex values or arbitrary `[#...]` colors. The one exception is the category bar in `SummaryCard`, whose colour comes from the API as an inline `style`. Spacing and font sizes use Tailwind's scale.
 - Category color appears as a small badge or bar next to each expense and in report bars.
 
 ### Color scheme
@@ -124,6 +124,6 @@ Status:
 ## Accessibility
 
 - Every input has a shadcn `Label`; errors are linked with `aria-describedby`.
-- Visible focus ring on all interactive elements (shadcn's `focus-visible:ring` styles); everything works with the keyboard. Keep the Radix ARIA and keyboard behaviour when editing `components/ui/`.
+- Visible focus ring on all interactive elements (shadcn's `focus-visible:ring` styles, and a 3px primary outline for links); everything works with the keyboard. Keep the Radix ARIA and keyboard behaviour when editing `components/ui/`.
 - Text meets WCAG AA contrast against its background.
 - Color is never the only signal: category badges also show the category name.

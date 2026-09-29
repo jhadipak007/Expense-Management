@@ -67,8 +67,9 @@ Tests never depend on each other or on execution order.
 - MSW handlers in `src/test/handlers.js`; setup in `src/test/setup.js`.
 - End-to-end tests in `frontend/e2e/`.
 - Query by role and label (`getByRole`, `getByLabelText`), not by CSS class or test id, so tests also check accessibility.
-- shadcn/ui components use Radix, which needs browser APIs jsdom lacks. `src/test/setup.js` stubs `Element.prototype.hasPointerCapture`, `releasePointerCapture`, `scrollIntoView` and `ResizeObserver`.
-- A shadcn `Select` is not a native `<select>`: click the `combobox` trigger with `user-event`, then click the `option`. Do not use `selectOptions`.
+- jsdom lacks two browser APIs the app uses; `src/test/setup.js` stubs them: `ResizeObserver` (Radix radios and checkboxes inside a `<form>`) and `window.matchMedia` (the layout's 1024px listener). No other Radix polyfills were needed. Add a stub only when a test proves it is missing.
+- Currency, Category and Share with are native `<select>`s (shadcn `NativeSelect`), so `user.selectOptions` and Playwright's `selectOption` work. Radix `RadioGroup` and `Checkbox` render buttons with the `radio` and `checkbox` roles, so query by role and use `toBeChecked()`.
+- The mobile nav is a modal Sheet (`role="dialog"`): while it is open the rest of the page is hidden from role queries, so close it with Escape, its Close button or a link, not by clicking Menu again.
 
 ### Test cases
 
