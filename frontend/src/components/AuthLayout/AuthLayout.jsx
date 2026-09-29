@@ -11,7 +11,7 @@ const HIGHLIGHTS = [
 export default function AuthLayout({ children }) {
   return (
     <main className="flex min-h-dvh flex-col lg:flex-row">
-      <div className="flex flex-col items-center gap-3 bg-linear-160 from-primary to-foreground px-4 py-6 text-center text-primary-foreground lg:max-w-lg lg:flex-[0_0_40%] lg:items-start lg:justify-center lg:gap-6 lg:p-8 lg:text-left">
+      <div className="flex flex-col items-center gap-3 bg-linear-160 from-brand to-brand-deep px-4 py-6 text-center text-brand-foreground lg:max-w-lg lg:flex-[0_0_40%] lg:items-start lg:justify-center lg:gap-6 lg:p-8 lg:text-left">
         <img src="/logo-dark.svg" alt="Expense Sarathi" className="h-10 max-w-full lg:h-16" />
         <p className="lg:text-xl">Your guide to everyday spending.</p>
         <ul className="hidden lg:flex lg:flex-col lg:gap-4">

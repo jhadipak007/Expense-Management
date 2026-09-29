@@ -29,6 +29,10 @@
   --eating-out: #e08e5a;
   --trips: #3a9e84;
   --radius: 0.5rem;
+  /* Brand surface (auth screens): the same in both themes, so not redefined in .dark. */
+  --brand: #3a78b5;
+  --brand-deep: #1c2b3f;
+  --brand-foreground: #ffffff;
 }
 
 /* Dark theme: approved in EM-12; amber, category and success colours are shared with light. */
@@ -76,6 +80,9 @@
   --color-grocery: var(--grocery);
   --color-eating-out: var(--eating-out);
   --color-trips: var(--trips);
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-foreground: var(--brand-foreground);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
