@@ -27,7 +27,7 @@ async function invite(page, person, by) {
     .fill(by === 'email' ? person.email : person.name);
   await page.getByRole('button', { name: 'Search' }).click();
   await page.getByRole('button', { name: `Invite ${person.name}` }).click();
-  await expect(page.getByRole('status')).toHaveText(`Invitation sent to ${person.name}.`);
+  await expect(page.getByText(`Invitation sent to ${person.name}`)).toBeVisible();
 }
 
 function pendingInvitations(page) {
@@ -63,7 +63,8 @@ test('a cancelled invitation disappears from the invitee dashboard', async ({ pa
   const family = await openFamily(page);
   await invite(page, asha, 'email');
   await page.getByRole('button', { name: `Cancel invitation for ${asha.name}` }).click();
-  await expect(pendingInvitations(page).getByText('No pending invitations.')).toBeVisible();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel invitation' }).click();
+  await expect(pendingInvitations(page).getByText(asha.name)).toHaveCount(0);
   await logOut(page);
 
   await logIn(page, asha);

@@ -4,8 +4,10 @@ import { getFamily } from '@/api/families.js';
 import { useAsyncList } from '@/hooks/useAsyncList.js';
 import BackLink from '@/components/BackLink.jsx';
 import ItemRow, { ItemDetails, ItemList } from '@/components/ItemRow.jsx';
+import ListSkeleton from '@/components/ListSkeleton.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { CardHeading, PageTitle } from '@/components/SectionCard.jsx';
+import UserAvatar from '@/components/UserAvatar.jsx';
 import InviteMembers from './InviteMembers.jsx';
 import RoleBadge from './RoleBadge.jsx';
 
@@ -15,7 +17,7 @@ export default function FamilyDetail() {
   const load = useCallback(() => getFamily(familyId), [familyId]);
   const { data: family, error, loading } = useAsyncList(load);
 
-  if (loading) return <p className="text-sm">Loading...</p>;
+  if (loading) return <SectionCard><ListSkeleton /></SectionCard>;
   if (error) {
     return (
       <SectionCard>
@@ -34,7 +36,10 @@ export default function FamilyDetail() {
         <ItemList>
           {family.members.map((member) => (
             <ItemRow key={member.user_id}>
-              <ItemDetails title={member.display_name}>{member.email}</ItemDetails>
+              <div className="flex min-w-0 items-center gap-3">
+                <UserAvatar name={member.display_name} />
+                <ItemDetails title={member.display_name}>{member.email}</ItemDetails>
+              </div>
               <RoleBadge role={member.role} />
             </ItemRow>
           ))}

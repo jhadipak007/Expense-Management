@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { inviteUser, searchUsers } from '@/api/families.js';
 import FormField from '@/components/FormField.jsx';
 import ItemRow, { ItemActions, ItemDetails, ItemList } from '@/components/ItemRow.jsx';
 import Notice from '@/components/Notice.jsx';
 import OptionGroup, { Option } from '@/components/OptionGroup.jsx';
-import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
+import SectionCard, { CardIntro } from '@/components/SectionCard.jsx';
+import UserAvatar from '@/components/UserAvatar.jsx';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
@@ -23,7 +25,7 @@ export default function UserSearch({ familyId, invitedIds, onInvited }) {
   const [query, setQuery] = useState('');
   const [fieldError, setFieldError] = useState('');
   const [search, setSearch] = useState(null);
-  const [message, setMessage] = useState(null);
+  const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
   function changeMode(next) {
@@ -31,43 +33,43 @@ export default function UserSearch({ familyId, invitedIds, onInvited }) {
     setQuery('');
     setFieldError('');
     setSearch(null);
-    setMessage(null);
+    setError('');
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
     const value = query.trim();
-    const error = validate(mode, value);
-    setFieldError(error);
-    setMessage(null);
-    if (error) return;
+    const invalid = validate(mode, value);
+    setFieldError(invalid);
+    setError('');
+    if (invalid) return;
     setBusy(true);
     try {
       setSearch(await searchUsers(familyId, { [mode]: value }));
     } catch (err) {
       setSearch(null);
-      setMessage({ error: err.status === 422 ? 'Enter a valid email address.' : UNAVAILABLE });
+      setError(err.status === 422 ? 'Enter a valid email address.' : UNAVAILABLE);
     }
     setBusy(false);
   }
 
   async function invite(person) {
     setBusy(true);
-    setMessage(null);
+    setError('');
     try {
       await inviteUser(familyId, person.user_id);
-      setMessage({ success: `Invitation sent to ${person.display_name}.` });
+      toast.success(`Invitation sent to ${person.display_name}`);
       onInvited();
     } catch (err) {
       // 404 and 409 carry a message that explains why this person can't be invited.
-      setMessage({ error: [404, 409].includes(err.status) ? err.body.detail : UNAVAILABLE });
+      setError([404, 409].includes(err.status) ? err.body.detail : UNAVAILABLE);
     }
     setBusy(false);
   }
 
   return (
     <SectionCard>
-      <CardHeading>Invite people</CardHeading>
+      <CardIntro title="Invite people" description="Find someone by their exact email or part of their name." />
       <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
         <OptionGroup legend="Find people by">
           <RadioGroup value={mode} onValueChange={changeMode} className="flex flex-wrap gap-x-4 gap-y-0">
@@ -86,8 +88,7 @@ export default function UserSearch({ familyId, invitedIds, onInvited }) {
         <Button type="submit" className="md:self-start" disabled={busy}>Search</Button>
       </form>
 
-      {message?.error && <Notice>{message.error}</Notice>}
-      {message?.success && <Notice kind="success">{message.success}</Notice>}
+      {error && <Notice>{error}</Notice>}
       {search && <SearchResults search={search} invitedIds={invitedIds} busy={busy} onInvite={invite} />}
     </SectionCard>
   );
@@ -105,7 +106,10 @@ function SearchResults({ search, invitedIds, busy, onInvite }) {
       <ItemList aria-label="Search results">
         {search.results.map((person) => (
           <ItemRow key={person.user_id}>
-            <ItemDetails title={person.display_name}>{person.email}</ItemDetails>
+            <div className="flex min-w-0 items-center gap-3">
+              <UserAvatar name={person.display_name} />
+              <ItemDetails title={person.display_name}>{person.email}</ItemDetails>
+            </div>
             <ItemActions>
               {invitedIds.includes(person.user_id) ? (
                 <span className="text-sm">Invited</span>

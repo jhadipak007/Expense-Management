@@ -36,15 +36,17 @@ describe('Families page', () => {
   it('says when I am not in any family', async () => {
     mockFamiliesApi();
     renderApp('/families');
-    expect(await screen.findByText(/not in a family yet/)).toBeInTheDocument();
+    expect(await screen.findByText('You are not in a family yet')).toBeInTheDocument();
+    expect(screen.getByText(/Create one below/)).toBeInTheDocument();
   });
 
-  it('creates a family that then appears with me as owner', async () => {
+  it('creates a family, confirms it with a toast and lists me as owner', async () => {
     const created = mockFamiliesApi();
     const { user } = renderApp('/families');
     await user.type(await screen.findByLabelText('Family name'), '  Jha Household  ');
     await user.click(screen.getByRole('button', { name: 'Create family' }));
     expect(await screen.findByRole('link', { name: 'Jha Household' })).toBeInTheDocument();
+    expect(screen.getByText('Jha Household created')).toBeInTheDocument();
     expect(screen.getByText('Owner')).toBeInTheDocument();
     expect(created().name).toBe('Jha Household');
     expect(screen.getByLabelText('Family name')).toHaveValue('');

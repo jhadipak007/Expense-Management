@@ -53,6 +53,13 @@ async function searchFor(user, mode, text) {
   await user.click(screen.getByRole('button', { name: 'Search' }));
 }
 
+/** Cancel Ravi's invitation and confirm in the dialog. */
+async function cancelRavi(user) {
+  await user.click(await screen.findByRole('button', { name: 'Cancel invitation for Ravi' }));
+  const dialog = screen.getByRole('alertdialog', { name: 'Cancel the invitation for Ravi?' });
+  await user.click(within(dialog).getByRole('button', { name: 'Cancel invitation' }));
+}
+
 function pendingSection() {
   return screen.getByRole('heading', { name: 'Pending invitations' }).closest('section');
 }
@@ -86,7 +93,7 @@ describe('Family detail page', () => {
     await searchFor(user, 'Email', 'ravi@example.com');
     expect(calls.search).toEqual([{ email: 'ravi@example.com' }]);
     await user.click(await screen.findByRole('button', { name: 'Invite Ravi' }));
-    expect(await screen.findByRole('status')).toHaveTextContent('Invitation sent to Ravi.');
+    expect(await screen.findByText('Invitation sent to Ravi')).toBeInTheDocument();
     const pending = pendingSection();
     expect(await within(pending).findByText('Ravi')).toBeInTheDocument();
     expect(within(pending).getByText(/Sent .*2026 · Expires .*2026/)).toBeInTheDocument();
@@ -145,13 +152,25 @@ describe('Family detail page', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('already has a pending invitation');
   });
 
-  it('cancels a pending invitation', async () => {
+  it('cancels a pending invitation after confirming', async () => {
+    mockFamilyApi();
+    const { user } = renderApp('/families/1');
+    await searchFor(user, 'Email', 'ravi@example.com');
+    await user.click(await screen.findByRole('button', { name: 'Invite Ravi' }));
+    await cancelRavi(user);
+    expect(await screen.findByText('Invitation for Ravi cancelled')).toBeInTheDocument();
+    expect(await within(pendingSection()).findByText('No pending invitations')).toBeInTheDocument();
+  });
+
+  it('keeps a pending invitation when cancelling is not confirmed', async () => {
     mockFamilyApi();
     const { user } = renderApp('/families/1');
     await searchFor(user, 'Email', 'ravi@example.com');
     await user.click(await screen.findByRole('button', { name: 'Invite Ravi' }));
     await user.click(await screen.findByRole('button', { name: 'Cancel invitation for Ravi' }));
-    expect(await within(pendingSection()).findByText('No pending invitations.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Keep invitation' }));
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(within(pendingSection()).getByText('Ravi')).toBeInTheDocument();
   });
 
   it('marks people with a pending invitation and lets the owner invite again after cancelling',
@@ -161,7 +180,7 @@ describe('Family detail page', () => {
       await searchFor(user, 'Email', 'ravi@example.com');
       await user.click(await screen.findByRole('button', { name: 'Invite Ravi' }));
       expect(await screen.findByText('Invited')).toBeInTheDocument();
-      await user.click(await screen.findByRole('button', { name: 'Cancel invitation for Ravi' }));
+      await cancelRavi(user);
       expect(await screen.findByRole('button', { name: 'Invite Ravi' })).toBeInTheDocument();
     });
 });
