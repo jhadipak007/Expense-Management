@@ -97,7 +97,7 @@ def upgrade() -> None:
         {'code': 'KES', 'name': 'Kenyan Shilling'},
         {'code': 'KGS', 'name': 'Som'},
         {'code': 'KHR', 'name': 'Riel'},
-        {'code': 'KMF', 'name': 'Comorian Franc '},
+        {'code': 'KMF', 'name': 'Comorian Franc'},
         {'code': 'KPW', 'name': 'North Korean Won'},
         {'code': 'KRW', 'name': 'Won'},
         {'code': 'KWD', 'name': 'Kuwaiti Dinar'},

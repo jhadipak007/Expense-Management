@@ -17,10 +17,8 @@ export async function listCategoriesAndFamilies() {
 
 /** Everything the expense form offers: categories, currencies and the user's families. */
 export async function listExpenseFormOptions() {
-  const [categories, currencies, families] = await Promise.all([
-    listCategories(), listCurrencies(), listFamilies(),
-  ]);
-  return { categories, currencies, families };
+  const [options, currencies] = await Promise.all([listCategoriesAndFamilies(), listCurrencies()]);
+  return { ...options, currencies };
 }
 
 export function createExpense(expense) {

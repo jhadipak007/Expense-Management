@@ -32,6 +32,7 @@ def test_currencies_are_seeded_and_sorted_by_code(client, make_user, auth_header
     assert {"code": "AUD", "name": "Australian Dollar"} in body
     assert {"code": "INR", "name": "Indian Rupee"} in body
     assert not {"XAU", "XTS", "XXX", "USN"} & set(codes)
+    assert all(c["name"] == c["name"].strip() for c in body)
 
 
 def test_create_personal_expense(client, make_user, auth_headers):
