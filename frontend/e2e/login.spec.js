@@ -121,3 +121,20 @@ test('the favicon is the Expense Sarathi icon', async ({ page }) => {
   expect(href).toBe('/logo-icon-light.svg');
   expect((await page.request.get(href)).ok()).toBe(true);
 });
+
+test('a login whose user cannot be loaded leaves no session behind (EM-14)', async ({ page }) => {
+  let failed = false;
+  await page.route('**/api/users/me', (route) => {
+    if (failed) return route.continue();
+    failed = true;
+    return route.fulfill({ status: 500, contentType: 'application/json', body: '{"detail":"x"}' });
+  });
+  const loggedOut = page.waitForResponse((r) => r.url().endsWith('/api/auth/logout'));
+  await logIn(page);
+  await expect(page.getByRole('alert')).toHaveText('Something went wrong. Please try again.');
+  expect((await loggedOut).status()).toBe(204);
+
+  await page.reload();
+  await expect(loginButton(page)).toBeVisible();
+  await expect(page).toHaveURL('/login');
+});

@@ -1,6 +1,7 @@
 import { act, screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { request } from '@/api/client.js';
 import { server } from '@/test/setup.js';
 import { validRefresh } from '@/test/handlers.js';
 import { logOut, renderApp } from '@/test/renderApp.jsx';
@@ -187,5 +188,93 @@ describe('session and route guards', () => {
     act(() => window.dispatchEvent(new KeyboardEvent('keydown')));
     await act(() => vi.advanceTimersByTimeAsync(2 * 60 * 1000));
     expect(screen.getByRole('heading', { name: 'Welcome, Priya' })).toBeInTheDocument();
+  });
+});
+
+describe('a login whose user cannot be loaded', () => {
+  /** /api/users/me fails once; /api/auth/logout is recorded. */
+  function failUserOnce() {
+    const calls = { logout: 0 };
+    server.use(
+      http.get('/api/users/me', () => HttpResponse.json({}, { status: 500 }), { once: true }),
+      http.post('/api/auth/logout', () => {
+        calls.logout += 1;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    return calls;
+  }
+
+  /** The Authorization header the next API call sends. */
+  async function nextAuthorization() {
+    let seen = 'not called';
+    server.use(
+      http.get('/api/categories', ({ request: req }) => {
+        seen = req.headers.get('Authorization');
+        return HttpResponse.json([]);
+      }),
+    );
+    await request('/api/categories');
+    return seen;
+  }
+
+  async function logInAsPriya(user) {
+    await screen.findByRole('button', { name: 'Log in' });
+    await user.type(screen.getByLabelText('Email'), 'priya@example.com');
+    await user.type(screen.getByLabelText('Password'), 'P@ssw0rd');
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
+  }
+
+  it('ends the new session and drops the access token after login', async () => {
+    const calls = failUserOnce();
+    const { user, router } = renderApp('/login');
+    await logInAsPriya(user);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong');
+    expect(router.state.location.pathname).toBe('/login');
+    await vi.waitFor(() => expect(calls.logout).toBe(1));
+    expect(await nextAuthorization()).toBeNull();
+    expect(localStorage.getItem('logout-pending')).toBeNull();
+  });
+
+  it('ends the new session after sign-up verification', async () => {
+    const calls = failUserOnce();
+    const { user } = renderApp('/register');
+    const fields = { Name: 'Priya', Email: 'priya@example.com', Password: 'P@ssw0rd',
+      'Confirm password': 'P@ssw0rd' };
+    for (const [label, value] of Object.entries(fields)) {
+      await user.type(await screen.findByLabelText(label), value);
+    }
+    await user.click(screen.getByRole('button', { name: 'Sign up' }));
+    await user.type(await screen.findByLabelText('Code'), '2211');
+    await user.click(screen.getByRole('button', { name: 'Verify' }));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    await vi.waitFor(() => expect(calls.logout).toBe(1));
+    expect(await nextAuthorization()).toBeNull();
+  });
+
+  it('retries ending the session on the next app start when that logout also fails', async () => {
+    const calls = { logout: 0, refresh: 0 };
+    server.use(
+      http.get('/api/users/me', () => HttpResponse.json({}, { status: 500 }), { once: true }),
+      http.post('/api/auth/logout', () => {
+        calls.logout += 1;
+        return HttpResponse.json({}, { status: calls.logout === 1 ? 500 : 204 });
+      }),
+    );
+    const first = renderApp('/login');
+    await logInAsPriya(first.user);
+    await screen.findByRole('alert');
+    await vi.waitFor(() => expect(calls.logout).toBe(1));
+    first.unmount();
+
+    server.use(
+      http.post('/api/auth/refresh', () => {
+        calls.refresh += 1;
+        return HttpResponse.json({ access_token: 'token-1', token_type: 'bearer' });
+      }),
+    );
+    renderApp('/');
+    expect(await screen.findByRole('button', { name: 'Log in' })).toBeInTheDocument();
+    expect(calls).toEqual({ logout: 2, refresh: 0 });
   });
 });
