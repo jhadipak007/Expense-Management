@@ -10,14 +10,19 @@ from app.schemas.report import CategoryTotalOut, CurrencyTotalOut, ReportFilter,
 from app.services.family_access import require_member
 
 
+def scope_condition(family_id: int | None, user_id: int):
+    """The user's personal expenses, or every expense shared with the family."""
+    if family_id is None:
+        return and_(Expense.is_personal, Expense.user_id == user_id)
+    return Expense.family_id == family_id
+
+
 def summarize(db: Session, user_id: int, query: ReportFilter) -> ReportSummaryOut:
     """Totals by currency, then by category. Personal and family expenses are never combined."""
-    if query.family_id is None:
-        scope = and_(Expense.is_personal, Expense.user_id == user_id)
-    else:
+    if query.family_id is not None:
         require_member(db, query.family_id, user_id)
-        scope = Expense.family_id == query.family_id
-    conditions = [scope, Expense.spent_on.between(query.date_from, query.date_to)]
+    conditions = [scope_condition(query.family_id, user_id),
+                  Expense.spent_on.between(query.date_from, query.date_to)]
     if query.category_id:
         conditions.append(Expense.category_id.in_(query.category_id))
     rows = db.execute(

@@ -27,7 +27,28 @@ def test_me_returns_the_current_user(client, make_user, auth_headers):
     user = make_user()
     response = client.get("/api/users/me", headers=auth_headers(user))
     assert response.status_code == 200
-    assert response.json() == {"id": user.id, "email": "priya@example.com", "display_name": "Priya"}
+    assert response.json() == {"id": user.id, "email": "priya@example.com", "display_name": "Priya",
+                               "month_start_day": 1}
+
+
+@pytest.mark.parametrize("day", [1, 15, 28])
+def test_me_saves_the_month_start_day(client, make_user, auth_headers, day):
+    user = make_user()
+    response = client.patch("/api/users/me", json={"month_start_day": day}, headers=auth_headers(user))
+    assert response.status_code == 200
+    assert response.json()["month_start_day"] == day
+    assert client.get("/api/users/me", headers=auth_headers(user)).json()["month_start_day"] == day
+
+
+@pytest.mark.parametrize("body", [
+    {"month_start_day": 0}, {"month_start_day": 29}, {"month_start_day": "abc"}, {},
+    {"month_start_day": 5, "email": "x@example.com"},
+])
+def test_me_rejects_invalid_settings(client, make_user, auth_headers, body):
+    user = make_user()
+    response = client.patch("/api/users/me", json=body, headers=auth_headers(user))
+    assert response.status_code == 422
+    assert client.get("/api/users/me", headers=auth_headers(user)).json()["month_start_day"] == 1
 
 
 def test_me_never_returns_the_password_hash(client, make_user, auth_headers):

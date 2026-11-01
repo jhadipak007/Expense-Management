@@ -16,6 +16,8 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(100))
     display_name: Mapped[str] = mapped_column(String(100))
     is_active: Mapped[bool] = mapped_column(default=True)
+    month_start_day: Mapped[int] = mapped_column(default=1, server_default="1")
+    """Day (1 to 28) on which the user's monthly budget periods start."""
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
 
