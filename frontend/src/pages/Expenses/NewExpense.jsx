@@ -27,7 +27,7 @@ export default function NewExpense() {
   }
 
   return (
-    <SectionCard className="max-w-2xl">
+    <SectionCard>
       <BackLink to={dashboard}>Back to dashboard</BackLink>
       <PageHeader title="Add expense" description="Record what you spent, and share it with a family if you like." />
       {loading && <FormSkeleton />}

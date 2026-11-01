@@ -114,14 +114,16 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
         />
       </FormSection>
       <FormSection legend="Who can see it">
-        <SelectField
-          id="share-with" label="Share with" value={form.family_id} onChange={set('family_id')}
-          hint="Personal expenses are only yours. A family's members all see its expenses."
-          error={errors.family_id}
-        >
-          <NativeSelectOption value="">Personal</NativeSelectOption>
-          {families.map((f) => <NativeSelectOption key={f.id} value={f.id}>{f.name}</NativeSelectOption>)}
-        </SelectField>
+        <div className="grid gap-4 md:grid-cols-2">
+          <SelectField
+            id="share-with" label="Share with" value={form.family_id} onChange={set('family_id')}
+            hint="Personal expenses are only yours. A family's members all see its expenses."
+            error={errors.family_id}
+          >
+            <NativeSelectOption value="">Personal</NativeSelectOption>
+            {families.map((f) => <NativeSelectOption key={f.id} value={f.id}>{f.name}</NativeSelectOption>)}
+          </SelectField>
+        </div>
       </FormSection>
       <SubmitButton pending={submitting} pendingLabel="Saving..." disabled={!complete} className="md:w-auto md:self-end md:px-10">
         Save
