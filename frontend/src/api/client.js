@@ -3,6 +3,8 @@
  * every request, and on a 401 refreshes once and retries.
  */
 
+import { logger } from '@/utils/logger.js';
+
 let accessToken = null;
 let refreshInFlight = null;
 let onSessionExpired = () => {};
@@ -23,17 +25,31 @@ export function setSessionExpiredHandler(handler) {
   onSessionExpired = handler;
 }
 
+/** Send the request; log server errors (with their X-Request-ID) and network failures. */
 async function send(path, { method = 'GET', body, signal } = {}) {
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
-  return fetch(path, {
-    method,
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-    credentials: 'same-origin',
-    signal,
-  });
+  const route = path.split('?')[0]; // queries can hold search terms such as emails
+  let response;
+  try {
+    response = await fetch(path, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      credentials: 'same-origin',
+      signal,
+    });
+  } catch (error) {
+    if (error.name !== 'AbortError') logger.error(`Network error: ${method} ${route}`, { error });
+    throw error;
+  }
+  if (response.status >= 500) {
+    logger.error(`API error ${response.status}: ${method} ${route}`, {
+      requestId: response.headers.get('X-Request-ID'),
+    });
+  }
+  return response;
 }
 
 async function parse(response) {

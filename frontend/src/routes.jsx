@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router';
 import { AuthProvider } from './auth/AuthProvider.jsx';
 import { GuestOnly, RequireAuth } from './auth/guards.jsx';
+import RouteError from './components/RouteError.jsx';
 import AppLayout from './layouts/AppLayout.jsx';
 import Dashboard from './pages/Dashboard/Dashboard.jsx';
 import NewExpense from './pages/Expenses/NewExpense.jsx';
@@ -12,6 +13,7 @@ import Register from './pages/Register/Register.jsx';
 export const routes = [
   {
     element: <AuthProvider />,
+    errorElement: <RouteError />,
     children: [
       {
         element: <GuestOnly />,

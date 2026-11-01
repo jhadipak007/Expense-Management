@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 import { server } from '@/test/setup.js';
+import { logger } from '@/utils/logger.js';
 import { refreshSession, request, setAccessToken, setSessionExpiredHandler } from './client.js';
 
 function countRefreshes(response) {
@@ -79,5 +80,46 @@ describe('api client', () => {
     await refreshSession();
     expect(setItem).not.toHaveBeenCalled();
     expect(localStorage.length + sessionStorage.length).toBe(0);
+  });
+});
+
+describe('api client error logging', () => {
+  it('logs a server error with its request id and no query string', async () => {
+    const logError = vi.spyOn(logger, 'error').mockImplementation(() => {});
+    server.use(
+      http.get('/api/users/search', () =>
+        HttpResponse.json(
+          { detail: 'Internal server error' },
+          { status: 500, headers: { 'X-Request-ID': 'req-500' } },
+        ),
+      ),
+    );
+    await expect(request('/api/users/search?email=a@b.com')).rejects.toThrow('API error 500');
+    expect(logError).toHaveBeenCalledWith('API error 500: GET /api/users/search', {
+      requestId: 'req-500',
+    });
+    logError.mockRestore();
+  });
+
+  it('logs a network failure but not an aborted request', async () => {
+    const logError = vi.spyOn(logger, 'error').mockImplementation(() => {});
+    server.use(http.get('/api/users/me', () => HttpResponse.error()));
+    await expect(request('/api/users/me')).rejects.toThrow();
+    expect(logError).toHaveBeenCalledTimes(1);
+    expect(logError.mock.calls[0][0]).toBe('Network error: GET /api/users/me');
+
+    const controller = new AbortController();
+    controller.abort();
+    await expect(request('/api/users/me', { signal: controller.signal })).rejects.toThrow();
+    expect(logError).toHaveBeenCalledTimes(1);
+    logError.mockRestore();
+  });
+
+  it('does not log client errors such as 404', async () => {
+    const logError = vi.spyOn(logger, 'error').mockImplementation(() => {});
+    server.use(http.get('/api/families/9', () => HttpResponse.json({}, { status: 404 })));
+    await expect(request('/api/families/9')).rejects.toThrow('API error 404');
+    expect(logError).not.toHaveBeenCalled();
+    logError.mockRestore();
   });
 });
