@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { USER, validRefresh } from '@/test/handlers.js';
 import { server } from '@/test/setup.js';
-import { renderApp } from '@/test/renderApp.jsx';
+import { logOut, renderApp } from '@/test/renderApp.jsx';
 
 /** Logged in as a user whose month starts on `day`; returns the bodies PATCHed. */
 function mockSettings({ day = 15, status = 200 } = {}) {
@@ -41,13 +41,122 @@ describe('Settings', () => {
     expect(select.options[27]).toHaveTextContent('28th');
   });
 
-  it('saves a new month start day with a toast', async () => {
-    const patched = mockSettings();
+  it('explains the chosen day with an example', async () => {
+    mockSettings();
     const { user } = renderApp('/settings');
-    await user.selectOptions(await screen.findByLabelText('Month start day'), '1st');
+    const select = await screen.findByLabelText('Month start day');
+    expect(select).toHaveAccessibleDescription(/^Your month runs from the 15th to the 14th of the next month\./);
+    await user.selectOptions(select, '1st');
+    expect(select).toHaveAccessibleDescription(/^Your month runs from the 1st to the last day of the month\./);
+  });
+
+  it('saves with a toast and applies the day across the app straight away', async () => {
+    const patched = mockSettings({ day: 1 });
+    const { user } = renderApp('/settings');
+    await user.selectOptions(await screen.findByLabelText('Month start day'), '20th');
     await user.click(screen.getByRole('button', { name: 'Save settings' }));
     expect(await screen.findByText('Settings saved')).toBeInTheDocument();
-    expect(patched).toEqual([{ month_start_day: 1 }]);
+    expect(patched).toEqual([{ month_start_day: 20 }]);
+    await user.click(within(screen.getAllByRole('navigation', { name: 'Main' })[0])
+      .getByRole('link', { name: 'Dashboard' }));
+    expect(await screen.findByText(/^20 \w{3}( \d{4})? – 19 \w{3} \d{4} · All categories$/))
+      .toBeInTheDocument();
+  });
+
+  describe('with unsaved changes', () => {
+    const dashboardLink = () => within(screen.getAllByRole('navigation', { name: 'Main' })[0])
+      .getByRole('link', { name: 'Dashboard' });
+
+    async function changeDay(user) {
+      await user.selectOptions(await screen.findByLabelText('Month start day'), '20th');
+    }
+
+    it('asks before leaving and stays on Keep editing', async () => {
+      mockSettings();
+      const { user, router } = renderApp('/settings');
+      await changeDay(user);
+      await user.click(dashboardLink());
+      const dialog = await screen.findByRole('alertdialog', { name: 'Discard unsaved changes?' });
+      await user.click(within(dialog).getByRole('button', { name: 'Keep editing' }));
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(router.state.location.pathname).toBe('/settings');
+      expect(screen.getByLabelText('Month start day')).toHaveDisplayValue('20th');
+    });
+
+    it('stays when Escape closes the dialog', async () => {
+      mockSettings();
+      const { user, router } = renderApp('/settings');
+      await changeDay(user);
+      await user.click(dashboardLink());
+      await screen.findByRole('alertdialog');
+      await user.keyboard('{Escape}');
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(router.state.location.pathname).toBe('/settings');
+    });
+
+    it('leaves on Discard changes', async () => {
+      const patched = mockSettings();
+      const { user, router } = renderApp('/settings');
+      await changeDay(user);
+      await user.click(dashboardLink());
+      await user.click(await screen.findByRole('button', { name: 'Discard changes' }));
+      expect(await screen.findByRole('heading', { name: /Welcome/ })).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe('/');
+      expect(patched).toEqual([]);
+    });
+
+    it('leaves without asking when nothing changed', async () => {
+      mockSettings();
+      const { user } = renderApp('/settings');
+      await screen.findByLabelText('Month start day');
+      await user.click(dashboardLink());
+      expect(await screen.findByRole('heading', { name: /Welcome/ })).toBeInTheDocument();
+    });
+
+    it('leaves without asking after saving', async () => {
+      mockSettings();
+      const { user } = renderApp('/settings');
+      await changeDay(user);
+      await user.click(screen.getByRole('button', { name: 'Save settings' }));
+      expect(await screen.findByText('Settings saved')).toBeInTheDocument();
+      await user.click(dashboardLink());
+      expect(await screen.findByRole('heading', { name: /Welcome/ })).toBeInTheDocument();
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
+
+    it('does not ask when the Settings link is chosen on Settings', async () => {
+      mockSettings();
+      const { user } = renderApp('/settings');
+      await changeDay(user);
+      await user.click(within(screen.getAllByRole('navigation', { name: 'Main' })[0])
+        .getByRole('link', { name: 'Settings' }));
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(screen.getByLabelText('Month start day')).toHaveDisplayValue('20th');
+    });
+
+    it('asks the browser to confirm closing or reloading the tab only while changed', async () => {
+      mockSettings();
+      const { user } = renderApp('/settings');
+      await screen.findByLabelText('Month start day');
+      const unload = () => {
+        const event = new Event('beforeunload', { cancelable: true });
+        window.dispatchEvent(event);
+        return event.defaultPrevented;
+      };
+      expect(unload()).toBe(false);
+      await changeDay(user);
+      expect(unload()).toBe(true);
+    });
+
+    it('logs out without asking', async () => {
+      mockSettings();
+      const { user, router } = renderApp('/settings');
+      await changeDay(user);
+      await logOut(user);
+      expect(await screen.findByRole('button', { name: 'Log in' })).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe('/login');
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
   });
 
   it('shows an error when saving fails', async () => {

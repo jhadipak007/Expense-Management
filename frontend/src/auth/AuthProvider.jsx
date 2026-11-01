@@ -65,9 +65,12 @@ export function AuthProvider() {
     await authApi.logout().catch(() => {}); // Retried by restoreSession() on the next app start.
   }, []);
 
+  /** Replace the logged-in user, e.g. after a settings change, so every page sees it at once. */
+  const updateUser = useCallback((user) => setSession((current) => ({ ...current, user })), []);
+
   const value = useMemo(
-    () => ({ ...session, login, completeRegistration, logout }),
-    [session, login, completeRegistration, logout],
+    () => ({ ...session, login, completeRegistration, logout, updateUser }),
+    [session, login, completeRegistration, logout, updateUser],
   );
 
   return (

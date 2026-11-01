@@ -17,8 +17,10 @@ import SummaryCard from './SummaryCard.jsx';
 export default function Dashboard() {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  // Same object until the URL changes, so cards reload only when a filter changes.
-  const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
+  // The viewer's own day sets "This month" and "Last month" for every card.
+  const monthStartDay = user.month_start_day;
+  // Same object until the URL or the start day changes, so cards reload only then.
+  const filters = useMemo(() => parseFilters(searchParams, monthStartDay), [searchParams, monthStartDay]);
   const options = useAsyncList(listCategoriesAndFamilies);
   // Adding an expense or a budget keeps the filters, which travel in the query string.
   const { search } = useLocation();
@@ -44,7 +46,7 @@ export default function Dashboard() {
       {options.data && (
         <>
           <DashboardFilters
-            filters={filters} categories={options.data.categories}
+            filters={filters} categories={options.data.categories} monthStartDay={monthStartDay}
             onChange={(next) => setSearchParams(toSearchParams(next), { replace: true })}
             onReset={() => setSearchParams({}, { replace: true })}
           />
