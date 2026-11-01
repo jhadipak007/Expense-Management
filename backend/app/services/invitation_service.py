@@ -4,6 +4,7 @@ Every change of status is one conditional UPDATE that only matches an open
 invitation, so when a cancel and an accept race, exactly one of them wins.
 """
 
+import logging
 from datetime import timedelta
 
 from sqlalchemy import ColumnElement, select, update
@@ -13,6 +14,8 @@ from app.config import get_settings
 from app.models import FamilyInvitation, FamilyMember, FamilyRole, InvitationStatus, User
 from app.models.base import utcnow
 from app.services.family_access import require_owner
+
+logger = logging.getLogger(__name__)
 
 
 class UserNotFound(Exception):
@@ -57,6 +60,8 @@ def invite(db: Session, family_id: int, owner_id: int, invitee_id: int) -> Famil
     )
     db.add(invitation)
     db.commit()
+    logger.info("invitation sent", extra={"user_id": owner_id, "family_id": family_id,
+                                          "invitation_id": invitation.id, "invitee_id": invitee_id})
     return invitation
 
 
@@ -75,6 +80,8 @@ def cancel(db: Session, family_id: int, owner_id: int, invitation_id: int) -> No
     require_owner(db, family_id, owner_id)
     _close(db, invitation_id, InvitationStatus.cancelled, FamilyInvitation.family_id == family_id)
     db.commit()
+    logger.info("invitation cancelled", extra={"user_id": owner_id, "family_id": family_id,
+                                               "invitation_id": invitation_id})
 
 
 def list_my_invitations(db: Session, user_id: int) -> list[FamilyInvitation]:
@@ -95,12 +102,16 @@ def accept(db: Session, invitation_id: int, user_id: int) -> FamilyMember:
                               role=FamilyRole.member)
     db.add(membership)
     db.commit()
+    logger.info("invitation accepted", extra={"user_id": user_id,
+                                              "family_id": invitation.family_id,
+                                              "invitation_id": invitation_id})
     return membership
 
 
 def decline(db: Session, invitation_id: int, user_id: int) -> None:
     _close(db, invitation_id, InvitationStatus.declined, FamilyInvitation.invitee_id == user_id)
     db.commit()
+    logger.info("invitation declined", extra={"user_id": user_id, "invitation_id": invitation_id})
 
 
 def _close(db: Session, invitation_id: int, status: InvitationStatus,

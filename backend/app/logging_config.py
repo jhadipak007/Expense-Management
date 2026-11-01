@@ -26,6 +26,22 @@ class RequestIdFilter(logging.Filter):
         return True
 
 
+def extra_fields(record: logging.LogRecord) -> dict:
+    """Fields passed with `extra=`."""
+    return {k: v for k, v in vars(record).items() if k not in STANDARD_ATTRS}
+
+
+class TextFormatter(logging.Formatter):
+    """Readable line for local runs: the message followed by `extra=` fields as key=value."""
+
+    def __init__(self):
+        super().__init__(TEXT_FORMAT)
+
+    def formatMessage(self, record: logging.LogRecord) -> str:
+        fields = " ".join(f"{k}={v}" for k, v in extra_fields(record).items())
+        return f"{super().formatMessage(record)} {fields}".rstrip()
+
+
 class JsonFormatter(logging.Formatter):
     """Format a record as one JSON object: core fields, `extra=` fields, then any traceback."""
 
@@ -37,7 +53,7 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
             "request_id": getattr(record, "request_id", None),
         }
-        entry |= {k: v for k, v in vars(record).items() if k not in STANDARD_ATTRS}
+        entry |= extra_fields(record)
         if record.exc_info:
             entry["exc_info"] = self.formatException(record.exc_info)
         return json.dumps(entry, default=str)
@@ -45,7 +61,7 @@ class JsonFormatter(logging.Formatter):
 
 def setup_logging(level: str, log_format: str) -> None:
     """Send app and uvicorn logs through one stdout handler on the root logger."""
-    handler.setFormatter(JsonFormatter() if log_format == "json" else logging.Formatter(TEXT_FORMAT))
+    handler.setFormatter(JsonFormatter() if log_format == "json" else TextFormatter())
     handler.filters = [RequestIdFilter()]
     root = logging.getLogger()
     if handler not in root.handlers:

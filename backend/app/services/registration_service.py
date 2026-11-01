@@ -4,6 +4,7 @@
 are emailed, only it and `start_registration` change.
 """
 
+import logging
 from datetime import timedelta
 
 from sqlalchemy import select
@@ -13,6 +14,8 @@ from app.config import get_settings
 from app.models import PendingRegistration, User
 from app.models.base import utcnow
 from app.security import hash_password, hash_token, new_token
+
+logger = logging.getLogger(__name__)
 
 
 class EmailAlreadyRegistered(Exception):
@@ -39,6 +42,7 @@ def start_registration(db: Session, display_name: str, email: str, password: str
         password_hash=password_hash, expires_at=expires_at,
     ))
     db.commit()
+    logger.info("sign-up started")
     return raw
 
 
@@ -53,6 +57,8 @@ def verify_registration(db: Session, registration_id: str, code: str) -> User:
         if out_of_attempts:
             db.delete(pending)
         db.commit()
+        logger.info("sign-up code incorrect",
+                    extra={"attempts": pending.attempts, "out_of_attempts": out_of_attempts})
         raise RegistrationNotFound if out_of_attempts else IncorrectCode
     if _email_taken(db, pending.email):
         db.delete(pending)
@@ -63,6 +69,7 @@ def verify_registration(db: Session, registration_id: str, code: str) -> User:
     db.add(user)
     db.delete(pending)
     db.commit()
+    logger.info("sign-up verified; user created", extra={"user_id": user.id})
     return user
 
 

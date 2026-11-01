@@ -4,7 +4,7 @@ import json
 import logging
 import sys
 
-from app.logging_config import JsonFormatter, RequestIdFilter, request_id_var
+from app.logging_config import JsonFormatter, RequestIdFilter, TextFormatter, request_id_var
 
 
 def make_record(**extra) -> logging.LogRecord:
@@ -39,3 +39,8 @@ def test_json_line_includes_the_traceback():
 
 def test_request_id_is_none_outside_a_request():
     assert json.loads(JsonFormatter().format(make_record()))["request_id"] is None
+
+
+def test_text_line_appends_extra_fields():
+    line = TextFormatter().format(make_record(user_id=7, status=200))
+    assert line.endswith("INFO app.test [None] hello world user_id=7 status=200")

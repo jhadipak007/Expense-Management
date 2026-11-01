@@ -4,12 +4,16 @@ An expense is visible to its recorder while personal, and to every member of
 the family it is shared with.
 """
 
+import logging
+
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.models import Category, Currency, Expense, FamilyMember
 from app.schemas.expense import ExpenseIn
 from app.services.family_access import require_member
+
+logger = logging.getLogger(__name__)
 
 
 class UnknownCategory(Exception):
@@ -53,6 +57,8 @@ def create_expense(db: Session, user_id: int, data: ExpenseIn) -> Expense:
     db.add(expense)
     db.commit()
     db.refresh(expense)
+    logger.info("expense created", extra={"user_id": user_id, "expense_id": expense.id,
+                                          "family_id": expense.family_id})
     return expense
 
 

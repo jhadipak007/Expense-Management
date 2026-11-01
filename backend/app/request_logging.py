@@ -33,9 +33,7 @@ async def log_requests(request: Request, call_next):
 
 
 def log_access(request: Request, status: int, duration_ms: int) -> None:
-    method, path = request.method, request.url.path
-    logger.info(
-        "%s %s %s %sms", method, path, status, duration_ms,
-        extra={"method": method, "path": path, "status": status, "duration_ms": duration_ms,
-               "user_id": getattr(request.state, "user_id", None)},
-    )
+    logger.info("request", extra={
+        "method": request.method, "path": request.url.path, "status": status,
+        "duration_ms": duration_ms, "user_id": getattr(request.state, "user_id", None),
+    })
