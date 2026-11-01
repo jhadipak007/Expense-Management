@@ -6,6 +6,7 @@ import { SelectField } from '@/components/FormField.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { PageHeader } from '@/components/SectionCard.jsx';
 import SubmitButton from '@/components/SubmitButton.jsx';
+import UnsavedChangesGuard from '@/components/UnsavedChangesGuard.jsx';
 import { NativeSelectOption } from '@/components/ui/native-select';
 import { ordinal } from '@/utils/format.js';
 import { UNAVAILABLE } from '@/utils/formErrors.js';
@@ -51,6 +52,7 @@ function MonthStartForm({ saved, onSaved }) {
 
   return (
     <form className="flex flex-col gap-6" onSubmit={handleSubmit} noValidate>
+      <UnsavedChangesGuard dirty={day !== String(saved)} />
       {formError && <Notice>{formError}</Notice>}
       <SelectField
         id="month-start-day" label="Month start day" value={day} onChange={setDay}
