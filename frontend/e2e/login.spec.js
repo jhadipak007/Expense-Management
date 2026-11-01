@@ -61,6 +61,25 @@ test('logout returns to login and the back button does not show the dashboard', 
   await expect(page).toHaveURL('/login');
 });
 
+test('a logout that fails to reach the server is finished on the next load', async ({ page }) => {
+  await logIn(page);
+  await expectDashboard(page);
+  await page.route('**/api/auth/logout', (route) => route.abort('internetdisconnected'), { times: 1 });
+  const failed = page.waitForEvent('requestfailed', (r) => r.url().endsWith('/api/auth/logout'));
+  await page.getByRole('button', { name: TEST_USER.name }).click();
+  await page.getByRole('menuitem', { name: 'Logout' }).click();
+  await failed;
+  await expect(page).toHaveURL('/login');
+
+  const retried = page.waitForResponse((r) => r.url().endsWith('/api/auth/logout'));
+  await page.reload();
+  expect((await retried).status()).toBe(204);
+  await expect(loginButton(page)).toBeVisible();
+  await page.reload();
+  await expect(loginButton(page)).toBeVisible();
+  await expect(page).toHaveURL('/login');
+});
+
 test('a returning user goes straight to the dashboard', async ({ page, context }) => {
   await logIn(page);
   await expectDashboard(page);

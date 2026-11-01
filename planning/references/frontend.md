@@ -80,8 +80,9 @@ Deep links: every non-`/api` path must return `index.html`. FastAPI does this lo
 ## API client (`src/api/`)
 
 - One `request()` function used by every call. It adds `Authorization: Bearer <access token>` and sends JSON.
-- The access token is held in memory only (a module variable plus React context), never in `localStorage` or `sessionStorage`.
-- On app start, call `POST /api/auth/refresh` to restore the session from the refresh cookie.
+- The access token is held in memory only (a module variable plus React context), never in `localStorage` or `sessionStorage`. The only auth item in `localStorage` is the non-secret `logout-pending` flag.
+- On app start, call `POST /api/auth/refresh` to restore the session from the refresh cookie. If a logout is pending (its request failed), retry `POST /api/auth/logout` instead and stay logged out.
+- Logout shows the login page at once; `src/api/auth.js` sets `logout-pending` before the request and clears it on success. Login and sign-up clear it too.
 - On a 401, call `/refresh` once and retry the request. If refresh fails, clear the session and go to `/login`.
 - Concurrent 401s share one in-flight refresh call.
 - Errors: 422 field errors are shown next to the matching inputs; other errors show a short message.

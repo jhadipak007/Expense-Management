@@ -18,8 +18,11 @@ export function AuthProvider() {
 
   const restore = useCallback(async () => {
     try {
-      await authApi.restoreSession();
-      setSession({ status: 'authenticated', user: await authApi.fetchCurrentUser() });
+      if (await authApi.restoreSession()) {
+        setSession({ status: 'authenticated', user: await authApi.fetchCurrentUser() });
+      } else {
+        setSession(LOGGED_OUT);
+      }
     } catch {
       setSession(LOGGED_OUT);
     }
@@ -46,7 +49,7 @@ export function AuthProvider() {
 
   const logout = useCallback(async () => {
     setSession(SIGNED_OUT);
-    await authApi.logout();
+    await authApi.logout().catch(() => {}); // Retried by restoreSession() on the next app start.
   }, []);
 
   const value = useMemo(

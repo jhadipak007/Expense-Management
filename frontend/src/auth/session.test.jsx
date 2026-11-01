@@ -79,6 +79,68 @@ describe('session and route guards', () => {
     expect(router.state.location.pathname + router.state.location.search).toBe('/families?tab=mine');
   });
 
+  it('a failed logout is retried on the next app start instead of restoring the session', async () => {
+    const calls = { logout: 0, refresh: 0 };
+    server.use(
+      validRefresh,
+      http.post('/api/auth/logout', () => {
+        calls.logout += 1;
+        return HttpResponse.json({}, { status: 500 });
+      }, { once: true }),
+    );
+    const first = renderApp('/');
+    await logOut(first.user);
+    await screen.findByRole('button', { name: 'Log in' });
+    first.unmount();
+
+    server.use(
+      http.post('/api/auth/logout', () => {
+        calls.logout += 1;
+        return new HttpResponse(null, { status: 204 });
+      }),
+      http.post('/api/auth/refresh', () => {
+        calls.refresh += 1;
+        return HttpResponse.json({ access_token: 'token-1', token_type: 'bearer' });
+      }),
+    );
+    renderApp('/');
+    expect(await screen.findByRole('button', { name: 'Log in' })).toBeInTheDocument();
+    expect(calls).toEqual({ logout: 2, refresh: 0 });
+  });
+
+  it('after a retried logout succeeds, the next app start restores the session again', async () => {
+    server.use(
+      validRefresh,
+      http.post('/api/auth/logout', () => HttpResponse.json({}, { status: 500 }), { once: true }),
+    );
+    const first = renderApp('/');
+    await logOut(first.user);
+    await screen.findByRole('button', { name: 'Log in' });
+    first.unmount();
+
+    const second = renderApp('/');
+    await screen.findByRole('button', { name: 'Log in' });
+    second.unmount();
+
+    renderApp('/');
+    expect(await screen.findByRole('heading', { name: 'Welcome, Priya' })).toBeInTheDocument();
+  });
+
+  it('logging in after a failed logout keeps the new session on the next app start', async () => {
+    server.use(validRefresh, http.post('/api/auth/logout', () => HttpResponse.json({}, { status: 500 })));
+    const first = renderApp('/');
+    await logOut(first.user);
+    await screen.findByRole('button', { name: 'Log in' });
+    await first.user.type(screen.getByLabelText('Email'), 'priya@example.com');
+    await first.user.type(screen.getByLabelText('Password'), 'P@ssw0rd');
+    await first.user.click(screen.getByRole('button', { name: 'Log in' }));
+    await screen.findByRole('heading', { name: 'Welcome, Priya' });
+    first.unmount();
+
+    renderApp('/');
+    expect(await screen.findByRole('heading', { name: 'Welcome, Priya' })).toBeInTheDocument();
+  });
+
   it('going back to the dashboard after logout shows login', async () => {
     server.use(validRefresh);
     const { user, router } = renderApp('/');
