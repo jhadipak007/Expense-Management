@@ -20,7 +20,7 @@ Enforcement: each router is created with `dependencies=[Depends(get_current_user
 
 Authorization is checked in the service layer after authentication:
 - Expenses: see the access rules in [data_model.md](data_model.md).
-- Family management: owner only.
+- Family management and family budgets: owner only.
 - A resource the user may not see returns **404**, not 403, so IDs cannot be probed.
 
 ## Endpoints
@@ -37,8 +37,8 @@ Authorization is checked in the service layer after authentication:
 ### Users (`/api/users`)
 | Method | Path | Body | Returns |
 |---|---|---|---|
-| GET | `/me` | none | `UserOut` |
-| PATCH | `/me` | `UserUpdateIn` | `UserOut` |
+| GET | `/me` | none | `UserOut` (`id`, `email`, `display_name`, `month_start_day`) |
+| PATCH | `/me` | `UserSettingsIn` (`month_start_day`, 1 to 28) | `UserOut` |
 | POST | `/me/password` | `PasswordChangeIn` | 204; revokes all refresh tokens |
 
 ### Categories (`/api/categories`)
@@ -96,6 +96,19 @@ Invitee-side actions; an invitation belonging to someone else returns 404.
 
 `POST /` takes the recorder from the access token (`user_id` in the body is rejected by `extra="forbid"`). A `family_id` the user is not a member of returns 404 and saves nothing. An unknown `category_id` returns 422 on `category_id`, and a well-formed but unknown `currency` returns 422 on `currency`, because these lookup tables are not access-controlled.
 
+### Budgets (`/api/budgets`)
+Every route except DELETE takes `TodayQuery`: `today`, the browser's local date, within a day of the UTC date (422 otherwise). It picks each budget's current period and starts a new fortnightly budget's first fortnight.
+
+| Method | Path | Body | Who | Returns |
+|---|---|---|---|---|
+| GET | `/` | none | any user | `list[BudgetOut]`: the user's personal budgets and their families' budgets |
+| POST | `/` | `BudgetIn` | any user; family owner if `family_id` set | `BudgetOut` (201) |
+| GET | `/{budget_id}` | none | can see it | `BudgetOut` |
+| PATCH | `/{budget_id}` | `BudgetUpdateIn` (`amount`, `period`) | creator (personal) or family owner | `BudgetOut` |
+| DELETE | `/{budget_id}` | none | creator (personal) or family owner | 204; expenses are not affected |
+
+`BudgetIn`: `family_id` (null = personal), `category_id` (null = all categories), `period`, `amount`, `currency`. `BudgetOut` adds `id`, `period_start`, `period_end`, `spent`, `remaining`, `over_by`, `status` (`on_track` / `close` / `over`) and `can_manage`. Errors: a hidden budget or family is 404; a family member who is not the owner gets 403; the same scope, category, period and currency again is 409; an unknown category or currency is 422 on that field.
+
 ### Reports (`/api/reports`)
 | Method | Path | Input | Returns |
 |---|---|---|---|
@@ -126,7 +139,9 @@ Field rules:
 | spent_on, date_from, date_to | `date`; `date_from <= date_to` (model validator); `spent_on` no later than UTC tomorrow, since no time zone is a full day ahead of UTC |
 | category_id, family_id | `int`, `gt=0` |
 | user search `name` | `str`, 3 to 100 chars |
-| role, status, scope, group_by, sort | `Literal[...]` or `StrEnum` |
+| role, status, scope, group_by, sort, period | `Literal[...]` or `StrEnum` |
+| month_start_day | `int`, 1 to 28 |
+| today (budgets) | `date`, within a day of the UTC date |
 
 Query models (FastAPI `Annotated[Model, Query()]`):
 - `ExpenseFilter`: `scope` (`personal` / `family` / `all`), `family_id`, `category_id`, `date_from`, `date_to`, `sort` (`spent_on` / `-spent_on` / `amount` / `-amount`), `limit` (1 to 100, default 50), `offset` (>= 0).
@@ -136,7 +151,7 @@ Invalid input returns FastAPI's standard **422** response.
 
 ## SQL injection prevention
 
-Relevant endpoints: everything that takes a path parameter or filter, above all `GET /api/expenses` and `GET /api/reports/summary`.
+Relevant endpoints: everything that takes a path parameter or filter, above all `GET /api/expenses`, `GET /api/reports/summary` and `/api/budgets`.
 
 - All queries use the SQLAlchemy 2.0 ORM/Core `select()`, `insert()`, `update()` and `delete()` constructs. Values are always bound parameters.
 - No `text()` with string formatting or f-strings. If `text()` is ever needed, values go through `bindparams`.

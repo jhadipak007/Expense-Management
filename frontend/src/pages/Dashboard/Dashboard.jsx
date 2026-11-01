@@ -8,6 +8,7 @@ import Notice from '@/components/Notice.jsx';
 import SectionCard, { PageHeader } from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import BudgetsSection from './BudgetsSection.jsx';
 import DashboardFilters from './DashboardFilters.jsx';
 import { parseFilters, toSearchParams } from './dashboardFilters.js';
 import PendingInvitations from './PendingInvitations.jsx';
@@ -19,8 +20,9 @@ export default function Dashboard() {
   // Same object until the URL changes, so cards reload only when a filter changes.
   const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
   const options = useAsyncList(listCategoriesAndFamilies);
-  // Adding an expense keeps the filters, which travel in the query string.
-  const addExpense = { pathname: '/expenses/new', search: useLocation().search };
+  // Adding an expense or a budget keeps the filters, which travel in the query string.
+  const { search } = useLocation();
+  const addExpense = { pathname: '/expenses/new', search };
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
@@ -55,6 +57,11 @@ export default function Dashboard() {
               />
             ))}
           </div>
+          {/* Keyed on the families, so joining one from an invitation reloads the budgets too. */}
+          <BudgetsSection
+            key={options.data.families.map((f) => f.id).join()}
+            categories={options.data.categories} families={options.data.families} search={search}
+          />
         </>
       )}
       <PendingInvitations onJoined={options.reload} />

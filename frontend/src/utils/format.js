@@ -22,6 +22,20 @@ export function formatIsoDate(isoDate) {
   return `${day} ${MONTHS[month - 1]} ${year}`;
 }
 
+/** Show an inclusive date range, e.g. "15 Sep – 14 Oct 2026", or "20 Dec 2026 – 2 Jan 2027". */
+export function formatPeriod(start, end) {
+  const [first, last] = [formatIsoDate(start), formatIsoDate(end)];
+  const sameYear = start.slice(0, 4) === end.slice(0, 4);
+  return `${sameYear ? first.slice(0, -5) : first} – ${last}`;
+}
+
+/** A day of the month as "1st", "2nd", "3rd", "4th" ... "11th", "12th", "13th" ... "21st". */
+export function ordinal(day) {
+  const teen = day % 100 >= 11 && day % 100 <= 13;
+  const suffix = teen ? 'th' : { 1: 'st', 2: 'nd', 3: 'rd' }[day % 10] ?? 'th';
+  return `${day}${suffix}`;
+}
+
 const MONEY = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,

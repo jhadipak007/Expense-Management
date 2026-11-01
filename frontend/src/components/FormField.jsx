@@ -12,7 +12,7 @@ import { NativeSelect } from '@/components/ui/native-select';
  */
 function Field({ id, label, hint, error, children }) {
   return (
-    <div className="grid gap-1.5">
+    <div className="grid content-start gap-1.5">
       <Label htmlFor={id} className="text-base font-semibold text-foreground">{label}</Label>
       {children}
       {hint && <p id={`${id}-hint`} className="text-sm">{hint}</p>}
@@ -72,8 +72,11 @@ export default function FormField({
   );
 }
 
-/** Labelled native select (`children` are its options), linked to its hint or error like `FormField`. */
-export function SelectField({ id, label, hint, error, value, onChange, children }) {
+/**
+ * Labelled native select (`children` are its options), linked to its hint or error like `FormField`.
+ * Other props (e.g. `disabled`) go to the select.
+ */
+export function SelectField({ id, label, hint, error, value, onChange, children, ...selectProps }) {
   return (
     <Field id={id} label={label} hint={hint} error={error}>
       <NativeSelect
@@ -81,6 +84,7 @@ export function SelectField({ id, label, hint, error, value, onChange, children 
         className="bg-card text-foreground"
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        {...selectProps}
       >
         {children}
       </NativeSelect>

@@ -11,8 +11,8 @@ from app.config import get_settings
 from app.logging_config import request_id_var, setup_logging
 from app.request_logging import log_requests
 from app.routers import (
-    auth, categories, client_logs, currencies, expenses, families, health, invitations, reports,
-    users,
+    auth, budgets, categories, client_logs, currencies, expenses, families, health, invitations,
+    reports, users,
 )
 
 SECURITY_HEADERS = {
@@ -43,7 +43,7 @@ def create_app() -> FastAPI:
     app.middleware("http")(log_requests)
     app.add_exception_handler(Exception, handle_unexpected_error)
     modules = (health, auth, users, families, invitations, categories, currencies, expenses,
-               reports, client_logs)
+               reports, budgets, client_logs)
     for module in modules:
         app.include_router(module.router)
     dist = Path(settings.frontend_dist_dir)

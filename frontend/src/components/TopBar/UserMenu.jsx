@@ -1,4 +1,5 @@
-import { ChevronDownIcon, LogOutIcon } from 'lucide-react';
+import { ChevronDownIcon, LogOutIcon, SettingsIcon } from 'lucide-react';
+import { Link } from 'react-router';
 import { useAuth } from '@/auth/useAuth.js';
 import UserAvatar from '@/components/UserAvatar.jsx';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-/** The signed-in user's avatar and name; opens a menu with Logout. */
+/** The signed-in user's avatar and name; opens a menu with Settings and Logout. */
 export default function UserMenu() {
   const { user, logout } = useAuth();
   return (
@@ -25,6 +26,12 @@ export default function UserMenu() {
           <span className="truncate font-normal text-muted-foreground">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/settings">
+            <SettingsIcon />
+            Settings
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={logout}>
           <LogOutIcon />
           Logout

@@ -15,7 +15,8 @@ export async function addExpense(page, { amount, currency = 'AUD', category, sha
   await page.getByLabel('Category').selectOption(category);
   if (shareWith) await page.getByLabel('Share with').selectOption(shareWith);
   await page.getByRole('button', { name: 'Save' }).click();
-  await expect(page.getByText(/Expense saved/)).toBeVisible();
+  // A previous expense's toast may still be showing.
+  await expect(page.getByText(/Expense saved/).first()).toBeVisible();
 }
 
 export async function createFamily(page, name) {

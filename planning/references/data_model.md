@@ -15,6 +15,7 @@ ORM mapping, relationships and migrations: see [database.md](database.md).
 | password_hash | string | never the plain password |
 | display_name | string | |
 | is_active | boolean | deactivated users cannot log in |
+| month_start_day | integer, default 1 | 1 to 28 (checked by the API); the day monthly budget periods start |
 | created_at, updated_at | datetime | UTC |
 
 **refresh_tokens**: one row per issued refresh token. See [authentication.md](authentication.md).
@@ -106,9 +107,37 @@ Changes to the ISO list are applied by a new migration. Removing a code fails wh
 | description | string, nullable | |
 | created_at, updated_at | datetime | UTC |
 
+## Budgets
+
+**budgets**: a spending limit that repeats every period, personal or for one family.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | integer PK | |
+| user_id | FK users.id | creator; owns a personal budget; indexed |
+| family_id | FK families.id, nullable | null = personal; set = that family's budget; indexed |
+| category_id | FK categories.id, nullable | null = all categories |
+| period | string + CHECK | `weekly`, `fortnightly`, `monthly`, `yearly` |
+| amount | Numeric(12, 2) | the limit for each period, positive |
+| currency | FK currencies.code | only expenses in this currency count; no conversion |
+| anchor_date | date | first day of the first fortnight: the creation day, or the day the period was changed to fortnightly |
+| scope_key | string | `u<user_id>` or `f<family_id>`, then `:<category_id>` or `:all`; no nulls, so the unique constraint works |
+| created_at, updated_at | datetime | UTC |
+
+Unique: `(scope_key, period, currency)`, so a scope has one budget per category, period and currency. All foreign keys are `RESTRICT`.
+
+Periods are computed, never stored, from the user's local date:
+- Weekly: Monday to Sunday.
+- Fortnightly: 14-day steps from `anchor_date`.
+- Monthly: from `month_start_day` to the day before it next month. A personal budget uses its creator's day; a family budget uses the family owner's day, so every member sees the same period.
+- Yearly: 1 January to 31 December.
+
+Spent = the sum of expenses in the current period with the same scope (personal: the creator's personal expenses; family: every member's expenses shared with the family), the same currency, and the same category unless the budget covers all. Status: `on_track` below 80%, `close` from 80% to 100%, `over` above 100%.
+
 ## Access rules
 - A user sees an expense if they recorded it and `family_id` is null, or if they are a member of its `family_id`.
 - Any family member can add expenses to that family. Only the recorder can edit or delete an expense.
 - Only members see a family and its member list (name, email, role). Only a family `owner` can search for users, invite, cancel invitations, remove other members or rename the family. A member may leave; an owner may not leave or remove themself. This ensures every family always has at least one owner. Ownership transfer is not supported by the current API.
+- A personal budget is seen and managed by its creator only. A family budget is seen by every member; only the family owner creates, changes or deletes it.
 - Reports are scoped either to the authenticated user's personal expenses (no `family_id`) or to one specified family (member access required); they do not combine personal and family expenses. Totals are grouped by `currency` (and by category or month), with no conversion.
 - Indexes: `expenses(user_id, spent_on)`, `expenses(family_id, spent_on)`, `family_members(user_id)`.

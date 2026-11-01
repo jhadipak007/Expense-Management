@@ -41,8 +41,10 @@ Every page and component adapts to screen size.
 |---|---|---|
 | `/login` | Login: "Welcome back", show/hide password, a "Forgot password?" placeholder (says reset is coming soon), link to sign-up | public; logged-in users go to the remembered page or `/` |
 | `/register` | Register: details, then the OTP screen with Back (details kept). Links to login. After 5 wrong codes, returns to the details step | public; logged-in users go to the remembered page or `/` |
-| `/` | Dashboard: welcome header with Add expense, then filters and summary cards (see below) (landing page after login when no other page was asked for). Saving an expense returns here with an "Expense saved" toast | logged in |
+| `/` | Dashboard: welcome header with Add expense, then filters, summary cards and budgets (see below) (landing page after login when no other page was asked for). Saving an expense returns here with an "Expense saved" toast | logged in |
 | `/expenses/new`, `/expenses/:id` | Add / edit expense (`pages/Expenses/ExpenseForm`). Save stays disabled until amount, currency, category and date are filled, and shows a spinner while saving | logged in |
+| `/budgets/new`, `/budgets/:budgetId/edit` | Create / edit budget (`pages/Budgets/BudgetPage`, `BudgetForm`): Applies to (Personal or a family the user owns), Category (or All categories), Period, Amount, Currency. Editing changes only the amount and period; a family member who is not the owner sees a notice instead of the form. Saving returns to the dashboard with a "Budget saved" toast | logged in |
+| `/settings` | Settings: Month start day (1st to 28th) for monthly budgets | logged in |
 | `/families` | The user's families with their role, and a Create family form | logged in |
 | `/families/:familyId` | Members (avatar, name, email, role badge). Owner only: search by email or name, invite, pending invitations with Cancel (confirmed in an `AlertDialog`) | logged in; non-members see "Family not found" |
 | `/reports` | Totals by currency, then by category or month | logged in |
@@ -54,13 +56,15 @@ Route guards (`src/auth/guards.jsx`):
 - `RequireAuth` sends logged-out users to `/login` and remembers the page (path, query string and hash) in the history state as `from`. An expired session also remembers it. A logout in this tab (menu or idle) does not, so the next person to log in starts on the dashboard.
 - `GuestOnly` is the only redirect after login or sign-up: once the session is authenticated it goes to `from`, or `/`. Login and sign-up pages do not navigate themselves, because a second navigation would race with this one.
 
-Top bar (`components/TopBar`): Menu button (below 1024px), logo, `ThemeToggle` and `UserMenu` (avatar with initials and the display name; a non-modal `DropdownMenu` with the email and Logout).
+Top bar (`components/TopBar`): Menu button (below 1024px), logo, `ThemeToggle` and `UserMenu` (avatar with initials and the display name; a non-modal `DropdownMenu` with the email, Settings and Logout).
 
-Navigation (`components/Nav`): links to Dashboard and Families, each with a `lucide-react` icon; the active link has a primary tint and inset bar. Below 1024px it is a full-height drawer (shadcn `Sheet`, from the left, over the top bar). The top bar's Menu button is the `SheetTrigger`; Escape, the Close button, the backdrop or choosing a link closes it, and so does the window growing to 1024px. From 1024px it is a sticky sidebar and the Menu button is hidden. The drawer's scroll lock injects an inline `<style>` that the strict CSP blocks, so the page behind it can still scroll (as before the Sheet) and the browser logs one CSP error per open; this was accepted to keep `style-src 'self'`.
+Navigation (`components/Nav`): links to Dashboard, Families and Settings, each with a `lucide-react` icon; the active link has a primary tint and inset bar. Below 1024px it is a full-height drawer (shadcn `Sheet`, from the left, over the top bar). The top bar's Menu button is the `SheetTrigger`; Escape, the Close button, the backdrop or choosing a link closes it, and so does the window growing to 1024px. From 1024px it is a sticky sidebar and the Menu button is hidden. The drawer's scroll lock injects an inline `<style>` that the strict CSP blocks, so the page behind it can still scroll (as before the Sheet) and the browser logs one CSP error per open; this was accepted to keep `style-src 'self'`.
 
 Auth screens (`components/AuthLayout`): login, sign-up and OTP share a brand block with the logo, tagline and, from 1024px, feature highlights. Below 1024px it is a band above the form; from 1024px it is a left panel. Each form sits in `AuthLayout/AuthCard`. Logos live in `public/` (`logo-*` light for white backgrounds, dark for the brand colour); `logo-icon-light.svg` is the favicon.
 
 Dashboard summaries (`pages/Dashboard`): `DashboardFilters` offers a period (This month, Last month, This year from the browser's local calendar, or a Custom From-To range, inclusive, applied once both dates are set and in order) as a segmented `ToggleGroup` (items are `role="radio"`), and category `Toggle` chips with a colour dot ("All categories", or any mix; `aria-pressed`). The filters live in the URL (`?from=YYYY-MM-DD&to=YYYY-MM-DD&category=1&category=3`), so Add expense, reload and links keep them; Reset clears them to This month and All categories. Below them, a `SummaryCard` for Personal and one per family each load `GET /api/reports/summary` on their own, with a skeleton while loading, an `EmptyState` ("No expenses match these filters" and an "Add an expense" link that keeps the filters) when empty, and an error with Retry. Each card has a title and description, then a large total per currency (never added across currencies, e.g. "INR 12,450.00") and a `CategoryChart`: horizontal bars in the category colours with the name and amount beside each. The chart is `aria-hidden` and `accessibilityLayer={false}` (not focusable); an `sr-only` list gives screen readers the same data. Cards stack on phones and sit side by side from 768px.
+
+Dashboard budgets (`BudgetsSection`, `BudgetGroup`, `BudgetItem`): below the summaries, a "Budgets" heading with Create budget, then one card per scope that has budgets ("Personal", then each family; group headings are h3). `GET /api/budgets?today=` loads once on mount, so returning from Add expense shows the new spending; the section is keyed on the family ids, so joining a family reloads it. Each card has its own Period and Category selects (client-side, not in the URL). Each budget shows category and period, the current period's dates ("15 Sep – 14 Oct 2026"), a progress bar (`role="progressbar"`, capped at 100%), "X spent of Y", then "Z left" or "Over by Z", and a status badge: On track (Success), Close to limit (Accent Amber), Over budget (Warm Red). Badges are a tint with foreground text, for AA contrast in both themes. Owners get Edit and Delete (confirmed in an `AlertDialog`). With no budgets, an `EmptyState` invites the user to create one.
 
 Lists load with `hooks/useAsyncList` (`data`, `error`, `loading`, `reload`). It passes an abort signal to the load, shows `loading` on every reload while keeping the previous data, and aborts a load when a newer one starts or the page unmounts, so only the newest result is kept.
 
@@ -105,13 +109,15 @@ Browser-side checks mirror the API limits for fast feedback. The server remains 
 | Text fields | `maxLength` matching the API |
 | Password | 8 characters minimum, 72 bytes maximum |
 
+| Budget fields | Every field is required: a missing Category or Period, or a bad amount, shows its message next to the field; a duplicate (409) shows the server's message above the form |
+
 When adding an expense, the user chooses **Personal** (the default) or one of their families from a **Share with** dropdown, which stays compact however many families they have.
 
 ## Styling
 
 - `styles/global.css` is the only stylesheet. It imports `tailwindcss`, `tw-animate-css` and Sonner's CSS, sets shadcn variables on `:root` to the color scheme below and redefines them under `.dark`, exposes them to Tailwind with `@theme inline`, and sets base styles in `@layer base` (body, headings, links, focus outline, and near-zero animations and transitions under `prefers-reduced-motion`).
 - Variable mapping: `--primary` Primary Blue, `--accent` Accent Amber, `--foreground` Deep Navy (headings), `--muted-foreground` and `--card-foreground` Slate Gray (body text), `--background` and `--secondary` Background, `--card` Cards, `--border`, `--input` and `--muted` Borders, `--destructive` Warm Red, `--success` Success, `--grocery`, `--eating-out`, `--trips` category colors (classes `bg-success`, `bg-grocery` and so on). `--brand`, `--brand-deep` and `--brand-foreground` are the same in both themes, for the auth brand band and overlays.
-- Components use theme classes only (`bg-primary`, `text-destructive`, `bg-grocery`), never hard-coded hex values or arbitrary `[#...]` colors. The exception is the category colour from the API: the chip dot in `DashboardFilters` (inline `style`) and the bars in `CategoryChart` (Recharts `Cell fill`). Spacing and font sizes use Tailwind's scale.
+- Components use theme classes only (`bg-primary`, `text-destructive`, `bg-grocery`), never hard-coded hex values or arbitrary `[#...]` colors. The exception is the category colour from the API: the chip dot in `DashboardFilters` (inline `style`) and the bars in `CategoryChart` (Recharts `Cell fill`). A budget progress bar sets its width through React's `style` prop; React writes it to the DOM style property, which the CSP allows (the e2e test checks for CSP errors). Spacing and font sizes use Tailwind's scale.
 - Category color appears as a small badge or bar next to each expense and in report bars.
 
 ### Color scheme
@@ -132,7 +138,8 @@ Categories:
 
 Status:
 - Error / over budget: Warm Red `#b8453b` (darkened from `#d0584c` to meet WCAG AA on white)
-- Success: Sea Green `#3a9e84`
+- Success / on track: Sea Green `#3a9e84`
+- Close to limit: Accent Amber `#e6b340`
 
 ### Dark theme
 
