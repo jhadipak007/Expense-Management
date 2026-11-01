@@ -87,6 +87,7 @@ Record important lessons here as you discover them, one short bullet each. Add o
 - Radix modal parts (Sheet, Dialog scroll lock) inject an inline `<style>` that the strict CSP blocks; check the browser console with the real CSP before adding one.
 - Sonner injects its CSS at runtime (blocked by the CSP), so `global.css` imports `sonner/dist/styles.css`; tests must call `toast.dismiss()` after each test or old toasts replay.
 - Recharts 3 charts are keyboard-focusable by default; set `accessibilityLayer={false}` when the chart is `aria-hidden`.
+- `GuestOnly` is the only redirect after login or sign-up; a page that also calls `navigate()` after the session changes races with it and loses. Chromium keeps `history.state` on a same-URL `page.goto()`.
 
 ## Personal progress tracking
 

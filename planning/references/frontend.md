@@ -39,9 +39,9 @@ Every page and component adapts to screen size.
 
 | Route | Page | Access |
 |---|---|---|
-| `/login` | Login: "Welcome back", show/hide password, a "Forgot password?" placeholder (says reset is coming soon), link to sign-up | public; logged-in users go to `/` |
-| `/register` | Register: details, then the OTP screen with Back (details kept). Links to login. After 5 wrong codes, returns to the details step | public; logged-in users go to `/` |
-| `/` | Dashboard: welcome header with Add expense, then filters and summary cards (see below) (redirect target after login). Saving an expense returns here with an "Expense saved" toast | logged in |
+| `/login` | Login: "Welcome back", show/hide password, a "Forgot password?" placeholder (says reset is coming soon), link to sign-up | public; logged-in users go to the remembered page or `/` |
+| `/register` | Register: details, then the OTP screen with Back (details kept). Links to login. After 5 wrong codes, returns to the details step | public; logged-in users go to the remembered page or `/` |
+| `/` | Dashboard: welcome header with Add expense, then filters and summary cards (see below) (landing page after login when no other page was asked for). Saving an expense returns here with an "Expense saved" toast | logged in |
 | `/expenses/new`, `/expenses/:id` | Add / edit expense (`pages/Expenses/ExpenseForm`). Save stays disabled until amount, currency, category and date are filled, and shows a spinner while saving | logged in |
 | `/families` | The user's families with their role, and a Create family form | logged in |
 | `/families/:familyId` | Members (avatar, name, email, role badge). Owner only: search by email or name, invite, pending invitations with Cancel (confirmed in an `AlertDialog`) | logged in; non-members see "Family not found" |
@@ -50,7 +50,9 @@ Every page and component adapts to screen size.
 
 The dashboard also lists the user's open family invitations with Accept and Decline (confirmed in an `AlertDialog`), and hides the section when there are none. Accepting reloads the dashboard so the family's card appears.
 
-A route guard sends logged-out users to `/login` and returns them to the page they asked for after login.
+Route guards (`src/auth/guards.jsx`):
+- `RequireAuth` sends logged-out users to `/login` and remembers the page (path, query string and hash) in the history state as `from`. An expired session also remembers it. A logout in this tab (menu or idle) does not, so the next person to log in starts on the dashboard.
+- `GuestOnly` is the only redirect after login or sign-up: once the session is authenticated it goes to `from`, or `/`. Login and sign-up pages do not navigate themselves, because a second navigation would race with this one.
 
 Top bar (`components/TopBar`): Menu button (below 1024px), logo, `ThemeToggle` and `UserMenu` (avatar with initials and the display name; a non-modal `DropdownMenu` with the email and Logout).
 

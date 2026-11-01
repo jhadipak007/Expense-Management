@@ -50,6 +50,35 @@ describe('session and route guards', () => {
     expect(loggedOut).toBe(true);
   });
 
+  it('logout forgets the page, so the next login goes to the dashboard', async () => {
+    server.use(validRefresh);
+    const { user, router } = renderApp('/families');
+    await screen.findByRole('heading', { name: 'Families' });
+    await logOut(user);
+    await screen.findByRole('button', { name: 'Log in' });
+    expect(router.state.location.pathname).toBe('/login');
+    expect(router.state.location.state?.from).toBeUndefined();
+  });
+
+  it('an expired session remembers the page, so login returns to it', async () => {
+    server.use(validRefresh);
+    const { user, router } = renderApp('/');
+    await screen.findByRole('heading', { name: 'Welcome, Priya' });
+    server.use(
+      http.post('/api/auth/refresh', () => HttpResponse.json({}, { status: 401 })),
+      http.get('/api/families', () => HttpResponse.json({}, { status: 401 }), { once: true }),
+    );
+    await act(() => router.navigate('/families?tab=mine'));
+    await screen.findByRole('button', { name: 'Log in' });
+    expect(router.state.location.state?.from).toBe('/families?tab=mine');
+
+    await user.type(screen.getByLabelText('Email'), 'priya@example.com');
+    await user.type(screen.getByLabelText('Password'), 'P@ssw0rd');
+    await user.click(screen.getByRole('button', { name: 'Log in' }));
+    expect(await screen.findByRole('heading', { name: 'Families' })).toBeInTheDocument();
+    expect(router.state.location.pathname + router.state.location.search).toBe('/families?tab=mine');
+  });
+
   it('going back to the dashboard after logout shows login', async () => {
     server.use(validRefresh);
     const { user, router } = renderApp('/');

@@ -5,10 +5,12 @@ import { setSessionExpiredHandler } from '@/api/client.js';
 import { AuthContext } from './useAuth.js';
 
 const LOGGED_OUT = { status: 'unauthenticated', user: null };
+const SIGNED_OUT = { ...LOGGED_OUT, signedOut: true };
 
 /**
  * Holds the session: `status` is 'loading' until the refresh cookie has been
- * tried, then 'authenticated' (with `user`) or 'unauthenticated'.
+ * tried, then 'authenticated' (with `user`) or 'unauthenticated'. `signedOut`
+ * marks a logout in this tab, so the next login does not reopen that user's page.
  * Rendered as the root layout route so every page can use `useAuth()`.
  */
 export function AuthProvider() {
@@ -43,7 +45,7 @@ export function AuthProvider() {
   }, []);
 
   const logout = useCallback(async () => {
-    setSession(LOGGED_OUT);
+    setSession(SIGNED_OUT);
     await authApi.logout();
   }, []);
 

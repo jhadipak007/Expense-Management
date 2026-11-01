@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
 import { LockIcon, MailIcon } from 'lucide-react';
 import { useAuth } from '@/auth/useAuth.js';
 import AuthCard from '@/components/AuthLayout/AuthCard.jsx';
@@ -23,8 +22,6 @@ function requiredErrors(email, password) {
 
 export default function Login() {
   const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
@@ -40,8 +37,7 @@ export default function Login() {
     if (Object.keys(fieldErrors).length) return;
     setSubmitting(true);
     try {
-      await login(email.trim(), password);
-      navigate(location.state?.from ?? '/', { replace: true });
+      await login(email.trim(), password); // GuestOnly then redirects to the page asked for.
     } catch (error) {
       setFormError(error.status === 401 ? INCORRECT : UNAVAILABLE);
       setSubmitting(false);

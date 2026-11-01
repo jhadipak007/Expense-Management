@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import { useAuth } from '@/auth/useAuth.js';
 import AuthCard from '@/components/AuthLayout/AuthCard.jsx';
 import FormField from '@/components/FormField.jsx';
@@ -13,7 +12,6 @@ const UNAVAILABLE = 'Something went wrong. Please try again.';
 /** OTP step. A 404 means the sign-up is gone (too many attempts or expired). */
 export default function OtpForm({ registrationId, onBack, onRestart }) {
   const { completeRegistration } = useAuth();
-  const navigate = useNavigate();
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState('');
   const [formError, setFormError] = useState('');
@@ -27,8 +25,7 @@ export default function OtpForm({ registrationId, onBack, onRestart }) {
     if (!valid) return;
     setSubmitting(true);
     try {
-      await completeRegistration(registrationId, code);
-      navigate('/', { replace: true });
+      await completeRegistration(registrationId, code); // GuestOnly then redirects to the dashboard.
     } catch (error) {
       if (error.status === 404) return onRestart();
       setFormError(error.status === 400 ? INCORRECT : UNAVAILABLE);
