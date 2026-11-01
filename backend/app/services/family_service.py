@@ -1,10 +1,14 @@
 """Families: create, list and show them, and find users for the owner to invite."""
 
+import logging
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models import Family, FamilyMember, FamilyRole, User
 from app.services.family_access import require_member, require_owner
+
+logger = logging.getLogger(__name__)
 
 
 def create_family(db: Session, user_id: int, name: str) -> FamilyMember:
@@ -13,6 +17,7 @@ def create_family(db: Session, user_id: int, name: str) -> FamilyMember:
     membership = FamilyMember(family=family, user_id=user_id, role=FamilyRole.owner)
     db.add(membership)
     db.commit()
+    logger.info("family created", extra={"user_id": user_id, "family_id": family.id})
     return membership
 
 

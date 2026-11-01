@@ -44,6 +44,8 @@ Expense Tracker/
 │   │   ├── main.py            # FastAPI app, mounts /api and serves built frontend
 │   │   ├── config.py          # Settings (pydantic-settings)
 │   │   ├── db.py              # engine and session
+│   │   ├── logging_config.py  # stdout handler, JSON/text format, request ID contextvar
+│   │   ├── request_logging.py # request ID middleware and access line
 │   │   ├── models/            # SQLAlchemy models: user, family, expense
 │   │   ├── schemas/           # Pydantic request/response models
 │   │   ├── routers/           # /api routes: auth, families, expenses, reports
@@ -64,6 +66,7 @@ Expense Tracker/
         ├── api/               # fetch wrappers for /api
         ├── pages/             # Login, Expenses, Family, Reports
         ├── components/        # app building blocks (FormField, SectionCard, ItemRow...)
+        ├── utils/             # logger (error reporting), formatting helpers
         │   └── ui/            # shadcn/ui components (generated, committed)
         └── styles/            # global.css: Tailwind entry, theme and base styles
 ```
@@ -88,6 +91,9 @@ SQLAlchemy 2.0 ORM with typed models, relationships and derived fields; Alembic 
 
 ## Configuration
 One pydantic-settings `Settings` class reads environment variables and `.env`; secrets come from AWS Secrets Manager in production. Read [planning/references/configuration.md](references/configuration.md) before any task that adds or uses a setting.
+
+## Logging
+JSON lines on stdout (CloudWatch in production) with a request ID on every line, one access line per request, domain events from services and browser errors posted to `/api/client-logs`. Secrets and emails are never logged. Read [planning/references/logging.md](references/logging.md) before any task that adds or changes logging.
 
 ## Testing
 Backend: pytest with unit and integration tests on SQLite (PostgreSQL for release checks). Frontend: Vitest + React Testing Library, and Playwright for end-to-end and responsive checks. Read [planning/references/testing.md](references/testing.md) before writing or changing tests.

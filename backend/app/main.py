@@ -5,11 +5,14 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from app.config import get_settings
+from app.logging_config import request_id_var, setup_logging
+from app.request_logging import log_requests
 from app.routers import (
-    auth, categories, currencies, expenses, families, health, invitations, reports, users,
+    auth, categories, client_logs, currencies, expenses, families, health, invitations, reports,
+    users,
 )
 
 SECURITY_HEADERS = {
@@ -20,10 +23,12 @@ SECURITY_HEADERS = {
     "Content-Security-Policy": "default-src 'self'; frame-ancestors 'none'",
 }
 
+logger = logging.getLogger(__name__)
+
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    logging.basicConfig(level=settings.log_level)
+    setup_logging(settings.log_level, settings.log_format)
     docs = settings.enable_api_docs
     app = FastAPI(
         title="Expense Sarathi",
@@ -31,11 +36,14 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if docs else None,
         openapi_url="/openapi.json" if docs else None,
     )
-    # The last middleware added runs first: headers wrap every response, including host rejections.
+    # The last middleware added runs first: request logging and headers wrap every response,
+    # including host rejections.
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
     app.middleware("http")(add_security_headers)
+    app.middleware("http")(log_requests)
+    app.add_exception_handler(Exception, handle_unexpected_error)
     modules = (health, auth, users, families, invitations, categories, currencies, expenses,
-               reports)
+               reports, client_logs)
     for module in modules:
         app.include_router(module.router)
     dist = Path(settings.frontend_dist_dir)
@@ -50,6 +58,13 @@ async def add_security_headers(request: Request, call_next):
     if request.url.path.startswith("/api"):
         response.headers["Cache-Control"] = "no-store"
     return response
+
+
+async def handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    """Log the traceback and return a generic 500; details never reach the client."""
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    headers = SECURITY_HEADERS | {"Cache-Control": "no-store", "X-Request-ID": request_id_var.get()}
+    return JSONResponse({"detail": "Internal server error"}, status_code=500, headers=headers)
 
 
 def add_frontend_routes(app: FastAPI, dist: Path) -> None:

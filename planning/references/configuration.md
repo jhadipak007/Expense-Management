@@ -28,6 +28,7 @@
 | `AWS_SECRETS_MANAGER_SECRET_ID` | `str \| None` | Secret to load at startup | unset | `expense-sarathi/prod/app` |
 | `ENABLE_API_DOCS` | `bool` | Serve `/docs`, `/redoc`, `/openapi.json` | `true` | `false` |
 | `LOG_LEVEL` | `str` | Logging level | `DEBUG` | `INFO` |
+| `LOG_FORMAT` | `Literal["json", "text"]` | Log line format on stdout ([logging.md](logging.md)) | `text` | `json` |
 | `FRONTEND_DIST_DIR` | `str` | Built frontend served by FastAPI | `frontend/dist` | not used (S3) |
 
 The database URL is built in `Settings` from these fields (a computed property), using SQLAlchemy's `URL.create()` so special characters in the password are escaped.

@@ -76,6 +76,7 @@ Lambda environment variables (non-secret):
 | `ENABLE_API_DOCS` | `false` |
 | `ALLOWED_HOSTS` | `["<api-id>.execute-api.<region>.amazonaws.com"]` (CloudFront sends the API Gateway host, not the viewer host) |
 | `LOG_LEVEL` | `INFO` |
+| `LOG_FORMAT` | `json` |
 | `AWS_LWA_PORT` | `8080` |
 | `AWS_LWA_READINESS_CHECK_PATH` | `/api/health` |
 
@@ -251,6 +252,7 @@ In **VPC -> Security groups -> Create security group**, create four groups in th
    - RDS `CPUUtilization` Average >= 80% for 15 minutes.
    - RDS `FreeStorageSpace` <= 2 GB.
    - RDS `DatabaseConnections` >= 60 (t4g.micro allows about 80).
+   - App errors: first **CloudWatch -> Log groups -> `/aws/lambda/expense-sarathi-api` -> Metric filters -> Create**: pattern `{ $.level = "ERROR" }`, filter name `expense-sarathi-app-errors`, namespace `expense-sarathi`, metric `AppErrors`, value `1`, default value `0`. Then alarm on `expense-sarathi` / `AppErrors` Sum >= 1 in 5 minutes. See [logging.md](logging.md).
 4. Optional: API Gateway stage **Monitor -> Logging** -> enable access logs to a new log group.
 
 ### A16. GitHub OIDC and deploy role
@@ -406,7 +408,7 @@ cat > lambda-env.json <<EOF
   "ENVIRONMENT":"production","USE_POSTGRESQL_DB":"true",
   "DB_HOST":"$DB_HOST","DB_PORT":"5432","DB_NAME":"expense_sarathi",
   "AWS_SECRETS_MANAGER_SECRET_ID":"$APP/prod/app",
-  "COOKIE_SECURE":"true","ENABLE_API_DOCS":"false","LOG_LEVEL":"INFO",
+  "COOKIE_SECURE":"true","ENABLE_API_DOCS":"false","LOG_LEVEL":"INFO","LOG_FORMAT":"json",
   "ALLOWED_HOSTS":"[\"$1\"]",
   "AWS_LWA_PORT":"8080","AWS_LWA_READINESS_CHECK_PATH":"/api/health"}}
 EOF
@@ -620,6 +622,10 @@ alarm api-5xx          AWS/ApiGateway 5xx                 Name=ApiId,Value=$API_
 alarm rds-cpu          AWS/RDS        CPUUtilization      Name=DBInstanceIdentifier,Value=$APP-db  Average 80         GreaterThanOrEqualToThreshold 3
 alarm rds-storage      AWS/RDS        FreeStorageSpace    Name=DBInstanceIdentifier,Value=$APP-db  Minimum 2000000000 LessThanOrEqualToThreshold    1
 alarm rds-connections  AWS/RDS        DatabaseConnections Name=DBInstanceIdentifier,Value=$APP-db  Maximum 60         GreaterThanOrEqualToThreshold 1
+
+# App errors: any JSON log line with level ERROR (see logging.md). Custom metric, no dimensions.
+aws logs put-metric-filter --log-group-name /aws/lambda/$APP-api --filter-name $APP-app-errors   --filter-pattern '{ $.level = "ERROR" }'   --metric-transformations metricName=AppErrors,metricNamespace=$APP,metricValue=1,defaultValue=0
+aws cloudwatch put-metric-alarm --alarm-name $APP-app-errors --namespace $APP --metric-name AppErrors   --statistic Sum --period 300 --evaluation-periods 1 --threshold 1   --comparison-operator GreaterThanOrEqualToThreshold --treat-missing-data notBreaching --alarm-actions $TOPIC_ARN
 ```
 
 ### B16. GitHub OIDC provider and deploy role
@@ -845,6 +851,34 @@ ordered_cache_behavior {
   compress                 = true
 }
 ```
+
+App error alarm (`monitoring.tf`), fed by the JSON log lines described in [logging.md](logging.md):
+```hcl
+resource "aws_cloudwatch_log_metric_filter" "app_errors" {
+  name           = "${var.app}-app-errors"
+  log_group_name = "/aws/lambda/${var.app}-api"
+  pattern        = "{ $.level = \"ERROR\" }"
+  metric_transformation {
+    name          = "AppErrors"
+    namespace     = var.app
+    value         = "1"
+    default_value = "0"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "app_errors" {
+  alarm_name          = "${var.app}-app-errors"
+  namespace           = var.app
+  metric_name         = "AppErrors"
+  statistic           = "Sum"
+  period              = 300
+  evaluation_periods  = 1
+  threshold           = 1
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  treat_missing_data  = "notBreaching"
+  alarm_actions       = [aws_sns_topic.alerts.arn] # topic expense-sarathi-alerts, also in monitoring.tf
+}
+```
 All other resources map one-to-one to the Console and CLI steps (same names and settings as the table in section 2).
 
 ### C4. Apply
@@ -994,7 +1028,7 @@ Before tagging a release, run the PostgreSQL release check locally ([local_deplo
 9. Wait more than 10 minutes, then use the app: the access token is refreshed silently.
 10. S3 object URL `https://<bucket>.s3.<region>.amazonaws.com/index.html` returns **AccessDenied** (bucket is private).
 11. RDS has no public endpoint access (connection from your laptop times out).
-12. CloudWatch: Lambda logs show requests and no errors; all alarms are in **OK** state.
+12. CloudWatch: Lambda logs are JSON lines with `request_id`; a Logs Insights query on a response's `X-Request-ID` finds its `app.access` line; no `ERROR` lines; all alarms are in **OK** state.
 
 ## 9. Rollback
 

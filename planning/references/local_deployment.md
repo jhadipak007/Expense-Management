@@ -73,7 +73,7 @@ RUN uv sync --locked --no-dev
 COPY --from=frontend /frontend/dist ./frontend_dist
 
 EXPOSE 8080
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--no-access-log"]
 ```
 
 Notes:
@@ -92,7 +92,7 @@ services:
     env_file: .env
     volumes:
       - ./db:/app/db
-    command: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8080"
+    command: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8080 --no-access-log"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/health')"]
       interval: 5s
@@ -135,6 +135,7 @@ services:
    ALLOWED_HOSTS=["localhost","127.0.0.1"]
    ENABLE_API_DOCS=true
    LOG_LEVEL=DEBUG
+   LOG_FORMAT=text
    ```
    `COOKIE_SECURE=false` is required locally because `http://localhost` is not HTTPS; otherwise the browser drops the refresh cookie.
 5. **Make sure the `db/` folder exists** (the start script creates it if missing). It must stay git-ignored.
@@ -188,7 +189,7 @@ What the start script does, in order:
 
 For fast frontend/backend iteration without rebuilding the image:
 
-1. Backend: `cd backend && uv sync && uv run alembic upgrade head && uv run uvicorn app.main:app --reload --port 8000`
+1. Backend: `cd backend && uv sync && uv run alembic upgrade head && uv run uvicorn app.main:app --reload --port 8000 --no-access-log`
 2. Frontend: `cd frontend && npm install && npm run dev`
 3. `vite.config.js` proxies `/api` to `http://localhost:8000`, so the browser still sees one origin (`http://localhost:5173`) and cookies work.
 4. Add `localhost` to `ALLOWED_HOSTS` (already in the local defaults).

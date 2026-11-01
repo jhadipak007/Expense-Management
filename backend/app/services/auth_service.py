@@ -1,5 +1,6 @@
 """Login and refresh-token lifecycle: issue, rotate, revoke."""
 
+import logging
 from datetime import timedelta
 
 from sqlalchemy import select, update
@@ -11,6 +12,8 @@ from app.models.base import utcnow
 from app.security import hash_password, hash_token, new_token, verify_password
 
 DUMMY_PASSWORD_HASH = hash_password("not-a-real-password")
+
+logger = logging.getLogger(__name__)
 
 
 class InvalidRefreshToken(Exception):
@@ -27,7 +30,9 @@ def authenticate_user(db: Session, email: str, password: str) -> User | None:
     db.commit()  # end the read transaction; don't hold database locks during the slow bcrypt check
     password_ok = verify_password(password, user.password_hash if user else DUMMY_PASSWORD_HASH)
     if user is None or not user.is_active or not password_ok:
+        logger.info("login failed", extra={"user_id": user.id if user else None})
         return None
+    logger.info("login succeeded", extra={"user_id": user.id})
     return user
 
 
@@ -60,6 +65,8 @@ def rotate_refresh_token(db: Session, raw: str) -> tuple[User, str]:
     if not consumed:
         db.refresh(token)
         if token.revoked_at is not None:
+            logger.warning("refresh token reuse detected; all sessions revoked",
+                           extra={"user_id": token.user_id})
             revoke_all_refresh_tokens(db, token.user_id)
         raise InvalidRefreshToken
     user = db.get(User, token.user_id)
