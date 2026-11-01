@@ -37,7 +37,7 @@ export default function BudgetPage() {
   }
 
   return (
-    <SectionCard className="max-w-2xl">
+    <SectionCard>
       <BackLink to={dashboard}>Back to dashboard</BackLink>
       <PageHeader
         title={budgetId ? 'Edit budget' : 'Create budget'}

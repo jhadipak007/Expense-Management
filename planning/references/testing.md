@@ -141,7 +141,7 @@ Rules for the suite: it runs with one worker (`workers: 1`), because every test 
 - Two users: owner creates a family and invites a newly registered user, who accepts from the dashboard and sees the family's members; a cancelled invitation disappears from the invitee's dashboard.
 - Later (family expenses): both see a shared family expense; the second user's personal expense stays hidden from the owner.
 - Session survives a page reload (refresh cookie); access token expiry is handled without logging the user out.
-- Responsive: the main pages at 360px, 768px and 1440px have no horizontal scroll, and the navigation is a drawer below 1024px and a sidebar from 1024px. On login the brand highlights show only from 1024px, and the toggle and "Forgot password?" are at least 44px tall.
+- Responsive: the main pages at 360px, 768px and 1440px have no horizontal scroll, and the navigation is a drawer below 1024px and a sidebar from 1024px. The Add expense and Create budget cards are exactly as wide as the dashboard cards. On login the brand highlights show only from 1024px, and the toggle and "Forgot password?" are at least 44px tall.
 - Login works with the keyboard alone (tab order, Enter submits); the favicon is the Expense Sarathi icon.
 - Opening a page with a query string while logged out returns to it, query string included, after login.
 - A logout request that fails (network abort) is finished on the next page load; a further reload still shows login.

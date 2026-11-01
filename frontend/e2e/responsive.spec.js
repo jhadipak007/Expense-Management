@@ -98,6 +98,20 @@ for (const width of WIDTHS) {
       await page.screenshot({ path: `test-results/screens/add-expense-${width}.png`, fullPage: true });
     });
 
+    test('add expense and create budget cards are as wide as the dashboard cards', async ({ page }) => {
+      const cardWidth = async () => (await page.locator('[data-slot="card"]').first().boundingBox()).width;
+      await logIn(page);
+      await expectDashboard(page);
+      const dashboard = await cardWidth();
+      await page.getByRole('link', { name: 'Add expense' }).click();
+      await expect(page.getByLabel('Amount')).toBeVisible();
+      expect(await cardWidth()).toBe(dashboard);
+      await page.goto('/budgets/new');
+      await expect(page.getByLabel('Amount')).toBeVisible();
+      expect(await cardWidth()).toBe(dashboard);
+      await page.screenshot({ path: `test-results/screens/create-budget-${width}.png`, fullPage: true });
+    });
+
     test('navigation is a drawer below 1024px and a sidebar above', async ({ page }) => {
       await logIn(page);
       await expectDashboard(page);

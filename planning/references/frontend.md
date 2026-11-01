@@ -7,6 +7,9 @@ Every page and component adapts to screen size.
 
 - Build mobile-first: unprefixed Tailwind utilities for phones, then `md:` (768px)
   and `lg:` (1024px), Tailwind's default breakpoints. Content width is capped at 1280px on large screens.
+- Page cards, form pages included, fill the content column like the dashboard cards. Form fields sit two per row
+  from `md:` (a lone select in its own two-column row), and only free text such as a description spans the row.
+  Settings is the one narrow card (`max-w-2xl`) since it holds a single field.
 - One codebase that adapts via responsive utilities — never separate mobile/desktop versions.
 - Layout adapts per size:
   - Phone (<768px): single column, stacked content, hamburger/drawer nav,
