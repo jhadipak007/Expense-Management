@@ -29,6 +29,13 @@ export function formatPeriod(start, end) {
   return `${sameYear ? first.slice(0, -5) : first} – ${last}`;
 }
 
+/** A day of the month as "1st", "2nd", "3rd", "4th" ... "11th", "12th", "13th" ... "21st". */
+export function ordinal(day) {
+  const teen = day % 100 >= 11 && day % 100 <= 13;
+  const suffix = teen ? 'th' : { 1: 'st', 2: 'nd', 3: 'rd' }[day % 10] ?? 'th';
+  return `${day}${suffix}`;
+}
+
 const MONEY = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,

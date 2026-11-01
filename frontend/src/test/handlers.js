@@ -38,6 +38,7 @@ export const handlers = [
   }),
   http.post('/api/auth/logout', () => new HttpResponse(null, { status: 204 })),
   http.get('/api/users/me', () => HttpResponse.json(USER)),
+  http.patch('/api/users/me', async ({ request }) => HttpResponse.json({ ...USER, ...(await request.json()) })),
   http.get('/api/invitations', () => HttpResponse.json([])),
   http.get('/api/families', () => HttpResponse.json([])),
   http.get('/api/categories', () => HttpResponse.json(CATEGORIES)),

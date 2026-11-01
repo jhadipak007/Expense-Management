@@ -148,6 +148,35 @@ describe('Dashboard budgets', () => {
     expect(await screen.findByText('No budgets yet')).toBeInTheDocument();
   });
 
+  it('nests each group heading under the Budgets heading', async () => {
+    mockBudgets();
+    renderApp('/');
+    const personal = await group('Personal');
+    expect(screen.getByRole('heading', { level: 2, name: 'Budgets' })).toBeInTheDocument();
+    expect(within(personal).getByRole('heading', { level: 3, name: 'Personal' })).toBeInTheDocument();
+  });
+
+  it("shows a family's budgets right after its invitation is accepted", async () => {
+    let joined = false;
+    const familyBudget = budget({ id: 9, family_id: 3, can_manage: false });
+    server.use(
+      validRefresh,
+      http.get('/api/families', () => HttpResponse.json(joined ? [{ ...FAMILIES[0], role: 'member' }] : [])),
+      http.get('/api/budgets', () => HttpResponse.json(joined ? [familyBudget] : [])),
+      http.get('/api/invitations', () => HttpResponse.json(joined ? [] : [{
+        id: 5, family_id: 3, family_name: 'Jha Household', inviter_name: 'Dipak', expires_at: '2026-12-05T10:00:00Z',
+      }])),
+      http.post('/api/invitations/5/accept', () => {
+        joined = true;
+        return HttpResponse.json({ id: 3, name: 'Jha Household', role: 'member' });
+      }),
+    );
+    const { user } = renderApp('/');
+    expect(await screen.findByText('No budgets yet')).toBeInTheDocument();
+    await user.click(await screen.findByRole('button', { name: 'Accept invitation to Jha Household' }));
+    expect(items(await group('Jha Household'))).toHaveLength(1);
+  });
+
   it('shows new spending after an expense is added, without a page reload', async () => {
     let spent = '100.00';
     mockBudgets(() => [budget({ id: 1, spent, remaining: '0.00', status: spent === '100.00' ? 'on_track' : 'over', over_by: '50.00' })]);

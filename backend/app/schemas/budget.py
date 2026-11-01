@@ -1,11 +1,28 @@
-from datetime import date
+"""Budget requests and responses."""
+
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models import BudgetPeriod
+from app.models.base import utcnow
 from app.schemas.base import InputModel
+
+
+class TodayQuery(InputModel):
+    """The user's local date, which picks each budget's current period."""
+
+    today: date
+
+    @field_validator("today")
+    @classmethod
+    def near_utc_today(cls, value: date) -> date:
+        """Every time zone's date is within a day of the UTC date."""
+        if abs(value - utcnow().date()) > timedelta(days=1):
+            raise ValueError("Date must be within a day of today")
+        return value
 
 
 class BudgetUpdateIn(InputModel):

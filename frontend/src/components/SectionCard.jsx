@@ -25,17 +25,17 @@ export function PageHeader({ title, description }) {
   );
 }
 
-/** Heading of a card. */
-export function CardHeading({ className, ...props }) {
-  return <h2 className={cn('text-xl font-bold wrap-anywhere text-foreground', className)} {...props} />;
+/** Heading of a card; an h2 unless `as` names another level. */
+export function CardHeading({ as: Heading = 'h2', className, ...props }) {
+  return <Heading className={cn('text-xl font-bold wrap-anywhere text-foreground', className)} {...props} />;
 }
 
-/** A card's heading and short description, with an optional icon tile on the right. */
-export function CardIntro({ id, title, description, icon: Icon, iconClassName }) {
+/** A card's heading (level from `as`) and short description, with an optional icon tile on the right. */
+export function CardIntro({ id, as, title, description, icon: Icon, iconClassName }) {
   return (
     <div className="flex items-start justify-between gap-3">
       <div className="flex min-w-0 flex-col gap-1">
-        <CardHeading id={id}>{title}</CardHeading>
+        <CardHeading id={id} as={as}>{title}</CardHeading>
         {description && <p className="text-sm">{description}</p>}
       </div>
       {Icon && (

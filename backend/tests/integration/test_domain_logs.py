@@ -4,6 +4,7 @@ import logging
 
 import pytest
 
+from app.models.base import utcnow
 from app.routers.auth import REFRESH_COOKIE
 from tests.conftest import DEFAULT_PASSWORD
 
@@ -102,3 +103,24 @@ def test_expense_created_is_logged(client, caplog, make_user, auth_headers):
     _, message, fields = last_event(caplog)
     assert (message, fields["user_id"], fields["expense_id"], fields["family_id"]) == (
         "expense created", user.id, expense_id, None)
+
+
+def test_budget_events_are_logged(client, caplog, make_user, auth_headers):
+    user = make_user()
+    headers, params = auth_headers(user), {"today": str(utcnow().date())}
+    budget = {"period": "yearly", "amount": "100", "currency": "AUD"}
+    budget_id = client.post("/api/budgets", json=budget, params=params, headers=headers).json()["id"]
+    client.patch(f"/api/budgets/{budget_id}", json={"amount": "5", "period": "weekly"},
+                 params=params, headers=headers)
+    client.delete(f"/api/budgets/{budget_id}", headers=headers)
+    logged = [(message, fields["user_id"], fields["budget_id"], fields["family_id"])
+              for _, message, fields in events(caplog)]
+    assert logged == [(event, user.id, budget_id, None)
+                      for event in ("budget created", "budget updated", "budget deleted")]
+
+
+def test_settings_update_is_logged(client, caplog, make_user, auth_headers):
+    user = make_user()
+    client.patch("/api/users/me", json={"month_start_day": 15}, headers=auth_headers(user))
+    _, message, fields = last_event(caplog)
+    assert (message, fields["user_id"]) == ("user settings updated", user.id)

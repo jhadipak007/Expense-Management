@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import FormField, { SelectField } from '@/components/FormField.jsx';
 import Notice from '@/components/Notice.jsx';
+import FormSection from '@/components/FormSection.jsx';
 import SubmitButton from '@/components/SubmitButton.jsx';
-import { FieldLegend, FieldSet } from '@/components/ui/field';
 import { NativeSelectOption } from '@/components/ui/native-select';
 import { todayIso } from '@/utils/format.js';
+import { CHECK_FORM, UNAVAILABLE, isValidAmount, serverFieldErrors } from '@/utils/formErrors.js';
 
-export const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
-const UNAVAILABLE = 'Something went wrong. Please try again.';
-const CHECK_FORM = 'Please check the form and try again.';
 const MESSAGES = {
   amount: 'Enter an amount greater than 0, with at most 2 decimal places',
   currency: 'Choose a currency from the list',
@@ -26,18 +24,8 @@ const EMPTY = {
 /** Browser-side checks that mirror the API rules; returns errors keyed by field. */
 function validate(form) {
   const errors = {};
-  const amount = form.amount.trim();
-  if (!AMOUNT_PATTERN.test(amount) || Number(amount) <= 0) errors.amount = MESSAGES.amount;
+  if (!isValidAmount(form.amount.trim())) errors.amount = MESSAGES.amount;
   if (form.spent_on > todayIso()) errors.spent_on = MESSAGES.spent_on;
-  return errors;
-}
-
-function serverFieldErrors(body) {
-  const errors = {};
-  for (const { loc } of body?.detail ?? []) {
-    const field = loc?.[1];
-    if (MESSAGES[field]) errors[field] = MESSAGES[field];
-  }
   return errors;
 }
 
@@ -80,7 +68,7 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
     try {
       await onSubmit(toPayload(form));
     } catch (error) {
-      if (error.status === 422) showServerErrors(serverFieldErrors(error.body));
+      if (error.status === 422) showServerErrors(serverFieldErrors(error.body, MESSAGES));
       else if (error.status === 404) setFormError(`${error.body.detail}. ${MESSAGES.family_id}.`);
       else setFormError(UNAVAILABLE);
       setSubmitting(false);
@@ -139,17 +127,5 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
         Save
       </SubmitButton>
     </form>
-  );
-}
-
-/** A titled group of related fields, separated from the next by a rule. */
-export function FormSection({ legend, children }) {
-  return (
-    <FieldSet className="gap-4 border-b pb-6">
-      <FieldLegend className="mb-0 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-        {legend}
-      </FieldLegend>
-      {children}
-    </FieldSet>
   );
 }

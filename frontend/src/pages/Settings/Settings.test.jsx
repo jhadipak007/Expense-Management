@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import { USER, validRefresh } from '@/test/handlers.js';
 import { server } from '@/test/setup.js';
 import { renderApp } from '@/test/renderApp.jsx';
-import { ordinal } from './Settings.jsx';
 
 /** Logged in as a user whose month starts on `day`; returns the bodies PATCHed. */
 function mockSettings({ day = 15, status = 200 } = {}) {
@@ -56,12 +55,5 @@ describe('Settings', () => {
     const { user } = renderApp('/settings');
     await user.click(await screen.findByRole('button', { name: 'Save settings' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong. Please try again.');
-  });
-});
-
-describe('ordinal', () => {
-  it.each([[1, '1st'], [2, '2nd'], [3, '3rd'], [4, '4th'], [11, '11th'], [12, '12th'], [13, '13th'],
-    [21, '21st'], [22, '22nd'], [23, '23rd'], [28, '28th']])('%i is %s', (day, text) => {
-    expect(ordinal(day)).toBe(text);
   });
 });

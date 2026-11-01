@@ -3,9 +3,9 @@ import { toast } from 'sonner';
 import { createExpense, listExpenseFormOptions } from '@/api/expenses.js';
 import { useAsyncList } from '@/hooks/useAsyncList.js';
 import BackLink from '@/components/BackLink.jsx';
+import FormSkeleton from '@/components/FormSkeleton.jsx';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { PageHeader } from '@/components/SectionCard.jsx';
-import { Skeleton } from '@/components/ui/skeleton';
 import { formatMoney } from '@/utils/format.js';
 import ExpenseForm from './ExpenseForm.jsx';
 
@@ -39,20 +39,5 @@ export default function NewExpense() {
         />
       )}
     </SectionCard>
-  );
-}
-
-/** Placeholder shaped like the form's fields. */
-function FormSkeleton() {
-  return (
-    <div className="flex flex-col gap-4" role="status">
-      <span className="sr-only">Loading...</span>
-      {[1, 2, 3, 4].map((row) => (
-        <div key={row} className="flex flex-col gap-2">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-11 w-full" />
-        </div>
-      ))}
-    </div>
   );
 }

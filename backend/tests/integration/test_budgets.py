@@ -1,6 +1,5 @@
 """Budgets: personal or family spending limits, each with its current period and spending."""
 
-import logging
 from datetime import date, timedelta
 
 import pytest
@@ -245,14 +244,3 @@ def test_today_must_be_within_a_day_of_utc(api, household, days):
 def test_injection_payloads_are_rejected(api, household, path, today):
     assert api("GET", household[0], path, today=today).status_code == 422
 
-
-def test_budget_events_are_logged(api, household, caplog):
-    caplog.set_level(logging.INFO, logger="app.services")
-    priya = household[0]
-    budget_id = create(api, priya)["id"]
-    api("PATCH", priya, f"/{budget_id}", json={"amount": "5", "period": "weekly"})
-    api("DELETE", priya, f"/{budget_id}")
-    logged = [(r.getMessage(), r.user_id, r.budget_id, r.family_id) for r in caplog.records
-              if r.name == "app.services.budget_service"]
-    assert logged == [(event, priya.id, budget_id, None)
-                      for event in ("budget created", "budget updated", "budget deleted")]

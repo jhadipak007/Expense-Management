@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import FormField, { SelectField } from '@/components/FormField.jsx';
 import Notice from '@/components/Notice.jsx';
+import FormSection from '@/components/FormSection.jsx';
 import SubmitButton from '@/components/SubmitButton.jsx';
 import { NativeSelectOption } from '@/components/ui/native-select';
-import { AMOUNT_PATTERN, FormSection } from '@/pages/Expenses/ExpenseForm.jsx';
-import { PERIODS } from './budgetLabels.js';
+import { CHECK_FORM, UNAVAILABLE, isValidAmount, serverFieldErrors } from '@/utils/formErrors.js';
+import { ALL, PERIODS } from './budgetLabels.js';
 
-const ALL = 'all';
-const UNAVAILABLE = 'Something went wrong. Please try again.';
-const CHECK_FORM = 'Please check the form and try again.';
 const MESSAGES = {
   family_id: 'Choose Personal or a family you own',
   category_id: 'Choose a category, or All categories',
@@ -32,19 +30,9 @@ function initialForm(budget) {
 /** Browser-side checks that mirror the API rules; returns errors keyed by field. */
 function validate(form) {
   const errors = {};
-  const amount = form.amount.trim();
-  if (!AMOUNT_PATTERN.test(amount) || Number(amount) <= 0) errors.amount = MESSAGES.amount;
+  if (!isValidAmount(form.amount.trim())) errors.amount = MESSAGES.amount;
   for (const field of ['category_id', 'period', 'currency']) {
     if (!form[field]) errors[field] = MESSAGES[field];
-  }
-  return errors;
-}
-
-function serverFieldErrors(body) {
-  const errors = {};
-  for (const { loc } of body?.detail ?? []) {
-    const field = loc?.[1];
-    if (MESSAGES[field]) errors[field] = MESSAGES[field];
   }
   return errors;
 }
@@ -86,7 +74,7 @@ export default function BudgetForm({ categories, currencies, families, budget, o
       await onSubmit(toPayload(form, editing));
     } catch (error) {
       if (error.status === 422) {
-        const serverErrors = serverFieldErrors(error.body);
+        const serverErrors = serverFieldErrors(error.body, MESSAGES);
         setErrors(serverErrors);
         if (!Object.keys(serverErrors).length) setFormError(CHECK_FORM);
       } else if ([403, 404, 409].includes(error.status)) setFormError(`${error.body.detail}.`);

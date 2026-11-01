@@ -7,6 +7,7 @@ is visible to every member and managed by the family owner only.
 import logging
 from datetime import date
 from decimal import Decimal
+from typing import NamedTuple
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.exc import IntegrityError
@@ -34,13 +35,26 @@ class DuplicateBudget(Exception):
     """A budget with the same scope, category, period and currency already exists."""
 
 
+class Viewer(NamedTuple):
+    """What decides how a user sees budgets, loaded once per request.
+
+    `roles` maps each of the user's families to their role in it. `start_days` maps
+    None to the user's own month start day and each family to its owner's.
+    """
+
+    roles: dict[int, FamilyRole]
+    start_days: dict[int | None, int]
+
+
 def list_budgets(db: Session, user_id: int, today: date) -> list[BudgetOut]:
+    viewer = _load_viewer(db, user_id)
     budgets = db.scalars(select(Budget).where(_visible_to(user_id)).order_by(Budget.id))
-    return [_to_out(db, budget, user_id, today) for budget in budgets]
+    return [_to_out(db, budget, viewer, today) for budget in budgets]
 
 
 def get_budget(db: Session, budget_id: int, user_id: int, today: date) -> BudgetOut:
-    return _to_out(db, _get_visible(db, budget_id, user_id), user_id, today)
+    budget = _get_visible(db, budget_id, user_id)
+    return _to_out(db, budget, _load_viewer(db, user_id), today)
 
 
 def create_budget(db: Session, user_id: int, data: BudgetIn, today: date) -> BudgetOut:
@@ -57,7 +71,7 @@ def create_budget(db: Session, user_id: int, data: BudgetIn, today: date) -> Bud
     db.add(budget)
     _commit(db, budget)
     _log("budget created", budget, user_id)
-    return _to_out(db, budget, user_id, today)
+    return _to_out(db, budget, _load_viewer(db, user_id), today)
 
 
 def update_budget(db: Session, budget_id: int, user_id: int, data: BudgetUpdateIn,
@@ -70,7 +84,7 @@ def update_budget(db: Session, budget_id: int, user_id: int, data: BudgetUpdateI
     budget.period = data.period
     _commit(db, budget)
     _log("budget updated", budget, user_id)
-    return _to_out(db, budget, user_id, today)
+    return _to_out(db, budget, _load_viewer(db, user_id), today)
 
 
 def delete_budget(db: Session, budget_id: int, user_id: int) -> None:
@@ -82,6 +96,7 @@ def delete_budget(db: Session, budget_id: int, user_id: int) -> None:
 
 
 def _scope_key(user_id: int, family_id: int | None, category_id: int | None) -> str:
+    """Scope and category without nulls, so the unique constraint catches every duplicate."""
     scope = f"f{family_id}" if family_id is not None else f"u{user_id}"
     return f"{scope}:{category_id if category_id is not None else 'all'}"
 
@@ -119,8 +134,22 @@ def _commit(db: Session, budget: Budget) -> None:
     db.refresh(budget)
 
 
-def _to_out(db: Session, budget: Budget, user_id: int, today: date) -> BudgetOut:
-    start, end = current_period(budget.period, today, _month_start_day(db, budget),
+def _load_viewer(db: Session, user_id: int) -> Viewer:
+    """Two queries: the user's roles, and the start day of the user and each family owner."""
+    roles = dict(db.execute(
+        select(FamilyMember.family_id, FamilyMember.role).where(FamilyMember.user_id == user_id)
+    ).all())
+    owner_days = db.execute(
+        select(FamilyMember.family_id, User.month_start_day)
+        .join(User, User.id == FamilyMember.user_id)
+        .where(FamilyMember.family_id.in_(list(roles)), FamilyMember.role == FamilyRole.owner)
+    ).all()
+    return Viewer(roles, {None: db.get(User, user_id).month_start_day, **dict(owner_days)})
+
+
+def _to_out(db: Session, budget: Budget, viewer: Viewer, today: date) -> BudgetOut:
+    """The budget in the period containing `today`; monthly periods use the creator's or owner's day."""
+    start, end = current_period(budget.period, today, viewer.start_days[budget.family_id],
                                 budget.anchor_date)
     spent = _spent(db, budget, start, end)
     return BudgetOut(
@@ -130,17 +159,7 @@ def _to_out(db: Session, budget: Budget, user_id: int, today: date) -> BudgetOut
         remaining=max(budget.amount - spent, ZERO),
         over_by=max(spent - budget.amount, ZERO),
         status=budget_status(spent, budget.amount),
-        can_manage=_can_manage(db, budget, user_id),
-    )
-
-
-def _month_start_day(db: Session, budget: Budget) -> int:
-    """The creator's start day for a personal budget, the family owner's for a family one."""
-    if budget.family_id is None:
-        return db.get(User, budget.user_id).month_start_day
-    return db.scalar(
-        select(User.month_start_day).join(FamilyMember, FamilyMember.user_id == User.id)
-        .where(FamilyMember.family_id == budget.family_id, FamilyMember.role == FamilyRole.owner)
+        can_manage=budget.family_id is None or viewer.roles[budget.family_id] == FamilyRole.owner,
     )
 
 
@@ -151,12 +170,6 @@ def _spent(db: Session, budget: Budget, start: date, end: date) -> Decimal:
     if budget.category_id is not None:
         conditions.append(Expense.category_id == budget.category_id)
     return db.scalar(select(func.sum(Expense.amount)).where(*conditions)) or ZERO
-
-
-def _can_manage(db: Session, budget: Budget, user_id: int) -> bool:
-    if budget.family_id is None:
-        return True
-    return db.get(FamilyMember, (budget.family_id, user_id)).role == FamilyRole.owner
 
 
 def _log(event: str, budget: Budget, user_id: int) -> None:

@@ -57,7 +57,9 @@ export default function Dashboard() {
               />
             ))}
           </div>
+          {/* Keyed on the families, so joining one from an invitation reloads the budgets too. */}
           <BudgetsSection
+            key={options.data.families.map((f) => f.id).join()}
             categories={options.data.categories} families={options.data.families} search={search}
           />
         </>

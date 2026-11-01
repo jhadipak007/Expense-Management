@@ -4,11 +4,10 @@ import { SelectField } from '@/components/FormField.jsx';
 import EmptyState from '@/components/EmptyState.jsx';
 import SectionCard, { CardIntro } from '@/components/SectionCard.jsx';
 import { NativeSelectOption } from '@/components/ui/native-select';
-import { PERIODS, categoryName } from '@/pages/Budgets/budgetLabels.js';
+import { ALL, PERIODS, categoryName } from '@/pages/Budgets/budgetLabels.js';
 import BudgetItem from './BudgetItem.jsx';
 
 const ANY = '';
-const ALL = 'all';
 
 /** Budgets matching the chosen period and category; ALL keeps only all-category budgets. */
 function matches(budget, period, category) {
@@ -30,7 +29,7 @@ export default function BudgetGroup({ title, personal, budgets, categories, edit
   return (
     <SectionCard aria-label={`${title} budgets`}>
       <CardIntro
-        title={title}
+        as="h3" title={title}
         description={personal ? 'Only you can see these' : 'Shared with your family'}
         icon={personal ? UserIcon : UsersIcon} iconClassName={personal ? undefined : 'bg-accent/25 text-foreground'}
       />

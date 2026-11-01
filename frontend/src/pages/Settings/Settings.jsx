@@ -9,15 +9,11 @@ import SectionCard, { PageHeader } from '@/components/SectionCard.jsx';
 import SubmitButton from '@/components/SubmitButton.jsx';
 import { NativeSelectOption } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ordinal } from '@/utils/format.js';
+import { UNAVAILABLE } from '@/utils/formErrors.js';
 
 /** Days 1 to 28, so every month has the chosen day. */
 const DAYS = Array.from({ length: 28 }, (_, i) => i + 1);
-
-/** "1st", "2nd", "3rd", "4th" ... "21st", "28th". */
-export function ordinal(day) {
-  const suffix = { 1: 'st', 2: 'nd', 3: 'rd' }[day % 10];
-  return `${day}${suffix && Math.floor(day / 10) !== 1 ? suffix : 'th'}`;
-}
 
 /** The user's settings. Loads the user itself so it always shows the saved value. */
 export default function Settings() {
@@ -45,7 +41,7 @@ function MonthStartForm({ saved }) {
       await updateSettings({ month_start_day: Number(day) });
       toast.success('Settings saved', { description: `Monthly budgets start on the ${ordinal(Number(day))}.` });
     } catch {
-      setFormError('Something went wrong. Please try again.');
+      setFormError(UNAVAILABLE);
     }
     setSubmitting(false);
   }
