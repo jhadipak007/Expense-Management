@@ -5,6 +5,8 @@ Expense Sarathi is a multi-user web application for recording and reviewing pers
 
 Each user logs in and, by default, can access only their own expenses. A user can also create a family and invite other users to join it. All members of a family can view and add the family's expenses and see all of its expense details and reports.
 
+Users can set budgets (weekly, fortnightly, monthly or yearly spending limits) for themselves or, as a family owner, for a family, and see spending against them on the dashboard.
+
 Expenses fall into three categories:
 - **Grocery**: day-to-day household purchases
 - **Eating Out**: restaurants, cafes, and food delivery
@@ -46,9 +48,9 @@ Expense Tracker/
 │   │   ├── db.py              # engine and session
 │   │   ├── logging_config.py  # stdout handler, JSON/text format, request ID contextvar
 │   │   ├── request_logging.py # request ID middleware and access line
-│   │   ├── models/            # SQLAlchemy models: user, family, expense
+│   │   ├── models/            # SQLAlchemy models: user, family, expense, budget, lookups
 │   │   ├── schemas/           # Pydantic request/response models
-│   │   ├── routers/           # /api routes: auth, families, expenses, reports
+│   │   ├── routers/           # /api routes: auth, users, families, expenses, budgets, reports
 │   │   └── services/          # business logic and access checks
 │   └── tests/
 │       ├── unit/
@@ -64,7 +66,7 @@ Expense Tracker/
         ├── main.jsx
         ├── App.jsx
         ├── api/               # fetch wrappers for /api
-        ├── pages/             # Login, Expenses, Family, Reports
+        ├── pages/             # Login, Register, Dashboard, Expenses, Budgets, Families, Settings
         ├── components/        # app building blocks (FormField, SectionCard, ItemRow...)
         ├── utils/             # logger (error reporting), formatting helpers
         │   └── ui/            # shadcn/ui components (generated, committed)

@@ -41,6 +41,7 @@ Tests never depend on each other or on execution order.
 - JWT: token encodes `sub`, `type`, `exp`; expired, tampered and wrong-type tokens are rejected.
 - Schemas: each field rule in [api_design.md](api_design.md) (amount > 0 with 2 decimals, currency `^[A-Z]{3}$`, `date_from <= date_to`, unknown fields rejected, `password_hash` never in output models).
 - Derived fields: `is_personal`, `is_open`, `is_active`, computed `month`.
+- Budget periods (`test_budget_period.py`): weekly Monday to Sunday; fortnights from the anchor, including dates before it and across a new year; monthly with start days 1, 15 and 28, before and after the start day, across December and February; yearly in a leap year; status at 79.99%, 80%, 100% and 100.01%.
 
 **Integration**
 - Auth: register with OTP (correct code creates and logs in the user; wrong code; 5th wrong code ends the registration; expiry; abandoned sign-up does not block the email), duplicate email (409), login success and failure (401, same message for unknown email and wrong password), only one request using a refresh token succeeds and a duplicate/replayed use revokes all refresh tokens, logout works with a refresh cookie and no access token (including missing/expired/revoked cookie, always 204 and clears cookie), access token expiry.
@@ -50,6 +51,8 @@ Tests never depend on each other or on execution order.
 - User search: exact email only, name needs 3+ characters, masked emails, at most 10 with `has_more`, owner and inactive users excluded, LIKE wildcards match literally.
 - Invitations: 7-day expiry, duplicate member or open invitation returns 409, re-invite after decline/cancel/expiry, cancel removes it for both sides, accepted invitations cannot be cancelled, accept joins the family, decline does not, cancelled or expired invitations return 409, someone else's invitation returns 404.
 - Reports: totals grouped by currency with no conversion; omitting `family_id` returns only the user's personal expenses, supplying a member family ID returns only that family's expenses, and no report combines personal and family expenses.
+- Budgets (`test_budgets.py`): spent counts only the same scope, category (or all), currency and period, and a family budget counts every member's family expenses; one expense counts towards several budgets; status, remaining and over-by; members see family budgets, only the owner manages them (403), hidden budgets and families are 404; duplicates are 409, including an edit into an existing combination; edits apply at once, switching to fortnightly restarts on the edit day; a family's monthly budgets follow the owner's start day, and changing the start day moves them; delete keeps expenses; field and `today` validation.
+- Settings (`test_users.py`): `PATCH /api/users/me` saves a month start day of 1 to 28 and rejects others.
 - SQL injection: payloads such as `1 OR 1=1` and `'; DROP TABLE expenses;--` in path and query parameters return 422 and change nothing.
 - Security headers present on `/api` responses; `/docs` disabled when `ENABLE_API_DOCS=false`.
 - Logging ([logging.md](logging.md)): `X-Request-ID` is reused when safe and generated otherwise; one access line per request with `user_id`; unhandled errors return a generic 500 and log the traceback; each domain event is logged with ids; `/api/client-logs` rejects oversized or unknown input; the auth flow at DEBUG logs no password, OTP, email or token (`test_log_safety.py`). Tests read records with `caplog`; the JSON and text formatters have unit tests.
@@ -113,6 +116,12 @@ Tests never depend on each other or on execution order.
 - Filters start on This month and All categories; presets, category checkboxes, a custom range and Reset change every card's request; a From date after the To date shows a message and keeps the results.
 - Totals per currency with a category breakdown; empty, loading, and error with Retry per card.
 - Filters survive Add expense and reload (they are in the URL).
+
+**Budgets and settings**
+- Form (`BudgetPage.test.jsx`): only Personal and owned families are offered; missing fields and bad amounts show messages next to the fields and save nothing; the payload sends All categories and Personal as null, with `today`; 409 is shown above the form; editing changes only amount and period; a non-owner sees a notice.
+- Dashboard (`BudgetsSection.test.jsx`): empty state; groups per scope with h3 headings; dates, spent, left or over by, progress and status label; Edit and Delete only when manageable; per-group period and category filters; delete only after confirmation; error with Retry; budgets reload after joining a family and after adding an expense.
+- Settings: opens from the nav and the user menu, shows the saved day, saves with a toast.
+- E2E (`e2e/budgets.spec.js`): a budget moves through On track, Close to limit and Over budget as expenses are added, with no CSP errors; duplicate, edit and delete; Settings moves the monthly dates; a family budget is grouped under the family; one column and no sideways scroll at 360px.
 
 **Reports**
 - Totals are grouped by currency; different currencies are never summed.

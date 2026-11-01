@@ -40,6 +40,8 @@ Services log fixed messages at INFO with ids as fields, after the change is comm
 | `app.services.family_service` | `family created` | `user_id`, `family_id` |
 | `app.services.invitation_service` | `invitation sent` / `cancelled` / `accepted` / `declined` | `user_id`, `family_id`, `invitation_id`, `invitee_id` (sent) |
 | `app.services.expense_service` | `expense created` | `user_id`, `expense_id`, `family_id` |
+| `app.services.budget_service` | `budget created` / `updated` / `deleted` | `user_id`, `budget_id`, `family_id` |
+| `app.services.user_service` | `user settings updated` | `user_id` |
 
 ### Never log
 

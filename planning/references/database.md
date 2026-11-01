@@ -33,7 +33,9 @@ Every relationship is declared on both sides with `back_populates`.
 | Expense | `user`, `family`, `category` | User, Family, Category | `family` is optional (personal expense) |
 | RefreshToken | `user` | User | |
 
-- Foreign key `ondelete`: `CASCADE` for `family_members`, `family_invitations` and `refresh_tokens`; `RESTRICT` for all `expenses` foreign keys.
+Budget and Currency have no relationships: services select what they need (a budget's spending is one sum query).
+
+- Foreign key `ondelete`: `CASCADE` for `family_members`, `family_invitations` and `refresh_tokens`; `RESTRICT` for all `expenses` and `budgets` foreign keys.
 - Avoid N+1 queries: list queries load related rows explicitly with `selectinload()` or `joinedload()`.
 
 ## Derived fields on models
@@ -60,6 +62,8 @@ Every relationship is declared on both sides with `back_populates`.
 - `render_as_batch=True`, so ALTER operations work on SQLite.
 - Create migrations with `uv run alembic revision --autogenerate -m "<message>"`. Review every generated file before committing.
 - Every migration has a working `downgrade()`.
+- Adding or dropping a plain column on a table that other tables reference (such as `users`) uses `op.add_column` / `op.drop_column`, not batch mode: a batch rebuild drops the table, which fails on SQLite while foreign keys point at its rows (0006).
+- A unique rule over nullable columns uses a non-null key column instead, because NULLs never collide in a unique constraint: `budgets.scope_key` (`u5:all`, `f3:2`) with `UNIQUE (scope_key, period, currency)`.
 - Data migrations seed the lookup tables: the categories (Grocery, Eating Out and Trips, with their colors) and the currencies (ISO 4217 codes and names, written as literal rows so a migration never changes with a library).
 - Local: the container runs `alembic upgrade head` before starting uvicorn.
 - Production: migrations run as a one-off ECS Fargate task during each release (see [aws_deployment.md](aws_deployment.md), section 7).

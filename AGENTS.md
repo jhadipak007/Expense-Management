@@ -89,6 +89,8 @@ Record important lessons here as you discover them, one short bullet each. Add o
 - Sonner injects its CSS at runtime (blocked by the CSP), so `global.css` imports `sonner/dist/styles.css`; tests must call `toast.dismiss()` after each test or old toasts replay.
 - Recharts 3 charts are keyboard-focusable by default; set `accessibilityLayer={false}` when the chart is `aria-hidden`.
 - `GuestOnly` is the only redirect after login or sign-up; a page that also calls `navigate()` after the session changes races with it and loses. Chromium keeps `history.state` on a same-URL `page.goto()`.
+- On SQLite, never batch-alter a table other rows reference (e.g. `users`): the rebuild's DROP fails on foreign keys. Use plain `op.add_column` / `op.drop_column`.
+- A unique rule over nullable columns needs a non-null key column (see `budgets.scope_key`); NULLs never collide.
 - `extra=` log fields cannot reuse LogRecord names (`message`, `args`...). `request_id` is added by the stdout handler's filter, so `caplog` records don't have it; test it on the formatter.
 
 ## Personal progress tracking
