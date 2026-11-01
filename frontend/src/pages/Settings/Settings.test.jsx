@@ -1,7 +1,8 @@
 import { screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { USER, validRefresh } from '@/test/handlers.js';
+import { describeFilters, presetRange } from '@/pages/Dashboard/dashboardFilters.js';
+import { CATEGORIES, USER, validRefresh } from '@/test/handlers.js';
 import { server } from '@/test/setup.js';
 import { renderApp } from '@/test/renderApp.jsx';
 
@@ -48,6 +49,28 @@ describe('Settings', () => {
     await user.click(screen.getByRole('button', { name: 'Save settings' }));
     expect(await screen.findByText('Settings saved')).toBeInTheDocument();
     expect(patched).toEqual([{ month_start_day: 1 }]);
+  });
+
+  it('explains the chosen day with an example', async () => {
+    mockSettings();
+    const { user } = renderApp('/settings');
+    const select = await screen.findByLabelText('Month start day');
+    expect(select).toHaveAccessibleDescription(/^Your month runs from the 15th to the 14th of the next month\./);
+    await user.selectOptions(select, '1st');
+    expect(select).toHaveAccessibleDescription(/^Your month runs from the 1st to the last day of the month\./);
+  });
+
+  it('applies a saved day across the app straight away', async () => {
+    mockSettings({ day: 1 });
+    const { user } = renderApp('/settings');
+    await user.selectOptions(await screen.findByLabelText('Month start day'), '20th');
+    await user.click(screen.getByRole('button', { name: 'Save settings' }));
+    expect(await screen.findByText('Settings saved')).toBeInTheDocument();
+    await user.click(within(screen.getAllByRole('navigation', { name: 'Main' })[0])
+      .getByRole('link', { name: 'Dashboard' }));
+    const range = presetRange('this-month', 20);
+    expect(await screen.findByText(describeFilters({ ...range, categoryIds: [] }, CATEGORIES)))
+      .toBeInTheDocument();
   });
 
   it('shows an error when saving fails', async () => {
