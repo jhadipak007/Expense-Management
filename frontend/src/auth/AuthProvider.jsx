@@ -28,6 +28,19 @@ export function AuthProvider() {
     }
   }, []);
 
+  /**
+   * Load the user of a session just started by login or sign-up. If that fails, end the
+   * session (token and refresh cookie) so the app is fully logged out, then rethrow.
+   */
+  const enterSession = useCallback(async () => {
+    try {
+      setSession({ status: 'authenticated', user: await authApi.fetchCurrentUser() });
+    } catch (error) {
+      await authApi.logout().catch(() => {}); // Retried by restoreSession() on the next app start.
+      throw error;
+    }
+  }, []);
+
   useEffect(() => {
     setSessionExpiredHandler(() => setSession(LOGGED_OUT));
     restore();
@@ -39,13 +52,13 @@ export function AuthProvider() {
 
   const login = useCallback(async (email, password) => {
     await authApi.login(email, password);
-    setSession({ status: 'authenticated', user: await authApi.fetchCurrentUser() });
-  }, []);
+    await enterSession();
+  }, [enterSession]);
 
   const completeRegistration = useCallback(async (registrationId, code) => {
     await authApi.verifyRegistration(registrationId, code);
-    setSession({ status: 'authenticated', user: await authApi.fetchCurrentUser() });
-  }, []);
+    await enterSession();
+  }, [enterSession]);
 
   const logout = useCallback(async () => {
     setSession(SIGNED_OUT);
