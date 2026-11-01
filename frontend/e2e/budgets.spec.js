@@ -55,17 +55,26 @@ test('a personal budget tracks spending, warns, and can be edited and deleted', 
   await expect(page.getByText('No budgets yet')).toBeVisible();
 });
 
-test('monthly budgets follow the month start day from Settings', async ({ page }) => {
+test('the month start day from Settings applies to budgets and the dashboard', async ({ page }) => {
   await signUpFresh(page);
   await createBudget(page, { category: 'Grocery', period: 'Monthly', amount: '100' });
   const item = group(page, 'Personal').getByRole('listitem');
   await expect(item).toContainText(/^Grocery · Monthly1 \w{3} – /);
+  const dashboardLink = page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Dashboard' });
 
-  await page.goto('/settings');
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Settings' }).click();
   await page.getByLabel('Month start day').selectOption('15th');
+  await expect(page.getByText('Your month runs from the 15th to the 14th of the next month.')).toBeVisible();
+  await dashboardLink.click();
+  await page.getByRole('button', { name: 'Keep editing' }).click();
+  await expect(page).toHaveURL('/settings');
+
   await page.getByRole('button', { name: 'Save settings' }).click();
   await expect(page.getByText('Settings saved')).toBeVisible();
-  await page.goto('/');
+  // In-app navigation, no reload: the saved day must already be in the session.
+  await dashboardLink.click();
+  await expect(page.getByRole('radio', { name: 'This month' })).toBeChecked();
+  await expect(page.getByText(/^15 \w{3}( \d{4})? – 14 \w{3} \d{4} · All categories$/)).toBeVisible();
   await expect(item).toContainText(/^Grocery · Monthly15 \w{3} – 14 \w{3}/);
 });
 
