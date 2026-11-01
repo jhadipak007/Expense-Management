@@ -65,7 +65,8 @@ Changing the day only changes which dates are asked for; no expense or budget ro
 
 | Event while dirty | Result |
 |---|---|
-| Nav link, user menu link, Back | `useBlocker` holds it; "Discard unsaved changes?" dialog |
+| Nav link, user menu link, Back to another page | `useBlocker` holds it; "Discard unsaved changes?" dialog |
+| A link to Settings itself | Not held: the page would not reload, so nothing would be discarded |
 | Keep editing or Escape | `blocker.reset()`; stays on Settings with the chosen value |
 | Discard changes | `blocker.proceed()`; navigation continues, nothing saved |
 | Close or reload the tab | `beforeunload` is prevented; the browser shows its own prompt |
@@ -75,7 +76,4 @@ The dialog has no `onOpenChange`: Radix fires it with `false` when the Discard a
 
 ## 5. Tests
 
-- `dashboardFilters.test.js`: day 1 calendar months (existing cases), days 15 and 28 before and after the day, across a new year and in a leap February; `matchingPreset` and `parseFilters` with day 15; footer text in one year and across years.
-- `Dashboard.test.jsx`: a viewer with day 15 gets requests for 15th-to-14th ranges, This month selected, matching footer; Last month moves back one period.
-- `Settings.test.jsx`: the hint follows the select; a saved day reaches the dashboard without a reload (fails without `updateUser`); the leave dialog (Keep editing, Escape, Discard changes), no dialog when unchanged, after saving or on logout; `beforeunload` prevented only while changed. With the guard switched off, the four guard tests fail.
-- `e2e/budgets.spec.js`: on the running app, the hint, the leave dialog, then Save and an in-app move to the dashboard shows This month as the 15th to the 14th and the budget's dates move too.
+See [testing.md](../planning/references/testing.md) (Settings, Dashboard month presets, E2E). Each new behaviour was checked to fail without its code: the dashboard update without `updateUser`, the dialog tests without the guard, and the same-page case with a plain `useBlocker(dirty)`.

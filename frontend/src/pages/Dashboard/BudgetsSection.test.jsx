@@ -51,7 +51,8 @@ describe('Dashboard budgets', () => {
   it('invites a user with no budgets to create one', async () => {
     mockBudgets(() => []);
     renderApp('/');
-    expect(await screen.findByText('No budgets yet')).toBeInTheDocument();
+    // The file's first render waits on refresh, user, lookups and budgets in turn: allow for a cold start.
+    expect(await screen.findByText('No budgets yet', {}, { timeout: 3000 })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Create budget' })).toHaveAttribute('href', '/budgets/new');
   });
 

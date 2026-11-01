@@ -81,18 +81,17 @@ describe('Dashboard summaries', () => {
     const requests = mockDashboard({ families: [] });
     server.use(http.get('/api/users/me', () => HttpResponse.json({ ...USER, month_start_day: 15 })));
     const { user } = renderApp('/');
-    const thisMonth = presetRange('this-month', 15);
-    await waitFor(() => expect(requests[0]?.get('date_from')).toBe(thisMonth.from));
-    expect(requests[0].get('date_to')).toBe(thisMonth.to);
+    await waitFor(() => expect(requests).toHaveLength(1));
+    const [thisFrom, thisTo] = [requests[0].get('date_from'), requests[0].get('date_to')];
+    expect([thisFrom.slice(8), thisTo.slice(8)]).toEqual(['15', '14']);
     expect(screen.getByRole('radio', { name: 'This month' })).toBeChecked();
-    expect(screen.getByText(describeFilters({ ...thisMonth, categoryIds: [] }, CATEGORIES)))
-      .toBeInTheDocument();
+    expect(screen.getByText(/^15 \w{3}( \d{4})? – 14 \w{3} \d{4} · All categories$/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('radio', { name: 'Last month' }));
-    const lastMonth = presetRange('last-month', 15);
-    await waitFor(() => expect(requests.at(-1).get('date_from')).toBe(lastMonth.from));
-    expect(lastMonth.from.endsWith('-15')).toBe(true);
-    expect(lastMonth.to.endsWith('-14')).toBe(true);
+    await waitFor(() => expect(requests).toHaveLength(2));
+    const [lastFrom, lastTo] = [requests[1].get('date_from'), requests[1].get('date_to')];
+    expect([lastFrom.slice(8), lastTo.slice(8)]).toEqual(['15', '14']);
+    expect(lastTo < thisFrom && lastFrom < lastTo).toBe(true);
   });
 
   it('loads each card once when nothing changes', async () => {

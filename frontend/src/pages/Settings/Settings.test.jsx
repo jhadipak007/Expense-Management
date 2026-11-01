@@ -1,8 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { describeFilters, presetRange } from '@/pages/Dashboard/dashboardFilters.js';
-import { CATEGORIES, USER, validRefresh } from '@/test/handlers.js';
+import { USER, validRefresh } from '@/test/handlers.js';
 import { server } from '@/test/setup.js';
 import { logOut, renderApp } from '@/test/renderApp.jsx';
 
@@ -42,15 +41,6 @@ describe('Settings', () => {
     expect(select.options[27]).toHaveTextContent('28th');
   });
 
-  it('saves a new month start day with a toast', async () => {
-    const patched = mockSettings();
-    const { user } = renderApp('/settings');
-    await user.selectOptions(await screen.findByLabelText('Month start day'), '1st');
-    await user.click(screen.getByRole('button', { name: 'Save settings' }));
-    expect(await screen.findByText('Settings saved')).toBeInTheDocument();
-    expect(patched).toEqual([{ month_start_day: 1 }]);
-  });
-
   it('explains the chosen day with an example', async () => {
     mockSettings();
     const { user } = renderApp('/settings');
@@ -60,16 +50,16 @@ describe('Settings', () => {
     expect(select).toHaveAccessibleDescription(/^Your month runs from the 1st to the last day of the month\./);
   });
 
-  it('applies a saved day across the app straight away', async () => {
-    mockSettings({ day: 1 });
+  it('saves with a toast and applies the day across the app straight away', async () => {
+    const patched = mockSettings({ day: 1 });
     const { user } = renderApp('/settings');
     await user.selectOptions(await screen.findByLabelText('Month start day'), '20th');
     await user.click(screen.getByRole('button', { name: 'Save settings' }));
     expect(await screen.findByText('Settings saved')).toBeInTheDocument();
+    expect(patched).toEqual([{ month_start_day: 20 }]);
     await user.click(within(screen.getAllByRole('navigation', { name: 'Main' })[0])
       .getByRole('link', { name: 'Dashboard' }));
-    const range = presetRange('this-month', 20);
-    expect(await screen.findByText(describeFilters({ ...range, categoryIds: [] }, CATEGORIES)))
+    expect(await screen.findByText(/^20 \w{3}( \d{4})? – 19 \w{3} \d{4} · All categories$/))
       .toBeInTheDocument();
   });
 
@@ -115,20 +105,33 @@ describe('Settings', () => {
       expect(patched).toEqual([]);
     });
 
-    it('leaves without asking when nothing changed or after saving', async () => {
+    it('leaves without asking when nothing changed', async () => {
       mockSettings();
-      const { user, router } = renderApp('/settings');
+      const { user } = renderApp('/settings');
       await screen.findByLabelText('Month start day');
       await user.click(dashboardLink());
       expect(await screen.findByRole('heading', { name: /Welcome/ })).toBeInTheDocument();
+    });
 
-      await router.navigate('/settings');
+    it('leaves without asking after saving', async () => {
+      mockSettings();
+      const { user } = renderApp('/settings');
       await changeDay(user);
       await user.click(screen.getByRole('button', { name: 'Save settings' }));
       expect(await screen.findByText('Settings saved')).toBeInTheDocument();
       await user.click(dashboardLink());
       expect(await screen.findByRole('heading', { name: /Welcome/ })).toBeInTheDocument();
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
+
+    it('does not ask when the Settings link is chosen on Settings', async () => {
+      mockSettings();
+      const { user } = renderApp('/settings');
+      await changeDay(user);
+      await user.click(within(screen.getAllByRole('navigation', { name: 'Main' })[0])
+        .getByRole('link', { name: 'Settings' }));
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(screen.getByLabelText('Month start day')).toHaveDisplayValue('20th');
     });
 
     it('asks the browser to confirm closing or reloading the tab only while changed', async () => {

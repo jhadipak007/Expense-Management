@@ -10,10 +10,13 @@ import {
  * the browser's own prompt for closing or reloading the tab.
  */
 export default function UnsavedChangesGuard({ dirty }) {
-  const blocker = useBlocker(dirty);
+  // A link to the page already open would not reload it, so only leaving is held.
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) => dirty && currentLocation.pathname !== nextLocation.pathname,
+  );
 
   useEffect(() => {
-    if (!dirty) return undefined;
+    if (!dirty) return;
     const warn = (event) => event.preventDefault();
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
