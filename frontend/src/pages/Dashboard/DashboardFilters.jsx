@@ -11,14 +11,15 @@ const RANGE_ERROR = 'The From date must be on or before the To date.';
 
 /**
  * Period (a preset or a custom From-To range) and categories for every card.
- * A custom range is applied once both dates are set and in order.
+ * A custom range is applied once both dates are set and in order. Month presets
+ * start on `monthStartDay`.
  */
-export default function DashboardFilters({ filters, categories, onChange, onReset }) {
+export default function DashboardFilters({ filters, categories, monthStartDay, onChange, onReset }) {
   const [customOpen, setCustomOpen] = useState(false);
   const [draft, setDraft] = useState({ from: filters.from, to: filters.to });
   const [rangeError, setRangeError] = useState('');
   const [appliedRange, setAppliedRange] = useState(`${filters.from}/${filters.to}`);
-  const period = customOpen ? 'custom' : matchingPreset(filters);
+  const period = customOpen ? 'custom' : matchingPreset(filters, monthStartDay);
 
   // The URL can change without these controls (Reset, a link to the dashboard):
   // show what is applied then, not an earlier edit.
@@ -39,7 +40,7 @@ export default function DashboardFilters({ filters, categories, onChange, onRese
       return;
     }
     setCustomOpen(false);
-    onChange({ ...filters, ...presetRange(key) });
+    onChange({ ...filters, ...presetRange(key, monthStartDay) });
   }
 
   function changeDate(field, value) {

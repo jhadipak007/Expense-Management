@@ -1,13 +1,13 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { CATEGORIES, validRefresh } from '@/test/handlers.js';
+import { CATEGORIES, USER, validRefresh } from '@/test/handlers.js';
 import { server } from '@/test/setup.js';
 import { renderApp } from '@/test/renderApp.jsx';
 import { describeFilters, presetRange } from './dashboardFilters.js';
 
 const FAMILIES = [{ id: 3, name: 'Jha Household', role: 'owner' }];
-const THIS_MONTH = presetRange('this-month');
+const THIS_MONTH = presetRange('this-month', USER.month_start_day);
 const TWO_CURRENCIES = {
   currencies: [
     {
@@ -75,6 +75,24 @@ describe('Dashboard summaries', () => {
       date_from: THIS_MONTH.from, date_to: THIS_MONTH.to,
     });
     expect(familyRequests(requests, '3')).toHaveLength(1);
+  });
+
+  it("follows the viewer's month start day for This month and Last month", async () => {
+    const requests = mockDashboard({ families: [] });
+    server.use(http.get('/api/users/me', () => HttpResponse.json({ ...USER, month_start_day: 15 })));
+    const { user } = renderApp('/');
+    const thisMonth = presetRange('this-month', 15);
+    await waitFor(() => expect(requests[0]?.get('date_from')).toBe(thisMonth.from));
+    expect(requests[0].get('date_to')).toBe(thisMonth.to);
+    expect(screen.getByRole('radio', { name: 'This month' })).toBeChecked();
+    expect(screen.getByText(describeFilters({ ...thisMonth, categoryIds: [] }, CATEGORIES)))
+      .toBeInTheDocument();
+
+    await user.click(screen.getByRole('radio', { name: 'Last month' }));
+    const lastMonth = presetRange('last-month', 15);
+    await waitFor(() => expect(requests.at(-1).get('date_from')).toBe(lastMonth.from));
+    expect(lastMonth.from.endsWith('-15')).toBe(true);
+    expect(lastMonth.to.endsWith('-14')).toBe(true);
   });
 
   it('loads each card once when nothing changes', async () => {
@@ -161,7 +179,7 @@ describe('Dashboard summaries', () => {
     const requests = mockDashboard();
     const { user, router } = renderApp('/');
     await user.click(await screen.findByRole('radio', { name: 'Last month' }));
-    const lastMonth = presetRange('last-month');
+    const lastMonth = presetRange('last-month', USER.month_start_day);
     await waitFor(() => expect(requests).toHaveLength(4));
     for (const params of requests.slice(2)) {
       expect(params.get('date_from')).toBe(lastMonth.from);
@@ -196,7 +214,7 @@ describe('Dashboard summaries', () => {
     await user.type(to, '2026-03-10');
     await waitFor(() => expect(requests.at(-1).get('date_to')).toBe('2026-03-10'));
     expect(requests.at(-1).get('date_from')).toBe('2026-03-05');
-    expect(screen.getByText('5 Mar 2026 – 10 Mar 2026 · All categories')).toBeInTheDocument();
+    expect(screen.getByText('5 Mar – 10 Mar 2026 · All categories')).toBeInTheDocument();
 
     const count = requests.length;
     await user.clear(from);

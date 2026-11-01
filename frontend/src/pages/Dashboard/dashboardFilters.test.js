@@ -14,24 +14,42 @@ describe('dashboard filters', () => {
     ['this-year', SEP_15, { from: '2026-01-01', to: '2026-12-31' }],
     ['last-month', JAN_10, { from: '2026-12-01', to: '2026-12-31' }],
     ['this-month', new Date(2028, 1, 3), { from: '2028-02-01', to: '2028-02-29' }],
-  ])('%s on %s', (key, today, range) => {
-    expect(presetRange(key, today)).toEqual(range);
+  ])('%s on %s with months starting on the 1st', (key, today, range) => {
+    expect(presetRange(key, 1, today)).toEqual(range);
+  });
+
+  it.each([
+    ['this-month', 15, SEP_15, { from: '2026-09-15', to: '2026-10-14' }],
+    ['this-month', 15, new Date(2026, 8, 14), { from: '2026-08-15', to: '2026-09-14' }],
+    ['last-month', 15, SEP_15, { from: '2026-08-15', to: '2026-09-14' }],
+    ['this-month', 15, JAN_10, { from: '2026-12-15', to: '2027-01-14' }],
+    ['last-month', 15, JAN_10, { from: '2026-11-15', to: '2026-12-14' }],
+    ['this-month', 28, new Date(2026, 11, 28), { from: '2026-12-28', to: '2027-01-27' }],
+    ['this-month', 28, new Date(2028, 1, 28), { from: '2028-02-28', to: '2028-03-27' }],
+    ['this-year', 15, JAN_10, { from: '2027-01-01', to: '2027-12-31' }],
+  ])('%s with months starting on day %i, on %s', (key, day, today, range) => {
+    expect(presetRange(key, day, today)).toEqual(range);
   });
 
   it('recognises a preset range and calls anything else custom', () => {
-    expect(matchingPreset({ from: '2026-08-01', to: '2026-08-31' }, SEP_15)).toBe('last-month');
-    expect(matchingPreset({ from: '2026-09-02', to: '2026-09-30' }, SEP_15)).toBe('custom');
+    expect(matchingPreset({ from: '2026-08-01', to: '2026-08-31' }, 1, SEP_15)).toBe('last-month');
+    expect(matchingPreset({ from: '2026-09-02', to: '2026-09-30' }, 1, SEP_15)).toBe('custom');
+    expect(matchingPreset({ from: '2026-09-15', to: '2026-10-14' }, 15, SEP_15)).toBe('this-month');
+    expect(matchingPreset({ from: '2026-09-01', to: '2026-09-30' }, 15, SEP_15)).toBe('custom');
   });
 
   it('defaults to this month and all categories', () => {
-    expect(parseFilters(new URLSearchParams(), SEP_15)).toEqual({
+    expect(parseFilters(new URLSearchParams(), 1, SEP_15)).toEqual({
       from: '2026-09-01', to: '2026-09-30', categoryIds: [],
+    });
+    expect(parseFilters(new URLSearchParams(), 15, SEP_15)).toMatchObject({
+      from: '2026-09-15', to: '2026-10-14',
     });
   });
 
   it.each(['from=2026-09-30&to=2026-09-01', 'from=abc&to=2026-09-01', 'from=2026-09-01'])(
     'ignores an invalid range: %s', (query) => {
-      expect(parseFilters(new URLSearchParams(query), SEP_15)).toMatchObject({
+      expect(parseFilters(new URLSearchParams(query), 1, SEP_15)).toMatchObject({
         from: '2026-09-01', to: '2026-09-30',
       });
     },
@@ -39,14 +57,16 @@ describe('dashboard filters', () => {
 
   it('round-trips through the URL', () => {
     const filters = { from: '2026-09-05', to: '2026-09-10', categoryIds: [1, 3] };
-    expect(parseFilters(toSearchParams(filters))).toEqual(filters);
+    expect(parseFilters(toSearchParams(filters), 1)).toEqual(filters);
   });
 
   it('describes the range and chosen categories', () => {
-    const range = { from: '2026-09-01', to: '2026-09-30' };
+    const range = { from: '2026-09-15', to: '2026-10-14' };
     expect(describeFilters({ ...range, categoryIds: [1, 3] }, CATEGORIES))
-      .toBe('1 Sep 2026 – 30 Sep 2026 · Grocery, Trips');
+      .toBe('15 Sep – 14 Oct 2026 · Grocery, Trips');
     expect(describeFilters({ ...range, categoryIds: [] }, CATEGORIES))
-      .toBe('1 Sep 2026 – 30 Sep 2026 · All categories');
+      .toBe('15 Sep – 14 Oct 2026 · All categories');
+    expect(describeFilters({ from: '2026-12-15', to: '2027-01-14', categoryIds: [] }, CATEGORIES))
+      .toBe('15 Dec 2026 – 14 Jan 2027 · All categories');
   });
 });
