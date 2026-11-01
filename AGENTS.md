@@ -41,6 +41,7 @@ These are the intended architecture and implementation constraints for the proje
 - Select the database with `USE_POSTGRESQL_DB`:
   - Unset or `false`: SQLite for local development and automated tests.
   - `true`: PostgreSQL for AWS RDS in production.
+- Log through `logging.getLogger(__name__)` to stdout (JSON in production, see `planning/references/logging.md`); never log secrets, tokens or emails.
 - Support multiple users with login. Users can create families and invite others; a user can belong to multiple families.
 - Each expense is either personal (visible only to its recorder) or shared with one family (visible to all its members, including in reports).
 - Store a currency code on each expense and group totals by currency without conversion.
@@ -88,6 +89,7 @@ Record important lessons here as you discover them, one short bullet each. Add o
 - Sonner injects its CSS at runtime (blocked by the CSP), so `global.css` imports `sonner/dist/styles.css`; tests must call `toast.dismiss()` after each test or old toasts replay.
 - Recharts 3 charts are keyboard-focusable by default; set `accessibilityLayer={false}` when the chart is `aria-hidden`.
 - `GuestOnly` is the only redirect after login or sign-up; a page that also calls `navigate()` after the session changes races with it and loses. Chromium keeps `history.state` on a same-URL `page.goto()`.
+- `extra=` log fields cannot reuse LogRecord names (`message`, `args`...). `request_id` is added by the stdout handler's filter, so `caplog` records don't have it; test it on the formatter.
 
 ## Personal progress tracking
 

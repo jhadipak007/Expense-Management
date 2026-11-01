@@ -86,6 +86,11 @@ Deep links: every non-`/api` path must return `index.html`. FastAPI does this lo
 - On a 401, call `/refresh` once and retry the request. If refresh fails, clear the session and go to `/login`.
 - Concurrent 401s share one in-flight refresh call.
 - Errors: 422 field errors are shown next to the matching inputs; other errors show a short message.
+- 5xx responses (with their `X-Request-ID`) and network failures are reported through `src/utils/logger.js`; aborted requests and 4xx are not. Logged paths drop the query string.
+
+## Error reporting
+
+`src/utils/logger.js` writes to the console in development and posts errors only to `/api/client-logs` in production. `main.jsx` calls `captureGlobalErrors()` for uncaught errors and unhandled rejections; the root route's `errorElement` is `components/RouteError.jsx` ("Something went wrong" with Reload page). Details: [logging.md](logging.md).
 
 ## Forms and validation
 

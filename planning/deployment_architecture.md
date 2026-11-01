@@ -15,6 +15,7 @@ The app runs in two places, and both use the **same container image** built from
 | Creating or changing AWS infrastructure (VPC, RDS, Lambda, API Gateway, S3, CloudFront, IAM) | [references/aws_deployment.md](references/aws_deployment.md), sections 1-6 |
 | Choosing how to create AWS resources: Console, CLI or Terraform | [references/aws_deployment.md](references/aws_deployment.md), sections 4, 5 and 6 |
 | GitHub Actions release pipeline, OIDC, migrations during a release | [references/aws_deployment.md](references/aws_deployment.md), section 7 |
+| Logs: format, request IDs, browser errors, CloudWatch retention, error alarm, Logs Insights queries | [references/logging.md](references/logging.md) |
 | Verifying, rolling back, operating or tearing down production | [references/aws_deployment.md](references/aws_deployment.md), sections 8-11 |
 | Changing the image itself (affects both) | Both documents: the `Dockerfile` is described in local_deployment.md, section 3; its AWS-specific parts (Lambda Web Adapter, `--provenance=false`) in aws_deployment.md |
 

@@ -14,6 +14,7 @@ Every endpoint requires a valid access token, except these, which cannot require
 | `POST /api/auth/refresh` | Requires a valid refresh cookie |
 | `POST /api/auth/logout` | Requires the refresh cookie; does not require an access token |
 | `GET /api/health` | Returns only `{"status": "ok"}` |
+| `POST /api/client-logs` | Capped entries and field lengths; logged at WARNING only ([logging.md](logging.md)) |
 
 Enforcement: each router is created with `dependencies=[Depends(get_current_user)]`, so a new route is protected by default. The public auth routes live on a separate router.
 
@@ -44,6 +45,11 @@ Authorization is checked in the service layer after authentication:
 | Method | Path | Returns |
 |---|---|---|
 | GET | `/` | `list[CategoryOut]` |
+
+### Client logs (`/api/client-logs`)
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| POST | `/` | `ClientLogsIn`: 1-10 entries of `message`, `stack`, `url`, `request_id` | 204; 422 on oversized or unknown fields |
 
 ### Currencies (`/api/currencies`)
 | Method | Path | Returns |

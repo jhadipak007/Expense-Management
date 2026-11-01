@@ -52,6 +52,7 @@ Tests never depend on each other or on execution order.
 - Reports: totals grouped by currency with no conversion; omitting `family_id` returns only the user's personal expenses, supplying a member family ID returns only that family's expenses, and no report combines personal and family expenses.
 - SQL injection: payloads such as `1 OR 1=1` and `'; DROP TABLE expenses;--` in path and query parameters return 422 and change nothing.
 - Security headers present on `/api` responses; `/docs` disabled when `ENABLE_API_DOCS=false`.
+- Logging ([logging.md](logging.md)): `X-Request-ID` is reused when safe and generated otherwise; one access line per request with `user_id`; unhandled errors return a generic 500 and log the traceback; each domain event is logged with ids; `/api/client-logs` rejects oversized or unknown input; the auth flow at DEBUG logs no password, OTP, email or token (`test_log_safety.py`). Tests read records with `caplog`; the JSON and text formatters have unit tests.
 - Migrations: `upgrade head` then `downgrade base` runs cleanly.
 
 ## Frontend (Vitest + React Testing Library + Playwright)
@@ -79,6 +80,12 @@ Tests never depend on each other or on execution order.
 - Concurrent 401s trigger only one refresh call.
 - Failed refresh clears the session and redirects to `/login`.
 - The access token is never written to `localStorage` or `sessionStorage`.
+- 5xx responses are logged with their `X-Request-ID` and without the query string; network failures are logged; aborted requests and 4xx are not.
+
+**Logger (`src/utils/logger.js`)**
+- Production: errors are batched into one post with page path (no query), stack and request id; debug/info/warn are not posted; messages are clipped and at most 50 errors are sent per page.
+- Development: errors go to the console and nothing is posted.
+- `RouteError` reports a render error and offers a reload. E2E (`e2e/logging.spec.js`): an uncaught error in the built app reaches `/api/client-logs` (204) without a CSP block.
 
 **Auth pages**
 - Login: shows field errors for empty inputs; shows the server error on 401; redirects to the originally requested page on success, keeping its query string, and to the dashboard when no page was asked for; shows the logo and "Welcome back"; the password toggle shows and hides the password; "Forgot password?" says reset is coming soon without calling the API; the button is disabled with a spinner while logging in, so only one request is sent.
