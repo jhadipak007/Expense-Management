@@ -12,7 +12,7 @@ import { NativeSelect } from '@/components/ui/native-select';
  */
 function Field({ id, label, hint, error, children }) {
   return (
-    <div className="grid gap-1.5">
+    <div className="grid content-start gap-1.5">
       <Label htmlFor={id} className="text-base font-semibold text-foreground">{label}</Label>
       {children}
       {hint && <p id={`${id}-hint`} className="text-sm">{hint}</p>}
