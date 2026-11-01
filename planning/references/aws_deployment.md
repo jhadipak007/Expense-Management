@@ -76,6 +76,7 @@ Lambda environment variables (non-secret):
 | `ENABLE_API_DOCS` | `false` |
 | `ALLOWED_HOSTS` | `["<api-id>.execute-api.<region>.amazonaws.com"]` (CloudFront sends the API Gateway host, not the viewer host) |
 | `LOG_LEVEL` | `INFO` |
+| `LOG_FORMAT` | `json` |
 | `AWS_LWA_PORT` | `8080` |
 | `AWS_LWA_READINESS_CHECK_PATH` | `/api/health` |
 
@@ -406,7 +407,7 @@ cat > lambda-env.json <<EOF
   "ENVIRONMENT":"production","USE_POSTGRESQL_DB":"true",
   "DB_HOST":"$DB_HOST","DB_PORT":"5432","DB_NAME":"expense_sarathi",
   "AWS_SECRETS_MANAGER_SECRET_ID":"$APP/prod/app",
-  "COOKIE_SECURE":"true","ENABLE_API_DOCS":"false","LOG_LEVEL":"INFO",
+  "COOKIE_SECURE":"true","ENABLE_API_DOCS":"false","LOG_LEVEL":"INFO","LOG_FORMAT":"json",
   "ALLOWED_HOSTS":"[\"$1\"]",
   "AWS_LWA_PORT":"8080","AWS_LWA_READINESS_CHECK_PATH":"/api/health"}}
 EOF

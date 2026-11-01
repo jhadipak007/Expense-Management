@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     allowed_hosts: list[str] = ["localhost", "127.0.0.1"]
     enable_api_docs: bool = False
     log_level: str = "INFO"
+    log_format: Literal["json", "text"] = "json"
     frontend_dist_dir: str = "frontend/dist"
 
     @computed_field

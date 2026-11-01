@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -16,6 +16,7 @@ bearer = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
+    request: Request,
     db: DbSession,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
 ) -> User:
@@ -28,6 +29,7 @@ def get_current_user(
             "Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    request.state.user_id = user.id  # for the access log line
     return user
 
 

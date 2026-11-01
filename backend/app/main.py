@@ -1,6 +1,5 @@
 """FastAPI app: /api routes, security middleware and the built frontend."""
 
-import logging
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -8,6 +7,8 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import FileResponse
 
 from app.config import get_settings
+from app.logging_config import setup_logging
+from app.request_logging import log_requests
 from app.routers import (
     auth, categories, currencies, expenses, families, health, invitations, reports, users,
 )
@@ -23,7 +24,7 @@ SECURITY_HEADERS = {
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    logging.basicConfig(level=settings.log_level)
+    setup_logging(settings.log_level, settings.log_format)
     docs = settings.enable_api_docs
     app = FastAPI(
         title="Expense Sarathi",
@@ -31,9 +32,11 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if docs else None,
         openapi_url="/openapi.json" if docs else None,
     )
-    # The last middleware added runs first: headers wrap every response, including host rejections.
+    # The last middleware added runs first: request logging and headers wrap every response,
+    # including host rejections.
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
     app.middleware("http")(add_security_headers)
+    app.middleware("http")(log_requests)
     modules = (health, auth, users, families, invitations, categories, currencies, expenses,
                reports)
     for module in modules:
