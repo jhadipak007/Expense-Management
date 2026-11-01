@@ -78,13 +78,14 @@ Tests never depend on each other or on execution order.
 - On 401, calls `/api/auth/refresh` once and retries the request.
 - Concurrent 401s trigger only one refresh call.
 - Failed refresh clears the session and redirects to `/login`.
-- Token is never written to `localStorage` or `sessionStorage`.
+- The access token is never written to `localStorage` or `sessionStorage`.
 
 **Auth pages**
 - Login: shows field errors for empty inputs; shows the server error on 401; redirects to the originally requested page on success, keeping its query string, and to the dashboard when no page was asked for; shows the logo and "Welcome back"; the password toggle shows and hides the password; "Forgot password?" says reset is coming soon without calling the API; the button is disabled with a spinner while logging in, so only one request is sent.
 - Register: each password field has its own show/hide toggle; missing fields are named, invalid email, password shorter than 8 characters and mismatched passwords are blocked; 409 shows "email already registered" with a login link; a non-4-digit code is blocked; a wrong code shows "Incorrect code, please try again"; a 404 returns to the details step.
 - Route guard: a logged-out user opening a page is sent to `/login` and returned to it after login; an expired session also returns to the page; after a logout the next login goes to the dashboard; going back after logout shows login.
 - App start: session is restored through `/refresh` when the cookie is valid.
+- Failed logout: the next app start retries `/logout` instead of calling `/refresh`; once the retry succeeds, the next start restores normally; logging in after a failed logout keeps the new session. `src/test/setup.js` clears `localStorage` after each test so the flag does not leak.
 
 **Expenses**
 - List renders amount, currency, date, category name and category badge.
@@ -127,3 +128,4 @@ Rules for the suite: it runs with one worker (`workers: 1`), because every test 
 - Responsive: the main pages at 360px, 768px and 1440px have no horizontal scroll, and the navigation is a drawer below 1024px and a sidebar from 1024px. On login the brand highlights show only from 1024px, and the toggle and "Forgot password?" are at least 44px tall.
 - Login works with the keyboard alone (tab order, Enter submits); the favicon is the Expense Sarathi icon.
 - Opening a page with a query string while logged out returns to it, query string included, after login.
+- A logout request that fails (network abort) is finished on the next page load; a further reload still shows login.

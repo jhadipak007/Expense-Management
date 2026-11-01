@@ -25,5 +25,6 @@ afterEach(() => {
   toast.dismiss();
   server.resetHandlers();
   setAccessToken(null);
+  localStorage.clear();
 });
 afterAll(() => server.close());
