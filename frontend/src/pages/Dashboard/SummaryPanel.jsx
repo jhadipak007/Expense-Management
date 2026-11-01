@@ -5,18 +5,18 @@ import { getSummary } from '@/api/reports.js';
 import { useAsyncList } from '@/hooks/useAsyncList.js';
 import EmptyState from '@/components/EmptyState.jsx';
 import Notice from '@/components/Notice.jsx';
-import SectionCard, { CardIntro } from '@/components/SectionCard.jsx';
+import { CardIntro } from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatMoney } from '@/utils/format.js';
 import CategoryChart from './CategoryChart.jsx';
 
 /**
- * Spending for one scope (personal when `familyId` is null) under the dashboard
- * filters. Loads on its own, so one failing card does not affect the others.
+ * A panel in the Spending card: spending for one scope (personal when `familyId` is null) under the
+ * dashboard filters. Loads on its own, so one failing panel does not affect the others.
  * `addExpense` is the Add expense link target offered when nothing matches.
  */
-export default function SummaryCard({ title, familyId, filters, addExpense }) {
+export default function SummaryPanel({ title, familyId, filters, addExpense }) {
   const { from, to, categoryIds } = filters;
   const load = useCallback(
     (signal) => getSummary({ familyId, from, to, categoryIds }, signal),
@@ -27,9 +27,11 @@ export default function SummaryCard({ title, familyId, filters, addExpense }) {
   const personal = familyId === null;
 
   return (
-    <SectionCard aria-labelledby={headingId} aria-busy={loading}>
+    <section
+      className="flex flex-col gap-4 rounded-lg border bg-muted/40 p-4" aria-labelledby={headingId} aria-busy={loading}
+    >
       <CardIntro
-        id={headingId} title={title}
+        id={headingId} as="h3" title={title}
         description={personal ? 'Only you can see these' : 'Shared with your family'}
         icon={personal ? UserIcon : UsersIcon} iconClassName={personal ? undefined : 'bg-accent/25 text-foreground'}
       />
@@ -63,7 +65,7 @@ export default function SummaryCard({ title, familyId, filters, addExpense }) {
           ))}
         </div>
       )}
-    </SectionCard>
+    </section>
   );
 }
 

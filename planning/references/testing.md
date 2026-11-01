@@ -112,7 +112,7 @@ Tests never depend on each other or on execution order.
 - Navigation: Menu toggles the drawer, Escape and choosing a link close it, the current page is marked.
 
 **Dashboard summaries**
-- Personal card first, then one card per family; no families shows only Personal.
+- One Spending card holds the heading, Reset, the Period and Categories filters and the summaries: Personal panel first, then one per family (h3); no families shows only Personal.
 - Filters start on This month and All categories; presets, category checkboxes, a custom range and Reset change every card's request; a From date after the To date shows a message and keeps the results.
 - Totals per currency with a category breakdown; empty, loading, and error with Retry per card.
 - Filters survive Add expense and reload (they are in the URL).
@@ -121,7 +121,7 @@ Tests never depend on each other or on execution order.
 - Form (`BudgetPage.test.jsx`): only Personal and owned families are offered; missing fields and bad amounts show messages next to the fields and save nothing; the payload sends All categories and Personal as null, with `today`; 409 is shown above the form; editing changes only amount and period; a non-owner sees a notice.
 - Dashboard (`BudgetsSection.test.jsx`): empty state; groups per scope with h3 headings; dates, spent, left or over by, progress and status label; Edit and Delete only when manageable; per-group period and category filters; delete only after confirmation; error with Retry; budgets reload after joining a family and after adding an expense.
 - Settings: opens from the nav and the user menu, shows the saved day, explains the chosen day, saves with a toast; a saved day reaches the dashboard without a reload. Unsaved changes: leaving asks first (Keep editing and Escape stay, Discard changes leaves), nothing is asked when unchanged, after saving, on a link to Settings itself or on logout, and `beforeunload` is prevented only while changed.
-- Dashboard month presets (`dashboardFilters.test.js`, `Dashboard.test.jsx`): start days 1, 15 and 28, before and after the day, across a new year and in a leap February; a viewer with day 15 gets matching requests, the This month state and the footer dates.
+- Dashboard month presets (`dashboardFilters.test.js`, `Dashboard.test.jsx`): start days 1, 15 and 28, before and after the day, across a new year and in a leap February; a viewer with day 15 gets matching requests, the This month state and the applied dates under the Spending heading.
 - E2E (`e2e/budgets.spec.js`): a budget moves through On track, Close to limit and Over budget as expenses are added, with no CSP errors; duplicate, edit and delete; Settings explains the day, asks before leaving unsaved, and the saved day moves the monthly budget dates and the dashboard's This month without a reload; a family budget is grouped under the family; one column and no sideways scroll at 360px.
 
 **Reports**

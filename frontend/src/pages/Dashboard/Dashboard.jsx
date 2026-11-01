@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router';
 import { PlusIcon } from 'lucide-react';
 import { listCategoriesAndFamilies } from '@/api/expenses.js';
@@ -7,12 +7,13 @@ import { useAuth } from '@/auth/useAuth.js';
 import Notice from '@/components/Notice.jsx';
 import SectionCard, { PageHeader } from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import BudgetsSection from './BudgetsSection.jsx';
 import DashboardFilters from './DashboardFilters.jsx';
 import { parseFilters, toSearchParams } from './dashboardFilters.js';
 import PendingInvitations from './PendingInvitations.jsx';
-import SummaryCard from './SummaryCard.jsx';
+import SummaryPanel from './SummaryPanel.jsx';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -25,6 +26,7 @@ export default function Dashboard() {
   // Adding an expense or a budget keeps the filters, which travel in the query string.
   const { search } = useLocation();
   const addExpense = { pathname: '/expenses/new', search };
+  const spendingId = useId();
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
@@ -45,20 +47,25 @@ export default function Dashboard() {
       )}
       {options.data && (
         <>
-          <DashboardFilters
-            filters={filters} categories={options.data.categories} monthStartDay={monthStartDay}
-            onChange={(next) => setSearchParams(toSearchParams(next), { replace: true })}
-            onReset={() => setSearchParams({}, { replace: true })}
-          />
-          <div className="grid gap-4 md:grid-cols-[repeat(auto-fill,minmax(18rem,1fr))]">
-            <SummaryCard title="Personal" familyId={null} filters={filters} addExpense={addExpense} />
-            {options.data.families.map((family) => (
-              <SummaryCard
-                key={family.id} title={family.name} familyId={family.id} filters={filters}
-                addExpense={addExpense}
-              />
-            ))}
-          </div>
+          {/* The filters and the summaries they drive share one card. */}
+          <SectionCard className="md:gap-6" aria-labelledby={spendingId}>
+            <DashboardFilters
+              headingId={spendingId} filters={filters} categories={options.data.categories}
+              monthStartDay={monthStartDay}
+              onChange={(next) => setSearchParams(toSearchParams(next), { replace: true })}
+              onReset={() => setSearchParams({}, { replace: true })}
+            />
+            <Separator />
+            <div className="grid gap-4 md:grid-cols-[repeat(auto-fill,minmax(18rem,1fr))]">
+              <SummaryPanel title="Personal" familyId={null} filters={filters} addExpense={addExpense} />
+              {options.data.families.map((family) => (
+                <SummaryPanel
+                  key={family.id} title={family.name} familyId={family.id} filters={filters}
+                  addExpense={addExpense}
+                />
+              ))}
+            </div>
+          </SectionCard>
           {/* Keyed on the families, so joining one from an invitation reloads the budgets too. */}
           <BudgetsSection
             key={options.data.families.map((f) => f.id).join()}
@@ -71,15 +78,15 @@ export default function Dashboard() {
   );
 }
 
-/** Placeholder shaped like the filters and two summary cards. */
+/** Placeholder shaped like the Spending card: filters, then two summary panels. */
 function DashboardSkeleton() {
   return (
-    <div className="flex flex-col gap-4" role="status">
+    <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 md:gap-6 md:p-6" role="status">
       <span className="sr-only">Loading...</span>
-      <Skeleton className="h-24 w-full rounded-xl" />
+      <Skeleton className="h-24 w-full" />
       <div className="grid gap-4 md:grid-cols-2">
-        <Skeleton className="h-56 rounded-xl" />
-        <Skeleton className="h-56 rounded-xl" />
+        <Skeleton className="h-56" />
+        <Skeleton className="h-56" />
       </div>
     </div>
   );

@@ -50,20 +50,25 @@ const chip = (name) => screen.getByRole('button', { name });
 const familyRequests = (requests, id) => requests.filter((p) => p.get('family_id') === id);
 
 describe('Dashboard summaries', () => {
-  it('shows a Personal card followed by one card per family', async () => {
+  it('groups the filters and a Personal summary followed by one per family in one Spending card', async () => {
     mockDashboard({ families: [...FAMILIES, { id: 4, name: 'Trip Crew', role: 'member' }] });
     renderApp('/');
-    await screen.findByRole('region', { name: 'Personal' });
-    const titles = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
-    expect(titles.slice(0, 3)).toEqual(['Personal', 'Jha Household', 'Trip Crew']);
+    const spending = await screen.findByRole('region', { name: 'Spending' });
+    expect(within(spending).getByRole('heading', { level: 2, name: 'Spending' })).toBeInTheDocument();
+    expect(within(spending).getByLabelText('Period')).toBeInTheDocument();
+    expect(within(spending).getByRole('group', { name: 'Categories' })).toBeInTheDocument();
+    expect(within(spending).getByRole('button', { name: 'Reset' })).toBeInTheDocument();
+    const titles = within(spending).getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
+    expect(titles).toEqual(['Personal', 'Jha Household', 'Trip Crew']);
+    expect(within(spending).getByRole('region', { name: 'Trip Crew' })).toBeInTheDocument();
   });
 
-  it('shows only the Personal card without families', async () => {
+  it('shows only the Personal summary without families', async () => {
     mockDashboard({ families: [] });
     renderApp('/');
-    await screen.findByRole('region', { name: 'Personal' });
-    expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent('Personal');
-    expect(screen.queryByRole('region', { name: 'Jha Household' })).not.toBeInTheDocument();
+    const spending = await screen.findByRole('region', { name: 'Spending' });
+    await within(spending).findByRole('region', { name: 'Personal' });
+    expect(within(spending).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['Personal']);
   });
 
   it('asks for personal and family totals separately, for this month', async () => {
