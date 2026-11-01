@@ -60,6 +60,23 @@ describe('Login page', () => {
     expect(router.state.location.pathname).toBe('/');
   });
 
+  it('returns to the page asked for before login', async () => {
+    const { user, router } = renderApp('/families');
+    await screen.findByLabelText('Email');
+    await fillAndSubmit(user, { email: 'priya@example.com', password: 'P@ssw0rd' });
+    expect(await screen.findByRole('heading', { name: 'Families' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/families');
+  });
+
+  it('keeps the query string of the page asked for', async () => {
+    const { user, router } = renderApp('/?from=2026-01-01&to=2026-01-31');
+    await screen.findByLabelText('Email');
+    await fillAndSubmit(user, { email: 'priya@example.com', password: 'P@ssw0rd' });
+    expect(await screen.findByRole('heading', { name: 'Welcome, Priya' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/');
+    expect(router.state.location.search).toBe('?from=2026-01-01&to=2026-01-31');
+  });
+
   it('shows the brand logo and a welcome heading', async () => {
     renderApp('/login');
     expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();

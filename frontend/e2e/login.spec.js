@@ -31,6 +31,17 @@ test('login shows the dashboard greeting', async ({ page }) => {
   await expectDashboard(page);
 });
 
+test('login returns to the page asked for, with its query string', async ({ page }) => {
+  await page.goto('/families?tab=mine');
+  await expect(page).toHaveURL('/login');
+  // Submit here: logIn() reopens /login, which would drop the remembered page.
+  await page.getByLabel('Email').fill(TEST_USER.email);
+  await page.getByLabel('Password', { exact: true }).fill(TEST_USER.password);
+  await loginButton(page).click();
+  await expect(page).toHaveURL('/families?tab=mine');
+  await expect(page.getByRole('heading', { name: 'Families' })).toBeVisible();
+});
+
 test('logout returns to login and the back button does not show the dashboard', async ({ page }) => {
   await logIn(page);
   await expectDashboard(page);
