@@ -6,7 +6,7 @@ import { FieldLegend, FieldSet } from '@/components/ui/field';
 import { NativeSelectOption } from '@/components/ui/native-select';
 import { todayIso } from '@/utils/format.js';
 
-const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
+export const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
 const UNAVAILABLE = 'Something went wrong. Please try again.';
 const CHECK_FORM = 'Please check the form and try again.';
 const MESSAGES = {
@@ -143,7 +143,7 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
 }
 
 /** A titled group of related fields, separated from the next by a rule. */
-function FormSection({ legend, children }) {
+export function FormSection({ legend, children }) {
   return (
     <FieldSet className="gap-4 border-b pb-6">
       <FieldLegend className="mb-0 text-sm font-semibold tracking-wide text-muted-foreground uppercase">

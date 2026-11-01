@@ -72,8 +72,11 @@ export default function FormField({
   );
 }
 
-/** Labelled native select (`children` are its options), linked to its hint or error like `FormField`. */
-export function SelectField({ id, label, hint, error, value, onChange, children }) {
+/**
+ * Labelled native select (`children` are its options), linked to its hint or error like `FormField`.
+ * Other props (e.g. `disabled`) go to the select.
+ */
+export function SelectField({ id, label, hint, error, value, onChange, children, ...selectProps }) {
   return (
     <Field id={id} label={label} hint={hint} error={error}>
       <NativeSelect
@@ -81,6 +84,7 @@ export function SelectField({ id, label, hint, error, value, onChange, children 
         className="bg-card text-foreground"
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        {...selectProps}
       >
         {children}
       </NativeSelect>
