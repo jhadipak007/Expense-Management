@@ -15,7 +15,7 @@ ORM mapping, relationships and migrations: see [database.md](database.md).
 | password_hash | string | never the plain password |
 | display_name | string | |
 | is_active | boolean | deactivated users cannot log in |
-| month_start_day | integer, default 1 | 1 to 28 (checked by the API); the day monthly budget periods start |
+| month_start_day | integer, default 1 | 1 to 28 (checked by the API); the day monthly budget periods and the dashboard's This month / Last month start; changing it never changes stored expenses or budgets |
 | created_at, updated_at | datetime | UTC |
 
 **refresh_tokens**: one row per issued refresh token. See [authentication.md](authentication.md).
