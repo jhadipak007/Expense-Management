@@ -79,7 +79,7 @@ export default function DashboardFilters({ headingId, filters, categories, month
           {[...PRESETS, { key: 'custom', label: 'Custom' }].map(({ key, label }) => (
             <ToggleGroupItem
               key={key} value={key}
-              className="rounded-md! text-muted-foreground data-[state=on]:bg-card data-[state=on]:shadow-sm"
+              className="rounded-md! text-muted-foreground data-[state=on]:bg-primary! data-[state=on]:font-semibold data-[state=on]:text-primary-foreground! data-[state=on]:shadow-sm"
             >
               {label}
             </ToggleGroupItem>

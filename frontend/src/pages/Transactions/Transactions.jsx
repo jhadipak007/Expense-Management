@@ -19,8 +19,12 @@ import {
   changeFilters, clearFilters, hasActiveFilters, parseFilters, toSearchParams,
 } from './transactionFilters.js';
 
-/** Tab triggers are at least 44px tall; the active one stands out on the card colour. */
-const TAB = 'min-h-11 text-base data-[state=active]:bg-card';
+/**
+ * Tab triggers are at least 44px tall; the active one is filled with the primary colour, like the
+ * dashboard's selected period. `!` beats the trigger's own dark and hover active styles.
+ */
+const TAB = 'min-h-11 text-base data-[state=active]:border-transparent! data-[state=active]:bg-primary! '
+  + 'data-[state=active]:font-semibold data-[state=active]:text-primary-foreground!';
 
 /** The members of the selected family, for the member filter; none for Personal. */
 function useMembers(familyId) {

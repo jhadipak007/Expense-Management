@@ -11,6 +11,11 @@ Format:
 - **Alternatives:** what we rejected (optional).
 ```
 
+## 2026-11-02 — EM-20 — Selected segment is filled with the primary colour
+- **Decision:** The active Transactions / Audit log tab and the dashboard's selected period (This month, Last month, This year, Custom) are filled `bg-primary` with bold `text-primary-foreground`. Other segmented controls should follow the same pattern.
+- **Why:** The previous white-on-grey selected look was too subtle to tell which view was on. The user asked for one shared pattern across both switches. The primary pair already meets contrast in both themes (it is the primary button).
+- **Alternatives:** A light primary tint with a 3px underline, like the active menu link (softer); changing only the Transactions tab.
+
 ## 2026-11-02 — EM-17 — Budgets goes right after Dashboard in the menu
 - **Decision:** Menu order is Dashboard, Budgets, Transactions, Families, Settings.
 - **Why:** The story placed Budgets between Dashboard and Families, written before Transactions existed; the user chose to put it directly after Dashboard.

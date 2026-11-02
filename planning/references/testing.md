@@ -130,6 +130,7 @@ Tests never depend on each other or on execution order.
 - URL state (`transactionFilters.test.js`): round trip, invalid values and reversed ranges dropped, page reset on change, member dropped with the space, Clear all keeps space and view, API offset.
 - Page (`Transactions.test.jsx`): rows with created by and local time; space switch and member filter; search, category and Clear all; a search being typed survives other filter changes; Previous/Next; empty states; the audit log tab with actions, changes and Deleted badge. Default MSW handlers answer `GET /api/expenses` and `/api/expenses/audit-log` with an empty page.
 - Detail (`TransactionDetail.test.jsx`): fields, last change and history; no Edit/Delete for non-recorders; edit in place without `family_id`; delete after confirmation, then restore; not found.
+- E2E (`e2e/selected-state.spec.js`): in the light and dark themes (system colour scheme), the dashboard's selected period and the active Transactions / Audit log tab have the primary background and primary-foreground text, and the other option does not; colours are polled because the controls fade between states.
 - E2E (`e2e/transactions.spec.js`): list, edit, delete, restore and the audit log for a fresh user, with CSP messages checked around each step (only the known `AlertDialog` one appears); filters survive a reload. `responsive.spec.js` covers the list, audit log and detail at 360, 768 and 1440px.
 
 **Reports**
