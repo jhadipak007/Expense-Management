@@ -13,13 +13,16 @@ import BudgetForm from './BudgetForm.jsx';
 import { PERIOD_LABELS } from './budgetLabels.js';
 
 /**
- * Create a budget (`/budgets/new`) or change one (`/budgets/:budgetId/edit`), then
- * return to the dashboard with a toast. The dashboard's filters travel in the query string.
+ * Create a budget (`/budgets/new`) or change one (`/budgets/:budgetId/edit`), then return
+ * with a toast: to the Budgets page when opened from it (router state `returnTo`), otherwise
+ * to the dashboard, whose filters travel in the query string.
  */
 export default function BudgetPage() {
   const { budgetId } = useParams();
   const navigate = useNavigate();
-  const dashboard = { pathname: '/', search: useLocation().search };
+  const { search, state } = useLocation();
+  const fromBudgets = state?.returnTo === '/budgets';
+  const back = fromBudgets ? '/budgets' : { pathname: '/', search };
   const load = useCallback(async (signal) => {
     const [options, budget] = await Promise.all([
       listExpenseFormOptions(), budgetId ? getBudget(budgetId, signal) : null,
@@ -33,12 +36,12 @@ export default function BudgetPage() {
     toast.success('Budget saved', {
       description: `${formatMoney(saved.amount, saved.currency)} ${PERIOD_LABELS[saved.period].toLowerCase()}`,
     });
-    navigate(dashboard);
+    navigate(back);
   }
 
   return (
     <SectionCard>
-      <BackLink to={dashboard}>Back to dashboard</BackLink>
+      <BackLink to={back}>{fromBudgets ? 'Back to budgets' : 'Back to dashboard'}</BackLink>
       <PageHeader
         title={budgetId ? 'Edit budget' : 'Create budget'}
         description="Set a spending limit that repeats every period."

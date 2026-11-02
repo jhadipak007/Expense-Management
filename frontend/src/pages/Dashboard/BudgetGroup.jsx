@@ -18,7 +18,7 @@ function matches(budget, period, category) {
 
 /**
  * Budgets of one scope (Personal or a family), with their own period and category filters.
- * `editLink(budget)` is the edit page target; `onDelete(budget)` deletes after confirmation.
+ * `editLink(budget)` gives the edit link's props (`to`, `state`); `onDelete(budget)` deletes after confirmation.
  */
 export default function BudgetGroup({ title, personal, budgets, categories, editLink, busyId, onDelete }) {
   const [period, setPeriod] = useState(ANY);

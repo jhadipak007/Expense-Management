@@ -1,10 +1,11 @@
 import { cn } from 'cn';
-import { LayoutDashboardIcon, ReceiptTextIcon, SettingsIcon, UsersIcon } from 'lucide-react';
+import { LayoutDashboardIcon, PiggyBankIcon, ReceiptTextIcon, SettingsIcon, UsersIcon } from 'lucide-react';
 import { NavLink } from 'react-router';
 import { SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
 
 const LINKS = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboardIcon, end: true },
+  { to: '/budgets', label: 'Budgets', icon: PiggyBankIcon },
   { to: '/transactions', label: 'Transactions', icon: ReceiptTextIcon },
   { to: '/families', label: 'Families', icon: UsersIcon },
   { to: '/settings', label: 'Settings', icon: SettingsIcon },

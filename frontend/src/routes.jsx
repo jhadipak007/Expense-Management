@@ -4,6 +4,7 @@ import { GuestOnly, RequireAuth } from './auth/guards.jsx';
 import RouteError from './components/RouteError.jsx';
 import AppLayout from './layouts/AppLayout.jsx';
 import BudgetPage from './pages/Budgets/BudgetPage.jsx';
+import Budgets from './pages/Budgets/Budgets.jsx';
 import Dashboard from './pages/Dashboard/Dashboard.jsx';
 import NewExpense from './pages/Expenses/NewExpense.jsx';
 import Families from './pages/Families/Families.jsx';
@@ -34,6 +35,7 @@ export const routes = [
             children: [
               { path: '/', element: <Dashboard /> },
               { path: '/expenses/new', element: <NewExpense /> },
+              { path: '/budgets', element: <Budgets /> },
               { path: '/budgets/new', element: <BudgetPage /> },
               { path: '/budgets/:budgetId/edit', element: <BudgetPage /> },
               { path: '/transactions', element: <Transactions /> },

@@ -105,3 +105,23 @@ test('budgets stack in one column on a phone with no sideways scroll', async ({ 
   await expect(first.getByRole('link', { name: /^Edit/ })).toBeVisible();
   await expect(first.getByRole('button', { name: /^Delete/ })).toBeVisible();
 });
+
+test('the Budgets menu item opens the Budgets page, which Create budget returns to', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await signUpFresh(page);
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('dialog').getByRole('link', { name: 'Budgets' }).click();
+  await expect(page).toHaveURL('/budgets');
+  await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
+
+  await createBudget(page, { category: 'Grocery', period: 'Weekly', amount: '100' });
+  await expect(page).toHaveURL('/budgets');
+  await expect(group(page, 'Personal').getByRole('listitem')).toContainText('AUD 100.00 left');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
+
+  await group(page, 'Personal').getByRole('link', { name: /^Edit/ }).click();
+  await page.getByRole('link', { name: 'Back to budgets' }).click();
+  await expect(page).toHaveURL('/budgets');
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await expect(page.getByRole('dialog').getByRole('link', { name: 'Budgets' })).toHaveAttribute('aria-current', 'page');
+});

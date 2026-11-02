@@ -16,10 +16,10 @@ export function PageTitle({ className, ...props }) {
 }
 
 /** The page's h1 with a short description under it. */
-export function PageHeader({ title, description }) {
+export function PageHeader({ id, title, description }) {
   return (
     <div className="flex flex-col gap-1">
-      <PageTitle>{title}</PageTitle>
+      <PageTitle id={id}>{title}</PageTitle>
       <p className="text-sm">{description}</p>
     </div>
   );

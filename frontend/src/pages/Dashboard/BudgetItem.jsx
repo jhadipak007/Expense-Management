@@ -40,7 +40,7 @@ export default function BudgetItem({ budget, name, editLink, busy, onDelete }) {
       {budget.can_manage && (
         <ItemActions>
           <Button asChild variant="outline">
-            <Link to={editLink} aria-label={`Edit ${title} budget`}><PencilIcon />Edit</Link>
+            <Link {...editLink} aria-label={`Edit ${title} budget`}><PencilIcon />Edit</Link>
           </Button>
           <ConfirmButton
             variant="outline" disabled={busy} aria-label={`Delete ${title} budget`}
