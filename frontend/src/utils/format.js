@@ -55,3 +55,8 @@ export function formatMoney(amount, currency) {
 export function initials(name) {
   return name.trim().split(/\s+/).slice(0, 2).map((word) => word[0].toUpperCase()).join('');
 }
+
+/** Show a UTC timestamp in the viewer's time zone, e.g. "2 Nov 2026, 5:07 pm". */
+export function formatDateTime(iso) {
+  return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+}

@@ -91,6 +91,7 @@ Record important lessons here as you discover them, one short bullet each. Add o
 - `GuestOnly` is the only redirect after login or sign-up; a page that also calls `navigate()` after the session changes races with it and loses. Chromium keeps `history.state` on a same-URL `page.goto()`.
 - On SQLite, never batch-alter a table other rows reference (e.g. `users`): the rebuild's DROP fails on foreign keys. Use plain `op.add_column` / `op.drop_column`.
 - A unique rule over nullable columns needs a non-null key column (see `budgets.scope_key`); NULLs never collide.
+- shadcn `TabsTrigger` is `100% - 1px` of a padded `TabsList`, so it ends up under 44px; give triggers `min-h-11` and the list `h-auto!`. Tabs inject no style, so they are CSP-safe.
 - `extra=` log fields cannot reuse LogRecord names (`message`, `args`...). `request_id` is added by the stdout handler's filter, so `caplog` records don't have it; test it on the formatter.
 
 ## Personal progress tracking

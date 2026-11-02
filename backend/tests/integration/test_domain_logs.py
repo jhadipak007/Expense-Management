@@ -105,6 +105,20 @@ def test_expense_created_is_logged(client, caplog, make_user, auth_headers):
         "expense created", user.id, expense_id, None)
 
 
+def test_expense_changes_are_logged(client, caplog, make_user, auth_headers):
+    user = make_user()
+    headers = auth_headers(user)
+    expense_id = client.post("/api/expenses", json=NEW_EXPENSE, headers=headers).json()["id"]
+    client.patch(f"/api/expenses/{expense_id}", json=NEW_EXPENSE | {"amount": "9"}, headers=headers)
+    client.delete(f"/api/expenses/{expense_id}", headers=headers)
+    client.post(f"/api/expenses/{expense_id}/restore", headers=headers)
+    logged = [(message, fields["user_id"], fields["expense_id"])
+              for _, message, fields in events(caplog)[-3:]]
+    assert logged == [("expense updated", user.id, expense_id),
+                      ("expense deleted", user.id, expense_id),
+                      ("expense restored", user.id, expense_id)]
+
+
 def test_budget_events_are_logged(client, caplog, make_user, auth_headers):
     user = make_user()
     headers, params = auth_headers(user), {"today": str(utcnow().date())}

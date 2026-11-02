@@ -88,13 +88,23 @@ Invitee-side actions; an invitation belonging to someone else returns 404.
 ### Expenses (`/api/expenses`)
 | Method | Path | Input | Who | Returns |
 |---|---|---|---|---|
-| GET | `/` | `ExpenseFilter` query | any user | `Page[ExpenseOut]`, only visible expenses |
+| GET | `/` | `TransactionFilter` query | any user; member if `family_id` set | `Page[TransactionOut]`: live expenses in one space, latest `spent_on` first |
+| GET | `/audit-log` | `AuditFilter` query | any user; member if `family_id` set | `Page[AuditLogEntryOut]`: every action in the space, deleted expenses included, newest first |
 | POST | `/` | `ExpenseIn` | any user; member if `family_id` set | `ExpenseOut` (201) |
-| GET | `/{expense_id}` | none | can see it | `ExpenseOut` |
+| GET | `/{expense_id}` | none | can see it (deleted or not) | `TransactionDetailOut`: fields, `created_by`, `history` (oldest first), `last_modified_by`/`_at` (null until changed), `can_edit` |
 | PATCH | `/{expense_id}` | `ExpenseUpdateIn` | recorder | `ExpenseOut` |
-| DELETE | `/{expense_id}` | none | recorder | 204 |
+| DELETE | `/{expense_id}` | none | recorder | 204 (soft delete) |
+| POST | `/{expense_id}/restore` | none | recorder | 204 |
 
 `POST /` takes the recorder from the access token (`user_id` in the body is rejected by `extra="forbid"`). A `family_id` the user is not a member of returns 404 and saves nothing. An unknown `category_id` returns 422 on `category_id`, and a well-formed but unknown `currency` returns 422 on `currency`, because these lookup tables are not access-controlled.
+
+Changes (EM-19):
+- `PATCH` replaces amount, currency, category, date and description. The space cannot change: `family_id` in the body is a 422. An edit that changes nothing returns 200 and writes no audit row.
+- A user who can see the expense but did not record it gets **403** "Only the person who recorded this expense can change it"; one who cannot see it gets 404.
+- **409** when the action does not fit the state: deleting a deleted expense, restoring a live one, or editing a deleted one ("Restore the expense before editing it").
+- Deleted expenses are left out of the list, `/api/reports/summary` and budget spending, but stay visible in the detail and the audit log.
+- Audit rows are written only by the services, in the same commit as the change. No route creates, changes or deletes them.
+- A family the user is not in is **404** on the list and audit log, like every other family-scoped route (the Jira story asks for 403; 404 is kept so family ids cannot be probed).
 
 ### Budgets (`/api/budgets`)
 Every route except DELETE takes `TodayQuery`: `today`, the browser's local date, within a day of the UTC date (422 otherwise). It picks each budget's current period and starts a new fortnightly budget's first fortnight.
@@ -144,7 +154,9 @@ Field rules:
 | today (budgets) | `date`, within a day of the UTC date |
 
 Query models (FastAPI `Annotated[Model, Query()]`):
-- `ExpenseFilter`: `scope` (`personal` / `family` / `all`), `family_id`, `category_id`, `date_from`, `date_to`, `sort` (`spent_on` / `-spent_on` / `amount` / `-amount`), `limit` (1 to 100, default 50), `offset` (>= 0).
+- `TransactionFilter` (extends `PageQuery`: `limit` 1 to 100, default 25; `offset` >= 0): `family_id` (omit for the personal space), `date_from`, `date_to` (optional, inclusive, on the expense date), `category_id` (repeatable), `user_id` (the member who recorded it; needs `family_id`), `q` (1 to 100 chars, description contains, case-insensitive).
+- `AuditFilter`: `TransactionFilter` plus `action` (repeatable: `created`, `updated`, `deleted`, `restored`). `user_id` is the member who acted; dates still filter the expense date.
+- Paged responses are `Page[T]`: `items` and `has_more` (one extra row is fetched to know).
 - `ReportFilter`: `family_id` (omit to report only the authenticated user's personal expenses; provide a family ID to report that family's expenses, if the user is a member, else 404), `date_from`, `date_to` (both required, inclusive), `category_id` (repeatable; omit for all categories). Reports do not combine personal and family expenses. The dashboard (EM-6) calls it once per card. Grouping by month (`group_by`) is planned for the Reports page and not implemented yet.
 
 Invalid input returns FastAPI's standard **422** response.
@@ -157,7 +169,7 @@ Relevant endpoints: everything that takes a path parameter or filter, above all 
 - No `text()` with string formatting or f-strings. If `text()` is ever needed, values go through `bindparams`.
 - Sort fields and `group_by` come from a fixed enum mapped to column objects in code. User input never becomes a column or SQL fragment.
 - Typed parameters reject anything that is not an int, date or allowed literal before any query runs.
-- The only free-text search is the family user search by name. `%`, `_` and `\` are escaped and the value is passed as a bound parameter to `ILIKE ... ESCAPE`.
+- Free-text search (family user search by name, transaction description `q`) goes through `services/text_search.contains`: `%`, `_` and `\` are escaped and the value is passed as a bound parameter to `ILIKE ... ESCAPE`.
 - Tests: send injection payloads (for example `1 OR 1=1`, `'; DROP TABLE expenses;--`) to path and query parameters and confirm 422 and no data leak.
 
 ## Security settings

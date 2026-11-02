@@ -11,6 +11,8 @@ import FamilyDetail from './pages/Families/FamilyDetail.jsx';
 import Login from './pages/Login/Login.jsx';
 import Register from './pages/Register/Register.jsx';
 import Settings from './pages/Settings/Settings.jsx';
+import TransactionDetail from './pages/Transactions/TransactionDetail.jsx';
+import Transactions from './pages/Transactions/Transactions.jsx';
 
 export const routes = [
   {
@@ -34,6 +36,8 @@ export const routes = [
               { path: '/expenses/new', element: <NewExpense /> },
               { path: '/budgets/new', element: <BudgetPage /> },
               { path: '/budgets/:budgetId/edit', element: <BudgetPage /> },
+              { path: '/transactions', element: <Transactions /> },
+              { path: '/transactions/:expenseId', element: <TransactionDetail /> },
               { path: '/families', element: <Families /> },
               { path: '/families/:familyId', element: <FamilyDetail /> },
               { path: '/settings', element: <Settings /> },

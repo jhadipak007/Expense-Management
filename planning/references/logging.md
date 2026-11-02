@@ -39,7 +39,7 @@ Services log fixed messages at INFO with ids as fields, after the change is comm
 | `app.services.registration_service` | `sign-up started`, `sign-up code incorrect` (`attempts`, `out_of_attempts`), `sign-up verified; user created` (`user_id`) | |
 | `app.services.family_service` | `family created` | `user_id`, `family_id` |
 | `app.services.invitation_service` | `invitation sent` / `cancelled` / `accepted` / `declined` | `user_id`, `family_id`, `invitation_id`, `invitee_id` (sent) |
-| `app.services.expense_service` | `expense created` | `user_id`, `expense_id`, `family_id` |
+| `app.services.expense_service` | `expense created` / `updated` / `deleted` / `restored` | `user_id`, `expense_id`, `family_id` (never amounts, descriptions or changed values) |
 | `app.services.budget_service` | `budget created` / `updated` / `deleted` | `user_id`, `budget_id`, `family_id` |
 | `app.services.user_service` | `user settings updated` | `user_id` |
 

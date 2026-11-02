@@ -21,7 +21,7 @@ def summarize(db: Session, user_id: int, query: ReportFilter) -> ReportSummaryOu
     """Totals by currency, then by category. Personal and family expenses are never combined."""
     if query.family_id is not None:
         require_member(db, query.family_id, user_id)
-    conditions = [scope_condition(query.family_id, user_id),
+    conditions = [scope_condition(query.family_id, user_id), Expense.is_active,
                   Expense.spent_on.between(query.date_from, query.date_to)]
     if query.category_id:
         conditions.append(Expense.category_id.in_(query.category_id))
