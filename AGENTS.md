@@ -81,6 +81,7 @@ Detailed deployment architecture: see `planning/deployment_architecture.md`.
 
 ## Implementation Updates:
 - After finishing each Jira issue, always add a detailed document to `dataflow/` that describes the implementation changes and the resulting data flow.
+- Record each important implementation decision, with the reasoning behind it, in `planning/decisions.md` (newest first) as soon as it is made.
 
 ## Key learnings
 Record important lessons here as you discover them, one short bullet each. Add only points worth remembering for future work.
