@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.models import Family, FamilyMember, FamilyRole, User
 from app.services.family_access import require_member, require_owner
+from app.services.text_search import contains
 
 logger = logging.getLogger(__name__)
 
@@ -44,14 +45,9 @@ def search_users(db: Session, family_id: int, owner_id: int, *, email: str | Non
     if email is not None:
         query = query.where(User.email == email)
     else:
-        query = query.where(User.display_name.ilike(f"%{_escape_like(name)}%", escape="\\"))
+        query = query.where(contains(User.display_name, name))
     users = list(db.scalars(query.order_by(User.display_name, User.id).limit(limit + 1)))
     return users[:limit], len(users) > limit
-
-
-def _escape_like(value: str) -> str:
-    """Make LIKE wildcards in user input match literally."""
-    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 def get_family(db: Session, family_id: int, user_id: int) -> tuple[Family, FamilyRole]:

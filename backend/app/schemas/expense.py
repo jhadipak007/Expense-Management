@@ -22,15 +22,14 @@ class CurrencyOut(BaseModel):
     name: str
 
 
-class ExpenseIn(InputModel):
-    """A new expense. The recorder comes from the access token, never the body."""
+class ExpenseFields(InputModel):
+    """The fields a recorder enters, both when adding and when editing an expense."""
 
     amount: Decimal = Field(gt=0, max_digits=12, decimal_places=2)
     currency: str = Field(pattern=r"^[A-Z]{3}$")
     category_id: int = Field(gt=0)
     spent_on: date
     description: str | None = Field(default=None, max_length=500)
-    family_id: int | None = Field(default=None, gt=0)
 
     @field_validator("spent_on")
     @classmethod
@@ -43,6 +42,16 @@ class ExpenseIn(InputModel):
         if value > utcnow().date() + timedelta(days=1):
             raise ValueError("Date cannot be in the future")
         return value
+
+
+class ExpenseIn(ExpenseFields):
+    """A new expense. The recorder comes from the access token, never the body."""
+
+    family_id: int | None = Field(default=None, gt=0)
+
+
+class ExpenseUpdateIn(ExpenseFields):
+    """An edit replaces every field; the space (personal or family) cannot change."""
 
 
 class ExpenseOut(BaseModel):

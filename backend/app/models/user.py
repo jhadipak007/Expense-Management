@@ -28,3 +28,4 @@ class User(Base):
         back_populates="user", cascade="all, delete-orphan"
     )
     expenses: Mapped[list["Expense"]] = relationship(back_populates="user")  # noqa: F821
+    audit_entries: Mapped[list["ExpenseAudit"]] = relationship(back_populates="user")  # noqa: F821

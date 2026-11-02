@@ -63,6 +63,14 @@ def test_category_budget_counts_only_its_category(api, household, make_expense):
     assert create(api, priya, category_id=3)["spent"] == "20.00"
 
 
+def test_deleted_expense_does_not_count(api, household, make_expense, db):
+    priya = household[0]
+    make_expense(priya, amount="30.00", spent_on=TODAY)
+    make_expense(priya, amount="20.00", spent_on=TODAY).deleted_at = utcnow()
+    db.commit()
+    assert create(api, priya)["spent"] == "30.00"
+
+
 def test_one_expense_counts_towards_several_budgets(api, household, make_expense):
     priya = household[0]
     make_expense(priya, amount="30.00", spent_on=TODAY)

@@ -165,7 +165,7 @@ def _to_out(db: Session, budget: Budget, viewer: Viewer, today: date) -> BudgetO
 
 def _spent(db: Session, budget: Budget, start: date, end: date) -> Decimal:
     """Matching expenses in the period: same scope and currency, same category unless all."""
-    conditions = [scope_condition(budget.family_id, budget.user_id),
+    conditions = [scope_condition(budget.family_id, budget.user_id), Expense.is_active,
                   Expense.currency == budget.currency, Expense.spent_on.between(start, end)]
     if budget.category_id is not None:
         conditions.append(Expense.category_id == budget.category_id)
