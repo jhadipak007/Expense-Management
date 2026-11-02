@@ -25,6 +25,16 @@ describe('Main navigation', () => {
     expect(screen.getByRole('link', { name: 'Transactions' })).toHaveAttribute('aria-current', 'page');
   });
 
+  it('lists Budgets after Dashboard and keeps it active on the budget pages', async () => {
+    await renderLoggedIn('/budgets/new');
+    const nav = screen.getAllByRole('navigation', { name: 'Main' })[0];
+    expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual(
+      ['Dashboard', 'Budgets', 'Transactions', 'Families', 'Settings'],
+    );
+    expect(within(nav).getByRole('link', { name: 'Budgets' })).toHaveAttribute('href', '/budgets');
+    expect(within(nav).getByRole('link', { name: 'Budgets' })).toHaveAttribute('aria-current', 'page');
+  });
+
   it('opens the drawer with the Menu button and closes it with Close', async () => {
     const { user } = await renderLoggedIn();
     const menu = screen.getByRole('button', { name: 'Menu' });

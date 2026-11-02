@@ -11,6 +11,20 @@ Format:
 - **Alternatives:** what we rejected (optional).
 ```
 
+## 2026-11-02 — EM-17 — Budgets goes right after Dashboard in the menu
+- **Decision:** Menu order is Dashboard, Budgets, Transactions, Families, Settings.
+- **Why:** The story placed Budgets between Dashboard and Families, written before Transactions existed; the user chose to put it directly after Dashboard.
+- **Alternatives:** After Transactions.
+
+## 2026-11-02 — EM-17 — One budgets section for the dashboard and the Budgets page
+- **Decision:** `/budgets` renders the dashboard's `BudgetsSection` with `asPage`, which shows an h1 "Budgets" title instead of the section's h2. The dashboard section is unchanged.
+- **Why:** The story asks to reuse the section rather than duplicate it, and a page should have one h1 without showing "Budgets" twice.
+
+## 2026-11-02 — EM-17 — Create/Edit budget return through router state
+- **Decision:** Links from the Budgets page carry router state `{ returnTo: '/budgets' }`. `BudgetPage` goes back there ("Back to budgets"); without it, it returns to the dashboard with its filters as before.
+- **Why:** Keeps the dashboard's filter query string free of a navigation flag, and the browser keeps history state on reload.
+- **Alternatives:** A `?from=budgets` query parameter, which survives a copied URL but mixes into the filter query string.
+
 ## 2026-11-02 — EM-19 — Non-members get 404, not 403
 - **Decision:** Family routes, including the transaction list and audit log, return 404 to non-members.
 - **Why:** Matches every other family route, so nobody can find out which family ids exist.

@@ -46,7 +46,8 @@ describe('Transactions', () => {
   it('lists personal transactions with who created them and when', async () => {
     mockTransactions();
     renderApp('/transactions');
-    const row = within(await list('Transactions')).getByRole('link');
+    // The file's first render waits on refresh, user, lookups and the list in turn: allow for a cold start.
+    const row = within(await screen.findByRole('list', { name: 'Transactions' }, { timeout: 3000 })).getByRole('link');
     expect(row).toHaveTextContent('Grocery');
     expect(row).toHaveTextContent('1 Sep 2026');
     expect(row).toHaveTextContent('Weekly shop');

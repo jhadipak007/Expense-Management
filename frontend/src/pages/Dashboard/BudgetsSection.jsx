@@ -6,22 +6,24 @@ import { deleteBudget, listBudgets } from '@/api/budgets.js';
 import { useAsyncList } from '@/hooks/useAsyncList.js';
 import EmptyState from '@/components/EmptyState.jsx';
 import Notice from '@/components/Notice.jsx';
-import SectionCard, { CardHeading } from '@/components/SectionCard.jsx';
+import SectionCard, { CardHeading, PageHeader } from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import BudgetGroup from './BudgetGroup.jsx';
 
 /**
- * The dashboard's budgets, grouped under Personal and each family that has any.
+ * Budgets grouped under Personal and each family that has any, on the dashboard or the
+ * Budgets page (`asPage`: an h1 title, and Create/Edit return to the Budgets page).
  * Loaded on mount, so returning from Add expense shows the new spending.
  * `search` is the dashboard's query string, kept on the budget page links.
  */
-export default function BudgetsSection({ categories, families, search }) {
+export default function BudgetsSection({ categories, families, search, asPage = false }) {
   const { data: budgets, error, loading, reload } = useAsyncList(listBudgets);
   const [busyId, setBusyId] = useState(null);
   const [deleteError, setDeleteError] = useState('');
-  const createLink = { pathname: '/budgets/new', search };
-  const editLink = (budget) => ({ pathname: `/budgets/${budget.id}/edit`, search });
+  const state = asPage ? { returnTo: '/budgets' } : undefined;
+  const createLink = { to: { pathname: '/budgets/new', search }, state };
+  const editLink = (budget) => ({ to: { pathname: `/budgets/${budget.id}/edit`, search }, state });
 
   async function remove(budget) {
     setBusyId(budget.id);
@@ -44,10 +46,16 @@ export default function BudgetsSection({ categories, families, search }) {
   return (
     <section aria-labelledby="budgets-heading" aria-busy={loading} className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <CardHeading id="budgets-heading">Budgets</CardHeading>
+        {asPage ? (
+          <PageHeader
+            id="budgets-heading" title="Budgets" description="Spending limits for you and your families."
+          />
+        ) : (
+          <CardHeading id="budgets-heading">Budgets</CardHeading>
+        )}
         {groups?.length > 0 && (
           <Button asChild variant="outline" className="w-full md:w-auto">
-            <Link to={createLink}><PlusIcon />Create budget</Link>
+            <Link {...createLink}><PlusIcon />Create budget</Link>
           </Button>
         )}
       </div>
@@ -65,7 +73,7 @@ export default function BudgetsSection({ categories, families, search }) {
           description="Set a spending limit to see how your spending compares."
         >
           <Button asChild variant="outline">
-            <Link to={createLink}><PlusIcon />Create budget</Link>
+            <Link {...createLink}><PlusIcon />Create budget</Link>
           </Button>
         </EmptyState>
       )}
