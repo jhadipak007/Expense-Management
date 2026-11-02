@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { CheckIcon, RotateCcwIcon } from 'lucide-react';
+import { RotateCcwIcon } from 'lucide-react';
+import CategoryChips from '@/components/CategoryChips.jsx';
 import FormField from '@/components/FormField.jsx';
 import { CardHeading } from '@/components/SectionCard.jsx';
 import { Button } from '@/components/ui/button';
-import { Toggle } from '@/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { describeFilters, matchingPreset, presetRange, PRESETS } from './dashboardFilters.js';
 
@@ -56,14 +56,6 @@ export default function DashboardFilters({ headingId, filters, categories, month
     onChange({ ...filters, ...next });
   }
 
-  function toggleCategory(id) {
-    const { categoryIds } = filters;
-    const next = categoryIds.includes(id)
-      ? categoryIds.filter((other) => other !== id)
-      : [...categoryIds, id];
-    onChange({ ...filters, categoryIds: next });
-  }
-
   function reset() {
     setCustomOpen(false);
     setRangeError('');
@@ -105,34 +97,11 @@ export default function DashboardFilters({ headingId, filters, categories, month
             />
           </div>
         )}
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Categories">
-          <Chip
-            label="All categories" pressed={filters.categoryIds.length === 0}
-            onPressedChange={() => onChange({ ...filters, categoryIds: [] })}
-          />
-          {categories.map((category) => (
-            <Chip
-              key={category.id} label={category.name} color={category.color}
-              pressed={filters.categoryIds.includes(category.id)}
-              onPressedChange={() => toggleCategory(category.id)}
-            />
-          ))}
-        </div>
+        <CategoryChips
+          categories={categories} selected={filters.categoryIds}
+          onChange={(categoryIds) => onChange({ ...filters, categoryIds })}
+        />
       </section>
     </>
-  );
-}
-
-/** A pill that toggles one category filter; a check marks it on, a colour dot names the category's colour. */
-function Chip({ label, color, pressed, onPressedChange }) {
-  return (
-    <Toggle
-      variant="outline" pressed={pressed} onPressedChange={onPressedChange}
-      className="rounded-full data-[state=on]:border-primary"
-    >
-      {pressed && <CheckIcon aria-hidden="true" />}
-      {color && <span className="size-2.5 rounded-full" style={{ background: color }} aria-hidden="true" />}
-      {label}
-    </Toggle>
   );
 }

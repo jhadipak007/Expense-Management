@@ -1,6 +1,6 @@
 /**
  * Default MSW handlers: a logged-out visitor whose login or sign-up (OTP 2211) as Priya
- * succeeds, with no families, invitations, expenses or budgets yet, the three seeded categories and a few currencies.
+ * succeeds, with no families, invitations, expenses (or audit entries) or budgets yet, the three seeded categories and a few currencies.
  */
 import { http, HttpResponse } from 'msw';
 
@@ -45,6 +45,8 @@ export const handlers = [
   http.get('/api/currencies', () => HttpResponse.json(CURRENCIES)),
   http.get('/api/reports/summary', () => HttpResponse.json({ currencies: [] })),
   http.get('/api/budgets', () => HttpResponse.json([])),
+  http.get('/api/expenses', () => HttpResponse.json({ items: [], has_more: false })),
+  http.get('/api/expenses/audit-log', () => HttpResponse.json({ items: [], has_more: false })),
 ];
 
 /** Handler that makes the refresh cookie valid, i.e. the visitor is logged in. */

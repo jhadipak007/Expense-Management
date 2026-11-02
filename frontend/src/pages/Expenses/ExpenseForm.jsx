@@ -29,24 +29,39 @@ function validate(form) {
   return errors;
 }
 
-function toPayload(form) {
+/** Form values from a saved expense, for editing it. */
+function fromExpense(expense) {
   return {
+    amount: expense.amount,
+    currency: expense.currency,
+    category_id: String(expense.category.id),
+    spent_on: expense.spent_on,
+    description: expense.description ?? '',
+    family_id: String(expense.family_id ?? ''),
+  };
+}
+
+/** The API body; an edit leaves out `family_id`, since the space cannot change. */
+function toPayload(form, editing) {
+  const payload = {
     amount: form.amount.trim(),
     currency: form.currency,
     category_id: Number(form.category_id),
     spent_on: form.spent_on,
     description: form.description.trim() || null,
-    family_id: form.family_id ? Number(form.family_id) : null,
   };
+  return editing ? payload : { ...payload, family_id: form.family_id ? Number(form.family_id) : null };
 }
 
 /**
  * Amount, currency, category, date, description and who to share with.
- * Categories, currencies and families come from the server.
+ * Categories, currencies and families come from the server. With `expense` the form
+ * edits it: its values fill the form and who it is shared with is shown, not changed.
  * `onSubmit(payload)` saves it; if it throws, the error is shown and the input kept.
  */
-export default function ExpenseForm({ categories, currencies, families, onSubmit }) {
-  const [form, setForm] = useState(() => ({ ...EMPTY, spent_on: todayIso() }));
+export default function ExpenseForm({ categories, currencies, families, expense, onSubmit, children }) {
+  const editing = Boolean(expense);
+  const [form, setForm] = useState(() => (editing ? fromExpense(expense) : { ...EMPTY, spent_on: todayIso() }));
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -66,10 +81,11 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
     if (Object.keys(fieldErrors).length) return;
     setSubmitting(true);
     try {
-      await onSubmit(toPayload(form));
+      await onSubmit(toPayload(form, editing));
     } catch (error) {
       if (error.status === 422) showServerErrors(serverFieldErrors(error.body, MESSAGES));
-      else if (error.status === 404) setFormError(`${error.body.detail}. ${MESSAGES.family_id}.`);
+      else if (error.status === 404 && !editing) setFormError(`${error.body.detail}. ${MESSAGES.family_id}.`);
+      else if ([403, 404, 409].includes(error.status)) setFormError(`${error.body.detail}.`);
       else setFormError(UNAVAILABLE);
       setSubmitting(false);
     }
@@ -114,20 +130,33 @@ export default function ExpenseForm({ categories, currencies, families, onSubmit
         />
       </FormSection>
       <FormSection legend="Who can see it">
-        <div className="grid gap-4 md:grid-cols-2">
-          <SelectField
-            id="share-with" label="Share with" value={form.family_id} onChange={set('family_id')}
-            hint="Personal expenses are only yours. A family's members all see its expenses."
-            error={errors.family_id}
-          >
-            <NativeSelectOption value="">Personal</NativeSelectOption>
-            {families.map((f) => <NativeSelectOption key={f.id} value={f.id}>{f.name}</NativeSelectOption>)}
-          </SelectField>
-        </div>
+        {editing ? (
+          <p>
+            Shared with{' '}
+            <span className="font-semibold text-foreground">
+              {families.find((f) => f.id === expense.family_id)?.name ?? 'Personal'}
+            </span>
+            . This cannot be changed.
+          </p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            <SelectField
+              id="share-with" label="Share with" value={form.family_id} onChange={set('family_id')}
+              hint="Personal expenses are only yours. A family's members all see its expenses."
+              error={errors.family_id}
+            >
+              <NativeSelectOption value="">Personal</NativeSelectOption>
+              {families.map((f) => <NativeSelectOption key={f.id} value={f.id}>{f.name}</NativeSelectOption>)}
+            </SelectField>
+          </div>
+        )}
       </FormSection>
-      <SubmitButton pending={submitting} pendingLabel="Saving..." disabled={!complete} className="md:w-auto md:self-end md:px-10">
-        Save
-      </SubmitButton>
+      <div className="flex flex-col gap-2 md:flex-row md:justify-end">
+        {children}
+        <SubmitButton pending={submitting} pendingLabel="Saving..." disabled={!complete} className="md:w-auto md:px-10">
+          Save
+        </SubmitButton>
+      </div>
     </form>
   );
 }

@@ -108,6 +108,7 @@ def delete_expense(db: Session, expense_id: int, user_id: int) -> None:
 
 
 def restore_expense(db: Session, expense_id: int, user_id: int) -> None:
+    """Undo a delete: the expense counts again in lists, reports and budgets."""
     expense = _recorded_by(db, expense_id, user_id)
     if expense.is_active:
         raise ExpenseStateConflict("The expense is not deleted")

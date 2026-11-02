@@ -1,4 +1,5 @@
 import { act, screen, within } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 import { validRefresh } from '@/test/handlers.js';
 import { server } from '@/test/setup.js';
@@ -16,6 +17,12 @@ describe('Main navigation', () => {
     await renderLoggedIn('/families');
     expect(screen.getByRole('link', { name: 'Families' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Dashboard' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('keeps Transactions active on a transaction page', async () => {
+    server.use(http.get('/api/expenses/5', () => HttpResponse.json({}, { status: 404 })));
+    await renderLoggedIn('/transactions/5');
+    expect(screen.getByRole('link', { name: 'Transactions' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('opens the drawer with the Menu button and closes it with Close', async () => {

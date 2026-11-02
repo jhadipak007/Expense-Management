@@ -48,7 +48,7 @@ Expense Tracker/
 │   │   ├── db.py              # engine and session
 │   │   ├── logging_config.py  # stdout handler, JSON/text format, request ID contextvar
 │   │   ├── request_logging.py # request ID middleware and access line
-│   │   ├── models/            # SQLAlchemy models: user, family, expense, budget, lookups
+│   │   ├── models/            # SQLAlchemy models: user, family, expense, expense audit, budget, lookups
 │   │   ├── schemas/           # Pydantic request/response models
 │   │   ├── routers/           # /api routes: auth, users, families, expenses, budgets, reports
 │   │   └── services/          # business logic and access checks
@@ -66,7 +66,7 @@ Expense Tracker/
         ├── main.jsx
         ├── App.jsx
         ├── api/               # fetch wrappers for /api
-        ├── pages/             # Login, Register, Dashboard, Expenses, Budgets, Families, Settings
+        ├── pages/             # Login, Register, Dashboard, Expenses, Transactions, Budgets, Families, Settings
         ├── components/        # app building blocks (FormField, SectionCard, ItemRow...)
         ├── utils/             # logger (error reporting), formatting helpers
         │   └── ui/            # shadcn/ui components (generated, committed)

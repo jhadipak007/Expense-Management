@@ -43,6 +43,7 @@ Budget and Currency have no relationships: services select what they need (a bud
 | Model | Field | Kind | Meaning |
 |---|---|---|---|
 | Expense | `is_personal` | `hybrid_property` | `family_id` is null; also usable in queries |
+| Expense | `is_active` | `hybrid_property` | `deleted_at` is null (not soft-deleted); reports and budget spending filter on it, the detail and audit log do not |
 | Expense | `category_name` | `association_proxy` | the category's name |
 | FamilyInvitation | `is_open` | `hybrid_property` | `pending` and not expired; also used in queries and conditional updates |
 | RefreshToken | `is_active` | `hybrid_property` | not revoked and not expired |
@@ -64,6 +65,8 @@ Budget and Currency have no relationships: services select what they need (a bud
 - Every migration has a working `downgrade()`.
 - Adding or dropping a plain column on a table that other tables reference (such as `users`) uses `op.add_column` / `op.drop_column`, not batch mode: a batch rebuild drops the table, which fails on SQLite while foreign keys point at its rows (0006).
 - A unique rule over nullable columns uses a non-null key column instead, because NULLs never collide in a unique constraint: `budgets.scope_key` (`u5:all`, `f3:2`) with `UNIQUE (scope_key, period, currency)`.
+- A data backfill uses lightweight `sa.table()` stubs with `insert().from_select(...)`, so it is one dialect-neutral statement and never imports app models: 0007 gives every existing expense its `created` audit row.
+- Autogenerate writes `app.models.base.UTCDateTime` and repeats named CHECK constraints for `Enum(create_constraint=True)` columns; replace them with `sa.DateTime(timezone=True)` and one `op.f('ck_...')` constraint (0007).
 - Data migrations seed the lookup tables: the categories (Grocery, Eating Out and Trips, with their colors) and the currencies (ISO 4217 codes and names, written as literal rows so a migration never changes with a library).
 - Local: the container runs `alembic upgrade head` before starting uvicorn.
 - Production: migrations run as a one-off ECS Fargate task during each release (see [aws_deployment.md](aws_deployment.md), section 7).

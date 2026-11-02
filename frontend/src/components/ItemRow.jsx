@@ -1,8 +1,9 @@
+import { cn } from 'cn';
 import UserAvatar from '@/components/UserAvatar.jsx';
 
 /** A list of item rows; pass aria-label to name it. */
-export function ItemList(props) {
-  return <ul className="flex flex-col gap-2" {...props} />;
+export function ItemList({ className, ...props }) {
+  return <ul className={cn('flex flex-col gap-2', className)} {...props} />;
 }
 
 /** A bordered list row; its details stack on phones and sit beside the actions from 768px. */

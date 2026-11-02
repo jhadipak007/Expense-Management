@@ -106,6 +106,20 @@ Changes to the ISO list are applied by a new migration. Removing a code fails wh
 | spent_on | date | date of the expense |
 | description | string, nullable | |
 | created_at, updated_at | datetime | UTC |
+| deleted_at | datetime, nullable | set while soft-deleted; added with a plain `ALTER` because `expense_audit` references the table |
+
+**expense_audit**: the audit trail, one row per action on an expense. Rows are only ever inserted, by the services, in the same commit as the change; no API edits or deletes them.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | integer PK | also the order of actions |
+| expense_id | FK expenses.id | indexed; `RESTRICT` (expenses are never hard-deleted) |
+| user_id | FK users.id | who acted; `RESTRICT` |
+| action | string + CHECK | `created`, `updated`, `deleted`, `restored` |
+| changes | JSON, nullable | updates only: `{field: [old, new]}` for the fields that changed (`amount` as "12.50", `currency`, `category` by name, `spent_on` ISO, `description`) |
+| created_at | datetime | UTC; when the action happened |
+
+Migration 0007 backfilled one `created` row for every expense that existed before the audit trail, by its recorder at its `created_at`. "Last modified by/on" is the newest row after `created`; it is not stored on `expenses`.
 
 ## Budgets
 
@@ -136,7 +150,9 @@ Spent = the sum of expenses in the current period with the same scope (personal:
 
 ## Access rules
 - A user sees an expense if they recorded it and `family_id` is null, or if they are a member of its `family_id`.
-- Any family member can add expenses to that family. Only the recorder can edit or delete an expense.
+- Any family member can add expenses to that family. Only the recorder can edit, delete or restore an expense, and an edit cannot move it to another space (personal or family).
+- Deleting is a soft delete: a deleted expense leaves the transaction list, reports and budget spending, but it and its history stay visible to everyone who could see it, in its detail and the space's audit log.
+- A space's audit log follows the same visibility: personal actions are seen by the recorder only, a family's by its current members. Leaving a family removes access at once.
 - Only members see a family and its member list (name, email, role). Only a family `owner` can search for users, invite, cancel invitations, remove other members or rename the family. A member may leave; an owner may not leave or remove themself. This ensures every family always has at least one owner. Ownership transfer is not supported by the current API.
 - A personal budget is seen and managed by its creator only. A family budget is seen by every member; only the family owner creates, changes or deletes it.
 - Reports are scoped either to the authenticated user's personal expenses (no `family_id`) or to one specified family (member access required); they do not combine personal and family expenses. Totals are grouped by `currency` (and by category or month), with no conversion.

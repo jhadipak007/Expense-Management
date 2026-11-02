@@ -112,6 +112,31 @@ for (const width of WIDTHS) {
       await page.screenshot({ path: `test-results/screens/create-budget-${width}.png`, fullPage: true });
     });
 
+    test('transactions pages fit and have large touch targets', async ({ page }) => {
+      await signUpFresh(page);
+      await createFamily(page, 'Asha Home');
+      await addExpense(page, { amount: '12450', currency: 'INR', category: 'Grocery', shareWith: 'Asha Home' });
+      await page.goto('/transactions');
+      await page.getByLabel('Space').selectOption('Asha Home');
+      const list = page.getByRole('list', { name: 'Transactions' });
+      await expect(list).toContainText('INR 12,450.00');
+      await expectNoHorizontalScroll(page);
+      await expectTouchTarget(page.getByLabel('Space'));
+      await expectTouchTarget(page.getByRole('tab', { name: 'Audit log' }));
+      await expectTouchTarget(page.getByLabel('Created by'));
+      await expectTouchTarget(page.getByRole('button', { name: 'Search' }));
+      await page.screenshot({ path: `test-results/screens/transactions-${width}.png`, fullPage: true });
+      await page.getByRole('tab', { name: 'Audit log' }).click();
+      await expect(page.getByRole('list', { name: 'Audit log' })).toContainText('Created');
+      await expectNoHorizontalScroll(page);
+      await page.screenshot({ path: `test-results/screens/audit-log-${width}.png`, fullPage: true });
+      await page.getByRole('list', { name: 'Audit log' }).getByRole('link').first().click();
+      await expect(page.getByRole('region', { name: 'History' })).toBeVisible();
+      await expectNoHorizontalScroll(page);
+      await expectTouchTarget(page.getByRole('button', { name: 'Edit' }));
+      await page.screenshot({ path: `test-results/screens/transaction-${width}.png`, fullPage: true });
+    });
+
     test('navigation is a drawer below 1024px and a sidebar above', async ({ page }) => {
       await logIn(page);
       await expectDashboard(page);
